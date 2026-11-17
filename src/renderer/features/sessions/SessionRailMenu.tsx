@@ -83,8 +83,8 @@ export function SessionRailMenu({
       <div className="context-separator" role="separator" />
       <SessionRailMenuItem
         label="Stop"
-        shortcut="⌃C"
-        keys="Control+C"
+        shortcut="Esc"
+        keys="Escape"
         disabled={session.status !== "running"}
         onSelect={() => onStop(session.id)}
         onDismiss={onDismiss}
