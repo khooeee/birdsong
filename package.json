@@ -1,7 +1,7 @@
 {
   "name": "birdsong",
   "productName": "Birdsong",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "High productivity agentic development environment",
   "main": ".vite/build/main.cjs",
   "private": true,
