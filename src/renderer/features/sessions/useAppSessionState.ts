@@ -21,11 +21,20 @@ export function useAppSessionState() {
   const [sessionNotice, setSessionNotice] = useState<string | null>(null);
 
   useEffect(() => {
+    let previousActiveTabId: ActiveTabId | undefined;
+    const updateActiveTabId = (id: ActiveTabId) => {
+      if (previousActiveTabId !== undefined && previousActiveTabId !== id) {
+        railModeStore.set("sessions");
+      }
+      previousActiveTabId = id;
+      setActiveTabId(id);
+    };
+
     void window.birdsong.listSessions().then((data) => {
       railModeStore.setHasSessions(data.pinned.length + data.unpinned.length > 0);
       setPinnedSessions(data.pinned);
       setUnpinnedSessions(data.unpinned);
-      setActiveTabId(data.activeTabId);
+      updateActiveTabId(data.activeTabId);
     });
 
     const unsubs = [
@@ -33,7 +42,7 @@ export function useAppSessionState() {
         railModeStore.setHasSessions(p.length + u.length > 0);
         setPinnedSessions((prev) => shareById(prev, p, shareSession));
         setUnpinnedSessions((prev) => shareById(prev, u, shareSession));
-        setActiveTabId(a);
+        updateActiveTabId(a);
         // A focus belongs to one session. Clear it on leaving so a later visit does not force
         // that session's right rail (which each tab keeps) back onto the old event.
         setFocusEvent((prev) => (prev && prev.sessionId !== a ? null : prev));
