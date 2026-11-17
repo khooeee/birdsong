@@ -1,0 +1,21 @@
+import type { ActiveTabId } from "../../shared/activeTabId";
+import type { Session } from "../../shared/session";
+import type { TranscriptTurn } from "../../shared/transcript";
+import type { SessionRailLists } from "../railLists/SessionRailLists";
+
+/** Session state that hydration reads and mutates. */
+export type HydrationHost = {
+  sessions: Map<string, Session>;
+  transcripts: Map<string, TranscriptTurn[]>;
+  hydrated: Set<string>;
+  get railLists(): SessionRailLists;
+  get activeTabId(): ActiveTabId;
+  setActiveTabId: (id: ActiveTabId) => void;
+  setRailLists: (lists: SessionRailLists) => void;
+  emitSessions: () => void;
+  persist: () => void;
+  queuePersist: () => void;
+  pushTranscript: (sessionId: string) => void;
+  send: (channel: string, payload: unknown) => void;
+  prependSession: (session: Session, pin?: boolean) => void;
+};

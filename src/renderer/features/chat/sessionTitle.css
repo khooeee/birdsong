@@ -1,0 +1,3 @@
+.session-title-link { color: inherit; text-decoration: none; }
+.session-title-link:hover { text-decoration: underline; }
+.session-title-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }

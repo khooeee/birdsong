@@ -1,0 +1,13 @@
+::highlight(find-matches) {
+  background-color: #ffe38a;
+  color: #201800;
+}
+
+::highlight(find-active) {
+  background-color: #ff963b;
+  color: #201000;
+}
+
+.message.find-scope {
+  box-shadow: inset 0 0 0 2px #ff963b;
+}

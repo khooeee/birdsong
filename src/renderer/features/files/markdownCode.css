@@ -1,0 +1,10 @@
+.github-markdown-preview pre .tok-keyword { color: var(--syntax-keyword); }
+.github-markdown-preview pre :is(.tok-string, .tok-string2) { color: var(--syntax-string); }
+.github-markdown-preview pre :is(.tok-number, .tok-bool, .tok-atom) { color: var(--syntax-number); }
+.github-markdown-preview pre .tok-comment { color: var(--syntax-comment); font-style: italic; }
+.github-markdown-preview pre :is(.tok-typeName, .tok-className, .tok-namespace) { color: var(--syntax-type); }
+.github-markdown-preview pre .tok-function { color: var(--syntax-function); }
+.github-markdown-preview pre .tok-propertyName { color: var(--syntax-property); }
+.github-markdown-preview pre .tok-tagName { color: var(--syntax-tag); }
+.github-markdown-preview pre .tok-meta { color: var(--syntax-meta); }
+.github-markdown-preview pre .tok-invalid { color: var(--danger); }

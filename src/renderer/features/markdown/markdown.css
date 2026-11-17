@@ -1,0 +1,53 @@
+.message .body.markdown-body {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.markdown-body > :first-child { margin-top: 0; }
+.markdown-body > :last-child { margin-bottom: 0; }
+.markdown-body p,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body blockquote,
+.markdown-code-block,
+.markdown-table { margin: 0.5em 0; }
+.markdown-body h1 { font-size: 1.45em; }
+.markdown-body h2 { font-size: 1.3em; }
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 { font-size: 1.1em; }
+.markdown-body :is(h1, h2, h3, h4, h5, h6) { margin: 1em 0 0.45em; line-height: 1.3; }
+.markdown-body :is(ul, ol) { padding-left: 1.8em; }
+/* Agents often emit blank lines between items → loose lists wrap each li in <p>. */
+.markdown-body li + li { margin-top: 0.15em; }
+.markdown-body li > p { margin: 0; }
+.markdown-body li > p + p { margin-top: 0.35em; }
+.markdown-body li > :is(ul, ol) { margin: 0.25em 0; }
+.markdown-body blockquote { border-left: 3px solid var(--border); padding-left: 1em; color: var(--text-dim); }
+.markdown-body a { color: var(--codex); text-decoration: underline; }
+.markdown-body code { font-family: var(--font-mono); font-weight: var(--font-mono-weight); background: var(--code-bg); border-radius: 3px; padding: 0.1em 0.3em; }
+.markdown-body pre { overflow-x: auto; white-space: pre; word-break: normal; overflow-wrap: normal; padding: 10px; background: var(--code-bg); border-radius: 6px; tab-size: 2; }
+.markdown-body pre code { padding: 0; background: transparent; }
+.markdown-code-block { position: relative; }
+.markdown-code-block > pre { margin: 0; }
+/* Sit over the block's bottom-right corner; revealed on hover so they never hide code at rest.
+   Backgrounds stay opaque so code scrolled underneath does not bleed through. */
+.markdown-code-actions { position: absolute; bottom: 5px; right: 5px; display: flex; gap: 2px; opacity: 0; transition: opacity 0.12s ease; }
+.markdown-code-actions .event-action { background: var(--code-bg); user-select: none; }
+.markdown-code-actions .event-action:hover:not(:disabled) { background: color-mix(in srgb, var(--text) 10%, var(--code-bg)); }
+.markdown-code-actions .markdown-code-wrap.on { color: color-mix(in srgb, var(--copy-icon) 55%, var(--text)); background: color-mix(in srgb, var(--text) 14%, var(--code-bg)); }
+.markdown-code-actions .markdown-code-copy.copied { background: color-mix(in srgb, var(--copy-done) 14%, var(--code-bg)); }
+.markdown-code-block:hover .markdown-code-actions,
+.markdown-code-block .markdown-code-actions:focus-within,
+.markdown-code-block .markdown-code-actions:has(.copied) { opacity: 1; }
+.markdown-code-block.wrapping > pre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.markdown-code-block > .mermaid-diagram { padding: 10px; background: var(--code-bg); border-radius: 6px; }
+.markdown-table { overflow-x: auto; }
+.markdown-body table { border-collapse: collapse; min-width: 0; }
+.markdown-body :is(th, td) { border: 1px solid var(--border); padding: 5px 9px; }
+.markdown-body th { background: var(--bg-0); }
+.markdown-body hr { border: 0; border-top: 1px solid var(--border); margin: 1em 0; }
+.markdown-body .contains-task-list { list-style: none; padding-left: 0.4em; }
+.markdown-body input[type="checkbox"] { margin-right: 0.5em; }

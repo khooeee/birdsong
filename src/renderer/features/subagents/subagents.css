@@ -1,0 +1,109 @@
+.subagent-spinner {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  color: var(--text-dim);
+  animation: subagent-spinner-turn 0.8s linear infinite;
+}
+
+.subagent-state-glyph {
+  display: inline-block;
+  width: 11px;
+  flex-shrink: 0;
+  text-align: center;
+  font-size: 11px;
+  line-height: 1;
+  color: var(--text-dim);
+}
+
+.subagent-state-glyph.completed { color: var(--copy-done); }
+.subagent-state-glyph.failed { color: var(--danger-text); }
+
+@keyframes subagent-spinner-turn {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .subagent-spinner { animation: none; }
+}
+
+.subagent-rail-heading {
+  min-width: 0;
+}
+
+.subagent-rail-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.subagent-rail-meta {
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: color-mix(in srgb, var(--text-dim) 65%, transparent);
+  font-size: var(--font-ui-size);
+}
+
+.subagent-rail-empty {
+  padding: 16px 14px;
+  color: var(--text-dim);
+}
+
+.message .subagent-row-task {
+  margin-top: 2px;
+  color: var(--text-dim);
+  font-size: var(--font-ui-size);
+}
+
+/* Same look as the "Files:" chips under a final reply (fileChanges.css). */
+.subagent-chips {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.5em;
+  row-gap: 0.4em;
+  align-items: baseline;
+  padding: 0 12px;
+  font-family: var(--font-mono);
+  font-weight: var(--font-mono-weight);
+  font-size: var(--font-mono-small-size);
+  line-height: 1.45;
+}
+
+.subagent-chips-label {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.subagent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  max-width: 100%;
+  padding: 0.35em 0.75em;
+  border: 0;
+  border-radius: 8px;
+  background: var(--bg-2);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.subagent-chip:hover,
+.subagent-chip.active {
+  color: var(--codex);
+}
+
+.subagent-chip-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

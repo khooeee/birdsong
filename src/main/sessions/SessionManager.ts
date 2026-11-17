@@ -1,0 +1,218 @@
+import { SessionWorkingFolders } from "../workingFolders/SessionWorkingFolders";
+import { saveSessionMeta } from "../storage/sessionMeta";
+import { metaFromSession } from "../storage/metaFromSession";
+import type { BrowserWindow } from "electron";
+import type { AppSettings } from "../../shared/appSettings";
+import type { ConfigMenuCategory } from "../../shared/configMenuCategory";
+import type { CreateSessionInput } from "../../shared/createSessionInput";
+import type { Session } from "../../shared/session";
+import type { TranscriptTurn } from "../../shared/transcript";
+import { loadState } from "../storage/persist";
+import { getAppSettings, hydrateAppSettings, patchAppSettings } from "../appSettings";
+import { SessionState } from "./SessionState";
+import { SessionPersistence } from "./SessionPersistence";
+import { SessionHydration } from "./SessionHydration";
+import { SessionAgents } from "./SessionAgents";
+import { UsageLimitResumer } from "./UsageLimitResumer";
+import { SessionFind } from "./SessionFind";
+import { SessionRail } from "./SessionRail";
+import type { SessionDeps } from "./SessionDeps";
+import type { SessionObserver } from "./SessionObserver";
+import type { SessionEventListener } from "./SessionEventListener";
+import { restoreSavedState } from "./restoreSavedState";
+import { enforceSessionListMax } from "./enforceSessionListMax";
+import { createSession } from "./createSession";
+import { forkSession } from "./forkSession";
+import { setActiveTab } from "./setActiveTab";
+import { navigateToEvent } from "./navigateToEvent";
+import { noteReminder } from "./noteReminder";
+import { promptSession } from "./promptSession";
+import { showSessionConfigMenu } from "./showSessionConfigMenu";
+
+/** Main-process API for sessions, tabs and prompts; delegates to collaborators. */
+export class SessionManager {
+  private state = new SessionState();
+  private persistence = new SessionPersistence(this.state);
+  private hydration = new SessionHydration(this.state, this.persistence);
+  private resumer = new UsageLimitResumer(this.state, (sessionId, text) => this.enqueuePrompt(sessionId, text));
+  private agents = new SessionAgents(this.state, this.persistence, this.hydration, this.resumer);
+  private find = new SessionFind(this.state);
+  readonly workingFolders = new SessionWorkingFolders({
+    getSession: (id) => this.state.sessions.get(id),
+    ensure: (id) => this.hydration.ensure(id),
+    save: (session) => saveSessionMeta(session.id, metaFromSession(session)),
+    emit: () => this.state.emitSessions(),
+  });
+  private deps: SessionDeps = {
+    state: this.state,
+    persistence: this.persistence,
+    hydration: this.hydration,
+    agents: this.agents,
+  };
+  private rail = new SessionRail(this.deps);
+
+  setWindow(win: BrowserWindow): void {
+    this.state.window = win;
+    const sessionId = this.state.activeTabId;
+    if (sessionId) this.agents.refreshCommandsIfNeeded(sessionId);
+  }
+
+  setObserver(observer: SessionObserver | null): void {
+    this.state.observer = observer;
+  }
+
+  /** Receive every event sent to the renderer; returns an unsubscribe. */
+  subscribe(listener: SessionEventListener): () => void {
+    this.state.listeners.add(listener);
+    return () => this.state.listeners.delete(listener);
+  }
+
+  async init(): Promise<void> {
+    const saved = await loadState();
+    hydrateAppSettings(saved?.settings);
+    if (saved) await restoreSavedState(this.deps, saved);
+    if (await enforceSessionListMax(this.deps)) await this.persistence.persistStateFile();
+    this.agents.ensureWarm(getAppSettings().lastCwd);
+    this.resumer.start();
+  }
+
+  persist(): Promise<void> {
+    return this.persistence.persist();
+  }
+
+  getSettings(): AppSettings {
+    return getAppSettings();
+  }
+
+  updateSettings(patch: Partial<AppSettings>): AppSettings {
+    const next = patchAppSettings(patch);
+    void this.persistence.persistStateFile();
+    return next;
+  }
+
+  list() {
+    return this.state.sessionListPayload();
+  }
+
+  pinSession(sessionId: string): boolean {
+    return this.rail.pin(sessionId);
+  }
+
+  unpinSession(sessionId: string): void {
+    this.rail.unpin(sessionId);
+  }
+
+  /** `focus: false` adds the session to the rail without switching to it (control API, crons). */
+  async createSession(
+    input: CreateSessionInput,
+    { focus = true }: { focus?: boolean } = {},
+  ): Promise<Session> {
+    const session = await createSession(this.deps, input, focus);
+    await this.trimRail(session.id);
+    if (input.prompt && session.status !== "error") await this.enqueuePrompt(session.id, input.prompt);
+    return session;
+  }
+
+  async forkSession(sessionId: string, eventId?: string): Promise<Session> {
+    const session = await forkSession(this.deps, sessionId, eventId);
+    await this.trimRail(session.id);
+    return session;
+  }
+
+  /** Keep the rail under sessionListMax after it grows. */
+  private async trimRail(keepId: string): Promise<void> {
+    if (await enforceSessionListMax(this.deps, keepId)) await this.persistence.persistStateFile();
+  }
+
+  closeSession(sessionId: string): Promise<void> {
+    return this.rail.close(sessionId);
+  }
+
+  renameSession(sessionId: string, title: string): void {
+    this.rail.rename(sessionId, title);
+  }
+
+  getSession(sessionId: string): Session | undefined {
+    return this.state.sessions.get(sessionId);
+  }
+
+  /** One session in the same shape `list()` reports it. */
+  getSessionPayload(sessionId: string): Session | undefined {
+    const session = this.state.sessions.get(sessionId);
+    return session && this.state.sessionPayload(session);
+  }
+
+  setActiveTab(tabId: string): Promise<void> {
+    return setActiveTab(this.deps, tabId);
+  }
+
+  /** Add a due reminder to the session's transcript without prompting its agent. */
+  noteReminder(sessionId: string, message: string): Promise<void> {
+    return noteReminder(this.deps, sessionId, message);
+  }
+
+  navigateToEvent(sessionId: string, turnId: string, eventId: string): Promise<void> {
+    return navigateToEvent(this.deps, sessionId, turnId, eventId);
+  }
+
+  /** Start uncapped history search; progress arrives via find:progress / find:done. */
+  startFindInSessions(query: string, searchId: number): { searchId: number } {
+    return this.find.start(query, searchId);
+  }
+
+  stopFindInSessions(): void {
+    this.find.stop();
+  }
+
+  async sendPrompt(sessionId: string, text: string): Promise<void> {
+    await promptSession(this.deps, sessionId, text, true);
+  }
+
+  /** Accept a prompt and return its turn id without waiting for the turn to finish. */
+  enqueuePrompt(sessionId: string, text: string): Promise<string> {
+    return promptSession(this.deps, sessionId, text, false);
+  }
+
+  /** Stops the running turn, and calls off a pending usage-limit resume. */
+  async cancelPrompt(sessionId: string): Promise<void> {
+    this.resumer.cancel(sessionId);
+    await this.state.agents.get(sessionId)?.cancel();
+    await this.persist();
+  }
+
+  /** Model or effort picker; choosing a value sets it on the agent. */
+  showConfigMenu(win: BrowserWindow | null, sessionId: string, category: ConfigMenuCategory): Promise<void> {
+    return showSessionConfigMenu(this.deps, win, sessionId, category);
+  }
+
+  respondAskQuestion(requestId: string, outcome: unknown): void {
+    const { state } = this;
+    const sessionId = state.askOwners.get(requestId);
+    if (!sessionId) return;
+    state.askOwners.delete(requestId);
+    state.agents.get(sessionId)?.respondAskQuestion(requestId, outcome);
+  }
+
+  async getTranscript(sessionId: string): Promise<TranscriptTurn[]> {
+    await this.hydration.ensure(sessionId);
+    return this.state.transcripts.get(sessionId) ?? [];
+  }
+
+  /** Chats mid-turn, which a quit would interrupt. */
+  runningChatCount(): number {
+    return [...this.state.sessions.values()].filter((session) => session.status === "running").length;
+  }
+
+  getSubagentTranscript(sessionId: string, subagentId: string): Promise<TranscriptTurn[]> {
+    return this.state.subagentTranscripts.get(sessionId, subagentId);
+  }
+
+  async disposeAll(): Promise<void> {
+    this.resumer.stop();
+    await this.persist();
+    await this.state.warm.dispose();
+    for (const s of this.state.agents.values()) {
+      await s.dispose();
+    }
+  }
+}

@@ -1,0 +1,53 @@
+import { useEffect, useRef, useState } from "react";
+import type { ActiveTabId } from "../../../shared/activeTabId";
+import type { Session } from "../../../shared/session";
+import type { MenuState } from "./railMenuState";
+
+/** Context menus, rename target, and window-event wiring for the session rail. */
+export function useSessionRailMenus(
+  activeTabId: ActiveTabId,
+  sessions: Session[],
+  toggleUnread: (sessionId: string) => void,
+) {
+  const [menu, setMenu] = useState<MenuState | null>(null);
+  const [rename, setRename] = useState<Session | null>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!menu) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (menuRef.current?.contains(event.target as Node)) return;
+      setMenu(null);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenu(null);
+    };
+    window.addEventListener("mousedown", onPointerDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("mousedown", onPointerDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [menu]);
+
+  useEffect(() => {
+    const startRename = () => {
+      const session = sessions.find((item) => item.id === activeTabId);
+      if (!session) return;
+      setMenu(null);
+      setRename(session);
+    };
+    window.addEventListener("birdsong:rename-session", startRename);
+    return () => window.removeEventListener("birdsong:rename-session", startRename);
+  }, [activeTabId, sessions]);
+
+  useEffect(() => {
+    const onToggleUnread = () => {
+      if (activeTabId) toggleUnread(activeTabId);
+    };
+    window.addEventListener("birdsong:mark-unread", onToggleUnread);
+    return () => window.removeEventListener("birdsong:mark-unread", onToggleUnread);
+  }, [activeTabId, toggleUnread]);
+
+  return { menu, setMenu, rename, setRename, menuRef };
+}

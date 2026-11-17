@@ -1,0 +1,32 @@
+import Foundation
+import Security
+
+/// The pairing link (it holds the token) in the Keychain.
+struct PairingStore {
+    private let query: [String: Any] = [
+        kSecClass as String: kSecClassGenericPassword,
+        kSecAttrService as String: "com.khooeee.birdsong",
+        kSecAttrAccount as String: "pairing-link",
+    ]
+
+    func load() -> ServerConfig? {
+        var lookup = query
+        lookup[kSecReturnData as String] = true
+        lookup[kSecMatchLimit as String] = kSecMatchLimitOne
+        var result: CFTypeRef?
+        guard SecItemCopyMatching(lookup as CFDictionary, &result) == errSecSuccess,
+              let data = result as? Data,
+              let link = String(data: data, encoding: .utf8)
+        else { return nil }
+        return ServerConfig(link: link)
+    }
+
+    func save(_ config: ServerConfig) {
+        SecItemDelete(query as CFDictionary)
+        var item = query
+        item[kSecValueData as String] = Data(config.link.utf8)
+        // ThisDeviceOnly: the token never moves to another phone through a backup restore.
+        item[kSecAttrAccessible as String] = kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly
+        SecItemAdd(item as CFDictionary, nil)
+    }
+}

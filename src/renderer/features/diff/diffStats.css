@@ -1,0 +1,7 @@
+.git-diff-stats { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.git-diff-plus { color: var(--git-green, oklch(from var(--syntax-string) l calc(c * 1.5) h)); }
+.git-diff-minus { color: var(--git-red, oklch(from var(--danger) l calc(c * 1.25) h)); }
+.git-diff-stat-blocks { display: inline-flex; gap: 1px; }
+.git-diff-stat-blocks i { width: 8px; height: 8px; background: var(--git-border, var(--border)); }
+.git-diff-stat-blocks .plus { background: var(--git-green, oklch(from var(--syntax-string) l calc(c * 1.5) h)); }
+.git-diff-stat-blocks .minus { background: var(--git-red, oklch(from var(--danger) l calc(c * 1.25) h)); }

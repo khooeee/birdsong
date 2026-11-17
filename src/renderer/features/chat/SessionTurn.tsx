@@ -1,0 +1,70 @@
+import { memo, useMemo } from "react";
+import { isReminderTurn } from "../../../shared/isReminderTurn";
+import type { TranscriptTurn } from "../../../shared/transcript";
+import { steerEvents } from "./steerEvents";
+import { ThinkingIndicator } from "./ThinkingIndicator";
+import { TranscriptMessage } from "./TranscriptMessage";
+import { TurnEvents } from "./TurnEvents";
+import { SubagentChips } from "../subagents/SubagentChips";
+import { subagentRows } from "../subagents/subagentRows";
+import { turnImages } from "../images/turnImages";
+import type { MessageSession } from "./useMessageSession";
+import { useTurnRailOpeners } from "./useTurnRailOpeners";
+
+/**
+ * Compact session turn: user + steers + subagents + assistant. Other mid-turn events live in the right
+ * rail. A reminder turn is just its marker.
+ */
+export const SessionTurn = memo(function SessionTurn({
+  session,
+  turn,
+  onOpenRightRail,
+}: {
+  session: MessageSession;
+  turn: TranscriptTurn;
+  onOpenRightRail: (turnId: string, focusEventId?: string) => void;
+}) {
+  const running = turn.status === "running" && !turn.user.queued;
+  const { openUser, openLatest, openAssistant } = useTurnRailOpeners(turn, onOpenRightRail);
+  const steers = useMemo(() => steerEvents(turn.events), [turn.events]);
+  const subagents = useMemo(() => subagentRows(turn.events), [turn.events]);
+  // The agent's reply often refers to an image a tool returned; show it with the reply.
+  const images = useMemo(() => turnImages(turn.events), [turn.events]);
+
+  if (isReminderTurn(turn)) {
+    return (
+      <div className="session-turn" data-turn-id={turn.id}>
+        <TranscriptMessage session={session} item={turn.user} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="session-turn" data-turn-id={turn.id}>
+      <TranscriptMessage
+        session={session}
+        item={turn.user}
+        onToggleDetails={openUser}
+        forkable
+      />
+      <TurnEvents session={session} events={steers} />
+      <SubagentChips sessionId={session.id} rows={subagents} />
+      {running ? <ThinkingIndicator onActivate={openLatest} /> : null}
+      {!running && turn.assistant ? (
+        <TranscriptMessage
+          session={session}
+          item={turn.assistant}
+          onToggleDetails={openAssistant}
+          extraFileChanges={turn.fileChanges}
+          extraImages={images}
+          forkable
+        />
+      ) : null}
+      {!running && !turn.assistant && turn.status === "stopped" ? (
+        <div className="message stopped" data-event-id={`${turn.id}-stopped`}>
+          <div className="body">Stopped</div>
+        </div>
+      ) : null}
+    </div>
+  );
+});

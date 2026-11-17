@@ -1,0 +1,15 @@
+.session-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--danger-pastel);
+  color: var(--text);
+  font-size: var(--font-ui-size);
+}
+
+.session-notice .btn {
+  margin-left: auto;
+  flex-shrink: 0;
+}

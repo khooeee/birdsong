@@ -1,0 +1,36 @@
+.rail-spinner {
+  width: 14px;
+  height: 14px;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  margin-left: auto;
+  color: color-mix(in srgb, var(--text-dim) 50%, var(--rail-bg));
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  animation: rail-spinner-turn 0.8s linear infinite;
+}
+
+.rail-unread {
+  width: 10px;
+  height: 10px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #9ed4b0;
+}
+
+.rail-session-end .rail-spinner {
+  margin-left: 0;
+}
+
+@keyframes rail-spinner-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail-spinner {
+    animation: none;
+  }
+}

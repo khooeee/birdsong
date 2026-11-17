@@ -1,0 +1,77 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: var(--backdrop);
+  display: grid;
+  place-items: center;
+  z-index: 40;
+}
+
+.modal {
+  width: min(420px, 90vw);
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: var(--font-ui-size);
+}
+
+.modal label.modal-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding-block: 6px;
+}
+
+.modal-checks {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 16px;
+}
+
+.modal label.modal-check input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  accent-color: var(--accent, #8a9299);
+}
+
+.modal select,
+.modal input,
+.modal textarea {
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.modal textarea {
+  resize: none;
+}
+
+html[data-theme="light"] .modal select,
+html[data-theme="light"] .modal input:not([type="checkbox"]),
+html[data-theme="light"] .modal textarea {
+  background: #ffffff;
+}
+
+.modal input:disabled,
+.modal input[readonly],
+.modal textarea:disabled {
+  opacity: 0.4;
+  color: var(--text-dim);
+  cursor: default;
+}

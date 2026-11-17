@@ -1,0 +1,248 @@
+import { randomUUID } from "node:crypto";
+import * as acp from "@agentclientprotocol/sdk/unstable";
+import type { TranscriptItem } from "../../shared/transcript";
+import { formatAgentError } from "../../shared/formatAgentError";
+import type { PromptHost } from "./PromptHost";
+import { PromptCompletion } from "./PromptCompletion";
+import { PromptQueue } from "./PromptQueue";
+import { PromptDelivery } from "./PromptDelivery";
+import { agentPrompt } from "./agentPrompt";
+import { usageLimitResetAt } from "./usageLimitResetAt";
+
+/** Sends prompts (or steers), tracks whether a turn is running, and cancels it. */
+export class PromptRunner {
+  private turnRunning = false;
+  private remoteTurnActive: boolean | null = null;
+  private stopping = false;
+  private completion: PromptCompletion;
+  private prompts: PromptQueue;
+  private delivery: PromptDelivery;
+
+  constructor(private host: PromptHost) {
+    const { turns } = host;
+    this.completion = new PromptCompletion(() => {
+      turns.complete();
+      host.callbacks().onPromptComplete();
+    });
+    this.prompts = new PromptQueue(
+      (text) => this.runPrompt(text),
+      {
+        onWaiting: (id) => turns.setQueued(id, true),
+        onReleased: (id) => turns.activate(id),
+        onDiscarded: (id) => {
+          const removed = turns.discard(id);
+          if (removed) host.callbacks().onTurnRemoved?.(removed.id);
+        },
+      },
+    );
+    this.delivery = new PromptDelivery({
+      isRunning: () => this.turnRunning,
+      prompt: (text, id) => this.prompts.send(text, id),
+      steer: (text) => {
+        const connection = host.connection();
+        const sessionId = host.sessionId();
+        if (!connection || !sessionId || host.isDisposed()) throw new Error("Session closed");
+        return connection.agent.request("_session/steering", {
+          sessionId,
+          prompt: agentPrompt(text, host.hasBirdsongTools(), host.slashCommands()),
+          _meta: { steering: { idleBehavior: "promptRequired" } },
+        });
+      },
+      onSupport: (supported) => host.callbacks().onSteeringSupport(supported),
+    });
+  }
+
+  get stopRequested(): boolean {
+    return this.stopping;
+  }
+
+  configureDelivery(meta: unknown): void {
+    this.delivery.configure(meta);
+  }
+
+  /** No turn in flight; remote status unknown until the agent reports it. */
+  markIdle(): void {
+    this.turnRunning = false;
+    this.remoteTurnActive = null;
+  }
+
+  /** Apply a codex `threadStatus` live update. */
+  applyThreadStatus(status: "active" | "idle" | "systemError"): void {
+    if (status !== "active") this.host.finishPending(status === "idle" ? "status unavailable" : "interrupted");
+    this.completion.status(status);
+    this.remoteTurnActive = status === "active";
+    this.turnRunning = this.remoteTurnActive;
+    this.host.callbacks().onStatus(status === "active" ? "running" : status === "idle" ? "ready" : "error");
+  }
+
+  /**
+   * Start a prompt. By default waits until the turn finishes.
+   * Pass `{ wait: false }` to return the turn id as soon as delivery is accepted.
+   */
+  async prompt(text: string, options?: { wait?: boolean }): Promise<string> {
+    const { host } = this;
+    if (!host.sessionId() || host.isDisposed()) throw new Error("Session not ready");
+    host.showUpdates();
+    host.output.reset();
+    const userItem: TranscriptItem = {
+      id: randomUUID(),
+      role: "user",
+      text,
+      at: Date.now(),
+    };
+    // Decide steer vs prompt before opening a turn so an inject lands on the
+    // in-flight turn as an event instead of a sibling user-only turn.
+    // Prompt mode must NOT start the agent request until the turn exists —
+    // otherwise a fast end_turn drops every streamed chunk.
+    const decision = await this.delivery.enqueue(text);
+
+    let turnId: string;
+    let completion: Promise<void>;
+    if (decision.mode === "injected") {
+      // Start a fresh assistant bubble after the steer so chunks don't splice into pre-steer text.
+      host.output.reset();
+      host.turns.apply(userItem);
+      turnId = host.turns.activeTurnId() ?? userItem.id;
+      completion = decision.completion;
+    } else if (decision.mode === "startedNewTurn") {
+      const turn = host.turns.open(userItem);
+      turnId = turn.id;
+      this.completion.detached();
+      host.turns.activateLatestRunning();
+      if (this.remoteTurnActive !== false) {
+        this.turnRunning = true;
+        host.callbacks().onStatus("running");
+      }
+      completion = decision.completion;
+    } else {
+      const turn = host.turns.open(userItem);
+      turnId = turn.id;
+      completion = this.delivery.startPrompt(text, userItem.id);
+    }
+
+    const finished = completion.then(
+      () => {
+        if (decision.mode === "injected") return;
+        // Steering startedNewTurn finishes without runPrompt; prompt mode waits on the queue.
+        if (!this.turnRunning) host.turns.complete();
+        else host.turns.completeIfOrphan(userItem.id);
+      },
+      (error) => {
+        // Errors must clear the thinking state even when PromptCompletion cancels.
+        host.turns.complete();
+        throw error;
+      },
+    );
+    if (options?.wait === false) {
+      void finished.catch(() => undefined);
+      return turnId;
+    }
+    await finished;
+    return turnId;
+  }
+
+  async cancel(): Promise<void> {
+    const { host } = this;
+    this.prompts.clearPending();
+    const connection = host.connection();
+    const sessionId = host.sessionId();
+    if (!connection || !sessionId || this.stopping || host.isDisposed()) return;
+    if (!this.turnRunning) {
+      // Claude Code answers a finished background command on its own; cancel that unreported work too.
+      if (!host.worksUnprompted) return;
+      host.questions.cancel();
+      await connection.agent.notify(acp.methods.agent.session.cancel, { sessionId });
+      return;
+    }
+    this.stopping = true;
+    host.questions.cancel();
+    this.completion.cancel();
+    try {
+      await connection.agent.notify(acp.methods.agent.session.cancel, { sessionId });
+      host.turns.stop({ id: randomUUID(), role: "stopped", text: "Stopped", at: Date.now() });
+    } catch (error) {
+      this.stopping = false;
+      throw error;
+    }
+  }
+
+  dispose(): void {
+    this.completion.cancel();
+    this.prompts.dispose();
+  }
+
+  private async runPrompt(text: string): Promise<void> {
+    const { host } = this;
+    if (!host.connection() || !host.sessionId() || host.isDisposed()) throw new Error("Session not ready");
+    this.completion.start();
+    this.stopping = false;
+    this.markRunning();
+    host.output.reset();
+
+    try {
+      await this.requestWithRetry(text);
+    } catch (error) {
+      this.failPrompt(formatAgentError(error));
+      const resetAt = usageLimitResetAt(error);
+      if (resetAt !== null) host.callbacks().onUsageLimit?.(resetAt);
+      throw error;
+    }
+  }
+
+  /** Stale agent sessions after restart get one renewal and one retry. */
+  private async requestWithRetry(text: string): Promise<void> {
+    const { host } = this;
+    try {
+      await this.requestPrompt(text);
+      return;
+    } catch (error) {
+      if (!/session not found/i.test(formatAgentError(error)) || host.isDisposed() || !host.connection()) {
+        throw error;
+      }
+    }
+    await host.renewSession();
+    host.showUpdates();
+    this.markRunning();
+    await this.requestPrompt(text);
+  }
+
+  private async requestPrompt(text: string): Promise<void> {
+    const { host } = this;
+    const connection = host.connection();
+    const sessionId = host.sessionId();
+    if (!connection || !sessionId || host.isDisposed()) throw new Error("Session not ready");
+    const response = await connection.agent.request(acp.methods.agent.session.prompt, {
+      sessionId,
+      prompt: agentPrompt(text, host.hasBirdsongTools(), host.slashCommands()),
+    });
+    if (this.remoteTurnActive !== true) host.finishPending(response.stopReason === "end_turn" ? "status unavailable" : "interrupted");
+    this.completion.finish(response.stopReason);
+    this.markSettled("ready");
+  }
+
+  private failPrompt(msg: string): void {
+    const { host } = this;
+    host.finishPending("interrupted");
+    // finish("error") cancels PromptCompletion (no done-sound) — still end the turn.
+    this.completion.finish("error");
+    host.noteSystem(msg);
+    host.turns.complete();
+    this.markSettled("error", msg);
+  }
+
+  /** A prompt request is in flight; remote status is unknown until the agent reports it. */
+  private markRunning(): void {
+    this.turnRunning = true;
+    this.remoteTurnActive = null;
+    this.host.callbacks().onStatus("running");
+  }
+
+  /** The prompt request settled; go idle unless the agent still reports an active turn. */
+  private markSettled(status: "ready" | "error", error?: string): void {
+    if (this.remoteTurnActive === true || this.host.isDisposed()) return;
+    // A stopped turn is over; questions from later work (a background command's follow-up) must reach the user.
+    this.stopping = false;
+    this.turnRunning = false;
+    this.host.callbacks().onStatus(status, error);
+  }
+}

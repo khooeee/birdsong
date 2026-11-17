@@ -1,0 +1,193 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { ConfigMenuCategory } from "../../../shared/configMenuCategory";
+import type { Session } from "../../../shared/session";
+import type { TranscriptTurn } from "../../../shared/transcript";
+import { formatAgentError } from "../../../shared/formatAgentError";
+import { findBarHasFocus } from "../find/findBarHasFocus";
+import { ComposerResize } from "./ComposerResize";
+import { ComposerPrompt } from "./ComposerPrompt";
+import { ComposerResumeNotice } from "./ComposerResumeNotice";
+import { applyPromptImagePaste } from "./applyPromptImagePaste";
+import { applyComposerHistoryEdit } from "./applyComposerHistoryEdit";
+import { applyComposerHistoryKey } from "./applyComposerHistoryKey";
+import { emptyComposerHistory, type ComposerHistoryState } from "./composerHistoryState";
+import { formatSessionUsage } from "./formatSessionUsage";
+import { useComposerDraft } from "./useComposerDraft";
+import { userPromptHistory } from "./userPromptHistory";
+import "./composer.css";
+
+export function ChatComposer({
+  session,
+  turns,
+  promptFocus,
+  onSend,
+  onInterrupt,
+}: {
+  session: Session;
+  turns: TranscriptTurn[];
+  promptFocus: number;
+  onSend: (text: string) => Promise<void>;
+  onInterrupt: () => void;
+}) {
+  const [draft, setDraft] = useComposerDraft(session.id);
+  const [historyState, setHistoryState] = useState<ComposerHistoryState>(emptyComposerHistory);
+  const [sendError, setSendError] = useState<{ sessionId: string; message: string } | null>(null);
+  const promptRef = useRef<HTMLTextAreaElement>(null);
+  const previousSession = useRef({ id: session.id, status: session.status });
+  const history = useMemo(() => userPromptHistory(turns), [turns]);
+  const showStop = session.status === "running" && !draft.trim();
+  const sendLabel = showStop ? "Stop agent (Escape)" : session.status === "running"
+    ? (session.supportsSteering ? "Steer agent" : "Queue message")
+    : "Send message";
+  const usageLabel = session.usage ? formatSessionUsage(session.usage) : null;
+  const { model, effort } = session.modelConfig ?? {};
+
+  const setDraftFromUser = (text: string) => {
+    setHistoryState((state) => applyComposerHistoryEdit(state, text));
+    setDraft(text);
+  };
+
+  /** Clickable model/effort label that opens the agent's picker. */
+  const configPick = (category: ConfigMenuCategory, label: string | undefined) => {
+    if (!label) return null;
+    const openMenu = () => {
+      void window.birdsong.showConfigMenu(session.id, category).catch((error: unknown) => {
+        setSendError({ sessionId: session.id, message: `Could not change ${label}: ${formatAgentError(error)}` });
+      });
+    };
+    return (
+      <>
+        {" · "}
+        <button type="button" className="composer-meta-pick" onClick={openMenu}>{label}</button>
+      </>
+    );
+  };
+
+  const send = () => {
+    if (!draft.trim() || session.status === "connecting") return;
+    const text = draft;
+    setDraft("");
+    setHistoryState(emptyComposerHistory);
+    setSendError(null);
+    void onSend(text).catch((error: unknown) => {
+      setSendError({ sessionId: session.id, message: `Could not send “${text}”: ${formatAgentError(error)}` });
+    });
+  };
+
+  const promptFocusSeen = useRef(promptFocus);
+  useEffect(() => {
+    if (promptFocusSeen.current === promptFocus) return;
+    promptFocusSeen.current = promptFocus;
+    promptRef.current?.focus();
+  }, [promptFocus]);
+
+  useEffect(() => {
+    setHistoryState(emptyComposerHistory);
+  }, [session.id]);
+
+  useEffect(() => {
+    // A tab whose find bar had focus when it was left gets it back instead.
+    const frame = requestAnimationFrame(() => {
+      if (!findBarHasFocus()) promptRef.current?.focus();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [session.id]);
+
+  useEffect(() => {
+    const previous = previousSession.current;
+    if (previous.id === session.id && previous.status === "connecting" && session.status === "ready") {
+      promptRef.current?.focus();
+    }
+    previousSession.current = { id: session.id, status: session.status };
+  }, [session.id, session.status]);
+
+  return (
+    <div className="composer">
+      <ComposerResize />
+      <ComposerPrompt
+        draft={draft}
+        promptRef={promptRef}
+        commands={session.slashCommands ?? []}
+        onDraftChange={setDraftFromUser}
+        placeholder={
+          session.status === "connecting"
+            ? "Draft your message while the session is being created…"
+            : session.status === "running"
+              ? `${session.supportsSteering ? "Steer the agent" : "Queue a follow-up"}… (Enter to send, Shift+Enter for newline)`
+              : "Message the agent… (Enter to send, Shift+Enter for newline)"
+        }
+        onPaste={(e) => {
+          void applyPromptImagePaste({
+            event: e.nativeEvent,
+            sessionId: session.id,
+            draft,
+            textarea: e.currentTarget,
+            onDraftChange: setDraftFromUser,
+            onError: (message) => setSendError({ sessionId: session.id, message }),
+          });
+        }}
+        onKeyDown={(e) => {
+          if ((e.key === "ArrowUp" || e.key === "ArrowDown") && !e.metaKey && !e.altKey && !e.ctrlKey && !e.shiftKey) {
+            const next = applyComposerHistoryKey(historyState, e.key, draft, history);
+            if (!next) return false;
+            setHistoryState(next.state);
+            setDraft(next.draft);
+            requestAnimationFrame(() => {
+              const el = promptRef.current;
+              if (!el) return;
+              const end = next.draft.length;
+              el.setSelectionRange(end, end);
+            });
+            return true;
+          }
+          if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+            send();
+            return true;
+          }
+          return false;
+        }}
+      />
+      {(session.error || sendError?.sessionId === session.id) && (
+        <div className="composer-error" role="alert">
+          {session.error}
+          {session.error && sendError?.sessionId === session.id ? " · " : ""}
+          {sendError?.sessionId === session.id ? sendError.message : ""}
+        </div>
+      )}
+      {session.resumeAt !== undefined && <ComposerResumeNotice resumeAt={session.resumeAt} onCancel={onInterrupt} />}
+      <div className="composer-actions">
+        <div className="composer-meta">
+          {session.agent}
+          {configPick("model", model)}
+          {configPick("thought_level", effort && `${effort.toLowerCase()} effort`)}
+          {" · "}{session.status === "connecting" ? "Creating" : session.status}
+          {usageLabel ? (
+            <>
+              {" · "}
+              <span className="composer-usage" data-tooltip={usageLabel.detail}>
+                {usageLabel.percent}
+              </span>
+            </>
+          ) : null}
+        </div>
+        <button
+          type="button"
+          className="btn primary composer-send"
+          aria-label={sendLabel}
+          data-tooltip={sendLabel}
+          data-tooltip-align="center"
+          disabled={(!showStop && !draft.trim()) || session.status === "connecting"}
+          onClick={showStop ? onInterrupt : send}
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            {showStop ? (
+              <rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor" />
+            ) : (
+              <path d="M12 19V5M5 12l7-7 7 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+            )}
+          </svg>
+        </button>
+      </div>
+    </div>
+  );
+}

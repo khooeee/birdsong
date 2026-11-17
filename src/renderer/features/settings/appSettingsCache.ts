@@ -1,0 +1,35 @@
+import type { AppSettings } from "../../../shared/appSettings";
+import { defaultAppSettings } from "../../../shared/defaultAppSettings";
+import { mergeAppSettings } from "../../../shared/mergeAppSettings";
+
+let cache: AppSettings = defaultAppSettings();
+const CHANGE = "birdsong:settings-changed";
+
+function emitChange(): void {
+  window.dispatchEvent(new CustomEvent(CHANGE, { detail: cache }));
+}
+
+/** Load settings from main into the renderer cache. */
+export async function loadAppSettings(): Promise<AppSettings> {
+  cache = mergeAppSettings(await window.birdsong.getSettings());
+  emitChange();
+  return cache;
+}
+
+export function getAppSettingsCache(): AppSettings {
+  return cache;
+}
+
+export async function patchAppSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
+  cache = { ...cache, ...patch };
+  emitChange();
+  cache = await window.birdsong.updateSettings(patch);
+  emitChange();
+  return cache;
+}
+
+export function subscribeAppSettings(listener: () => void): () => void {
+  const onChange = () => listener();
+  window.addEventListener(CHANGE, onChange);
+  return () => window.removeEventListener(CHANGE, onChange);
+}

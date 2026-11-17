@@ -1,0 +1,104 @@
+import { memo } from "react";
+import type { FileChange } from "../../../shared/fileChange";
+import type { TranscriptItem } from "../../../shared/transcript";
+import { stripCursorStreamNoise } from "../../../shared/cursorStreamNoise";
+import { MarkdownBody } from "../markdown/MarkdownBody";
+import { FileChanges } from "../files/FileChanges";
+import { TranscriptImages } from "../images/TranscriptImages";
+import { formatDetailTimestamp } from "../settings/formatDetailTimestamp";
+import { CopyEventButton } from "../copy/CopyEventButton";
+import { ForkEventButton } from "../copy/ForkEventButton";
+import { SaveMarkdownButton } from "../copy/SaveMarkdownButton";
+import { TurnDetailsButton } from "../copy/TurnDetailsButton";
+import { OpenSubagentButton } from "../subagents/OpenSubagentButton";
+import { QueuedStatus } from "./QueuedStatus";
+import type { MessageSession } from "./useMessageSession";
+
+/** Renders one transcript leaf (user / assistant / thought / tool / …). */
+export const TranscriptMessage = memo(function TranscriptMessage({
+  session,
+  item,
+  onToggleDetails,
+  extraFileChanges,
+  extraImages,
+  forkable,
+  label,
+}: {
+  session: MessageSession;
+  item: TranscriptItem;
+  /** Arrow control to the right of copy — toggles the turn-details rail. */
+  onToggleDetails?: () => void;
+  /** Turn boundaries only (user message, final reply); mid-turn events cannot be forked. */
+  forkable?: boolean;
+  /** Extra file changes shown under this message (aggregated turn files). */
+  extraFileChanges?: FileChange[];
+  /** Extra images shown under this message (aggregated turn tool images). */
+  extraImages?: string[];
+  /** Pill text; defaults to the role. */
+  label?: string;
+}) {
+  const text = stripCursorStreamNoise(session.agent, item.text);
+  const changes = extraFileChanges?.length ? extraFileChanges : item.fileChanges;
+  const markdown =
+    item.role === "assistant" || item.role === "user" || item.role === "thought";
+  const copyMarkdown = markdown && text ? text : undefined;
+  const showActions = forkable || !!text || !!onToggleDetails || !!item.subagentId;
+
+  const canFork = !!(forkable && session.supportsForkAtMessage);
+
+  return (
+    <div
+      className={`message ${item.role}${changes?.length ? " has-file-changes" : ""}${item.queued ? " queued" : ""}`}
+      data-event-id={item.id}
+      data-find-text={text}
+      data-copy-markdown={copyMarkdown}
+      data-turn-details={onToggleDetails ? "" : undefined}
+    >
+      {item.role !== "stopped" && (
+        <div className="row">
+          <span className="kind-pill">{label ?? item.role}</span>
+          {item.queued ? <QueuedStatus /> : null}
+          {item.toolStatus && <span className="tool-status">{item.toolStatus}</span>}
+          <span className="event-timestamp">
+            {formatDetailTimestamp(item.at)}
+          </span>
+        </div>
+      )}
+      {changes?.length ? (
+        <>
+          {markdown && text ? <MarkdownBody text={text} /> : null}
+          {/* Edit tools' text is the file labels below; a shell command's text is the command. */}
+          {!markdown && text && (!item.fileChanges?.length || text === item.toolTitle) ? (
+            <div className="body">{text}</div>
+          ) : null}
+          <FileChanges
+            changes={changes}
+            cwd={session.cwd}
+            sessionId={session.id}
+            status={item.toolStatus}
+            compact={!!extraFileChanges?.length}
+          />
+        </>
+      ) : markdown ? (
+        <MarkdownBody text={text} />
+      ) : (
+        <div className="body">{text}</div>
+      )}
+      <TranscriptImages names={extraImages?.length ? extraImages : item.images} />
+      {item.subagentId && item.toolTitle ? <div className="subagent-row-task">{item.toolTitle}</div> : null}
+      {showActions ? (
+        <div className="event-actions">
+          {canFork ? (
+            <ForkEventButton sessionId={session.id} eventId={item.id} />
+          ) : null}
+          {text ? <CopyEventButton text={text} /> : null}
+          {copyMarkdown ? <SaveMarkdownButton text={copyMarkdown} /> : null}
+          {item.subagentId ? (
+            <OpenSubagentButton sessionId={session.id} subagentId={item.subagentId} />
+          ) : null}
+          {onToggleDetails ? <TurnDetailsButton onToggle={onToggleDetails} /> : null}
+        </div>
+      ) : null}
+    </div>
+  );
+});

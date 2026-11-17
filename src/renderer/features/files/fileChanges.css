@@ -1,0 +1,213 @@
+.file-changes {
+  font-family: var(--font-mono);
+  font-weight: var(--font-mono-weight);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-changes.compact {
+  margin-top: 14px;
+}
+
+.file-changes.compact .file-change-names {
+  font-size: var(--font-mono-small-size);
+  line-height: 1.45;
+}
+
+.file-change-label-prefix {
+  color: var(--text-dim);
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.file-changes.detailed {
+  font-size: var(--font-mono-size);
+  line-height: 1.5;
+}
+
+.file-change-names {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.5em;
+  row-gap: 0.4em;
+  align-items: baseline;
+}
+
+.file-change-item {
+  display: inline-flex;
+  align-items: baseline;
+  max-width: 100%;
+  padding: 0.35em 0.75em;
+  border-radius: 8px;
+  background: var(--bg-2);
+}
+
+.file-change-name {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.file-change-name:hover,
+.file-change-name[aria-expanded="true"] {
+  color: var(--codex);
+}
+
+.file-change-preview-wrap {
+  color: var(--text-dim);
+  white-space: nowrap;
+  margin-left: 0.35em;
+}
+
+.file-change summary,
+.file-change-label {
+  overflow-wrap: anywhere;
+}
+
+.file-change summary {
+  cursor: pointer;
+}
+
+.file-change summary:hover {
+  color: var(--codex);
+}
+
+.file-change .file-diff {
+  margin-top: 8px;
+}
+
+.file-diff {
+  margin-top: 0;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--bg-0);
+}
+
+.file-diff-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.35em;
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-1);
+}
+
+.file-diff-header.collapsible {
+  cursor: pointer;
+}
+
+.file-diff-header.collapsible .file-diff-title:hover {
+  color: var(--codex);
+}
+
+.file-diff-title {
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.file-diff-header-action {
+  color: var(--text-dim);
+  white-space: nowrap;
+  flex-shrink: 0;
+  cursor: default;
+}
+
+.file-diff pre {
+  margin: 0;
+  padding: 8px 0;
+  max-height: 400px;
+  overflow: auto;
+  font: inherit;
+  background: transparent;
+  white-space: pre;
+  tab-size: 2;
+}
+
+.file-diff > .file-diff-note {
+  padding: 8px 10px;
+}
+
+.diff-line {
+  display: flex;
+  width: max-content;
+  min-width: 100%;
+  padding: 0 8px;
+}
+
+.diff-line.added {
+  background: var(--diff-add);
+}
+
+.diff-line.removed {
+  background: var(--danger-soft);
+}
+
+.diff-line-number {
+  width: 4em;
+  flex-shrink: 0;
+  text-align: right;
+  padding-right: 1em;
+  color: var(--text-dim);
+  user-select: none;
+}
+
+.diff-marker {
+  width: 1.5em;
+  flex-shrink: 0;
+  user-select: none;
+}
+
+.file-diff-note {
+  color: var(--text-dim);
+}
+
+.file-diff-more {
+  border: 0;
+  background: transparent;
+  color: var(--codex);
+  cursor: pointer;
+  font: inherit;
+  padding: 8px;
+}
+
+.file-open {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin-top: 4px;
+  font-size: var(--font-mono-size);
+}
+
+.file-open-button {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--codex);
+  cursor: pointer;
+  font: inherit;
+}
+
+.file-open-button:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
+.file-open-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.file-open-error {
+  color: var(--danger-text);
+}

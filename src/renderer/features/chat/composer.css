@@ -1,0 +1,90 @@
+.composer {
+  position: relative;
+  flex-shrink: 0;
+  padding: 0 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: var(--composer-bg);
+}
+
+.composer-error {
+  color: var(--danger-text);
+  font-size: var(--font-ui-size);
+}
+
+.composer-resume {
+  color: var(--text-dim);
+  font-size: var(--font-ui-size);
+}
+
+.composer-resume button {
+  text-decoration: underline;
+}
+
+.composer textarea {
+  font-family: var(--font-mono);
+  font-weight: var(--font-mono-weight);
+  font-size: var(--font-mono-size);
+  line-height: 1.5;
+  width: 100%;
+  min-height: 72px;
+  height: var(--composer-input-height, 72px);
+  max-height: 50vh;
+  resize: none;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-1);
+  padding: 10px 12px;
+  outline: none;
+}
+
+.composer textarea:focus {
+  border-color: var(--accent);
+}
+
+.composer textarea:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.composer-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.composer-meta {
+  flex: 1;
+  min-width: 0;
+  padding-left: 13px; /* match textarea border (1px) + padding (12px) */
+  font-size: var(--font-mono-size);
+  color: var(--placeholder);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-weight: var(--font-mono-weight);
+  cursor: default;
+}
+
+.composer-meta-pick {
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.composer-meta-pick:hover {
+  color: var(--text);
+}
+
+.btn.composer-send {
+  background: var(--user-bg);
+  color: var(--text);
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
