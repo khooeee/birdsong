@@ -10,6 +10,7 @@ final class TranscriptViewController: UIViewController {
     private let client: BirdsongClient
     private let session: Session
     private let subscription: EventSubscription
+    private let sessionSubscription: EventSubscription
     private var turns: [RemoteTurn] = []
     private var loaded = false
     /// Follow new output until the user scrolls up; scrolling back to the end resumes it.
@@ -22,6 +23,7 @@ final class TranscriptViewController: UIViewController {
         self.client = client
         self.session = session
         subscription = EventSubscription(client: client, path: ["sessions", session.id, "events"])
+        sessionSubscription = EventSubscription(client: client, path: ["events"])
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -40,6 +42,7 @@ final class TranscriptViewController: UIViewController {
         collectionView.keyboardDismissMode = .interactive
         composer.onSend = { [weak self] text in self?.send(text) }
         composer.onStop = { [weak self] in self?.stop() }
+        composer.resumeNotice = session.continuationNotice
         for subview in [collectionView, composer] {
             subview.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(subview)
@@ -55,6 +58,7 @@ final class TranscriptViewController: UIViewController {
         ])
 
         subscription.onEvent = { [weak self] event in self?.handle(event) }
+        sessionSubscription.onEvent = { [weak self] event in self?.handle(event) }
         subscription.onState = { [weak self] state in
             guard let self else { return }
             navigationItem.subtitle = state == .live ? session.agent : "Reconnecting…"
@@ -64,11 +68,13 @@ final class TranscriptViewController: UIViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         subscription.start()
+        sessionSubscription.start()
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         subscription.stop()
+        sessionSubscription.stop()
     }
 
     override func viewDidLayoutSubviews() {
@@ -104,8 +110,9 @@ final class TranscriptViewController: UIViewController {
                 turns.append(turn)
             }
             apply(changed: [turn.id])
-        case .sessions:
-            break
+        case .sessions(let list):
+            let current = (list.pinned + list.unpinned).first { $0.id == session.id }
+            composer.resumeNotice = current?.continuationNotice
         }
     }
 

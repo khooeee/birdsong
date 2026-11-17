@@ -13,4 +13,11 @@ struct Session: Decodable, Sendable, Hashable, Identifiable {
     let status: Status
     let error: String?
     let createdAt: Double
+    let resumeAt: Double?
+
+    var continuationNotice: String? {
+        guard let resumeAt else { return nil }
+        let date = Date(timeIntervalSince1970: resumeAt / 1000)
+        return "Continues automatically \(date.formatted(date: .abbreviated, time: .shortened)) after quota resets"
+    }
 }

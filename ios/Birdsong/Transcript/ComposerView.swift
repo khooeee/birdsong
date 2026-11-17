@@ -1,9 +1,12 @@
 import UIKit
 
-/// Growing prompt field with Send, plus Stop while the agent runs.
+/// Growing prompt field with Send, Stop, and cancellation of scheduled continuations.
 final class ComposerView: UIView, UITextViewDelegate {
     var onSend: ((String) -> Void)?
     var onStop: (() -> Void)?
+    var resumeNotice: String? {
+        didSet { resumeNoticeView.message = resumeNotice }
+    }
 
     /// While running, sending steers (or queues) and Stop shows.
     var isRunning = false {
@@ -16,6 +19,7 @@ final class ComposerView: UIView, UITextViewDelegate {
     private let maxTextHeight: CGFloat = 140
     private let textView = UITextView()
     private let placeholder = UILabel()
+    private let resumeNoticeView = ResumeNoticeView()
     private lazy var textHeight = textView.heightAnchor.constraint(equalToConstant: maxTextHeight)
     private lazy var sendButton = Self.roundButton("arrow.up", style: .filled()) { [weak self] in self?.send() }
     private lazy var stopButton = Self.roundButton("stop.fill", style: .gray()) { [weak self] in self?.onStop?() }
@@ -43,17 +47,21 @@ final class ComposerView: UIView, UITextViewDelegate {
 
         stopButton.isHidden = true
         sendButton.isEnabled = false
+        resumeNoticeView.onCancel = { [weak self] in self?.onStop?() }
         let row = UIStackView(arrangedSubviews: [textView, stopButton, sendButton])
         row.alignment = .bottom
         row.spacing = 8
-        row.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(row)
+        let stack = UIStackView(arrangedSubviews: [resumeNoticeView, row])
+        stack.axis = .vertical
+        stack.spacing = 8
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(stack)
         NSLayoutConstraint.activate([
-            row.topAnchor.constraint(equalTo: topAnchor, constant: 8),
-            row.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
-            row.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: topAnchor, constant: 8),
+            stack.leadingAnchor.constraint(equalTo: layoutMarginsGuide.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: layoutMarginsGuide.trailingAnchor),
             // Above the keyboard when it shows, else above the home indicator; the blur still reaches the edge.
-            row.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -8),
+            stack.bottomAnchor.constraint(equalTo: keyboardLayoutGuide.topAnchor, constant: -8),
             placeholder.leadingAnchor.constraint(equalTo: textView.leadingAnchor, constant: 15),
             placeholder.topAnchor.constraint(equalTo: textView.topAnchor, constant: 9),
         ])

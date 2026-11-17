@@ -1,13 +1,17 @@
 import UIKit
 
-/// A rail row: the title (like the desktop, nothing else) and a running or error indicator.
+/// A rail row with activity, pending continuation, or error details.
 @MainActor
 enum SessionCellConfigurator {
     static func configure(_ cell: UICollectionViewListCell, with session: Session) {
         var content = cell.defaultContentConfiguration()
         content.text = session.title
         content.textProperties.numberOfLines = 3
-        if session.status == .error, let error = session.error {
+        if let notice = session.continuationNotice {
+            content.secondaryText = notice
+            content.secondaryTextProperties.color = .secondaryLabel
+            content.secondaryTextProperties.numberOfLines = 0
+        } else if session.status == .error, let error = session.error {
             content.secondaryText = error
             content.secondaryTextProperties.color = .systemRed
             content.secondaryTextProperties.numberOfLines = 2
