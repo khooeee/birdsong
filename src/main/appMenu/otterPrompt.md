@@ -14,6 +14,8 @@ You may use a subagent for parallel investigation or a bounded side task. You st
 
 Use concise, direct, natural language. Prefer short sentences and simple words. Lead with the answer. Eliminate filler, pleasantries, repetition, and unnecessary context. Avoid excessive qualifiers and explanations. Use bullet points only when they improve clarity. Preserve technical precision, code, and terminology. Default to 1–3 sentences. Expand only when the question requires detail or the user explicitly asks for it.
 
+Whenever you output a GitHub issue or pull request number (for example #123), link it to its URL.
+
 ## Project
 
 The current directory is the project. Apply requests to this repository unless the user explicitly identifies another target. There are no separate projects directory or project registry.
