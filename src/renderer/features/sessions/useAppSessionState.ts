@@ -6,6 +6,7 @@ import { flatRailSessions } from "./flatRailSessions";
 import { shareSession } from "./shareSession";
 import { shareById } from "./shareById";
 import { useSessionTranscripts } from "./useSessionTranscripts";
+import { voiceLogView } from "../voiceLog/voiceLogView";
 
 /** IPC-backed session list and transcripts. */
 export function useAppSessionState() {
@@ -19,6 +20,7 @@ export function useAppSessionState() {
     key: number;
   } | null>(null);
   const [sessionNotice, setSessionNotice] = useState<string | null>(null);
+  const [sessionLinkTarget, setSessionLinkTarget] = useState<{ sessionId: string } | null>(null);
 
   useEffect(() => {
     let previousActiveTabId: ActiveTabId | undefined;
@@ -48,6 +50,12 @@ export function useAppSessionState() {
         setFocusEvent((prev) => (prev && prev.sessionId !== a ? null : prev));
       }),
       window.birdsong.onSessionRemoved(({ message }) => setSessionNotice(message)),
+      window.birdsong.onNavigateToSession(({ sessionId }) => {
+        railModeStore.set("sessions");
+        voiceLogView.close();
+        setFocusEvent(null);
+        setSessionLinkTarget({ sessionId });
+      }),
       window.birdsong.onNavigateToEvent(({ sessionId, turnId, eventId }) => {
         setFocusEvent((prev) => ({
           id: eventId,
@@ -57,6 +65,7 @@ export function useAppSessionState() {
         }));
       }),
     ];
+    void window.birdsong.sessionLinksReady();
 
     return () => {
       unsubs.forEach((u) => u());
@@ -85,5 +94,6 @@ export function useAppSessionState() {
     setFocusEvent,
     sessionNotice,
     setSessionNotice,
+    sessionLinkTarget,
   };
 }

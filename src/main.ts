@@ -11,6 +11,7 @@ import { SessionManager } from "./main/sessions/SessionManager";
 import { installQuitHandler } from "./main/lifecycle/installQuitHandler";
 import { confirmQuit } from "./main/lifecycle/confirmQuit";
 import { installSingleInstanceLock } from "./main/lifecycle/installSingleInstanceLock";
+import { installSessionLinks } from "./main/lifecycle/installSessionLinks";
 import { installStdioGuards } from "./main/lifecycle/installStdioGuards";
 import { ControlServer } from "./main/control/ControlServer";
 import { CronScheduler } from "./main/crons/CronScheduler";
@@ -123,6 +124,7 @@ const createWindow = async () => {
 };
 
 if (installSingleInstanceLock(() => mainWindow)) {
+  installSessionLinks(sessions, () => mainWindow);
   // Agents start from the user's shell environment; read it while the window loads.
   void shellEnv.get();
   app.on("ready", () => {

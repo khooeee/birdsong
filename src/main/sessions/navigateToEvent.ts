@@ -1,25 +1,14 @@
 import type { SessionDeps } from "./SessionDeps";
+import { openSession } from "./openSession";
 
 /** Open (or reopen) a session and scroll the renderer to one event. */
 export async function navigateToEvent(
-  { state, persistence, hydration, agents }: SessionDeps,
+  deps: SessionDeps,
   sessionId: string,
   turnId: string,
   eventId: string,
 ): Promise<void> {
-  if (!state.sessions.has(sessionId)) {
-    const reopened = await hydration.reopen(sessionId);
-    if (!reopened) {
-      hydration.forgetMissing(sessionId);
-      return;
-    }
-  } else if (!(await hydration.ensure(sessionId))) {
-    return;
+  if (await openSession(deps, sessionId)) {
+    deps.state.send("navigate-event", { sessionId, turnId, eventId });
   }
-  state.activeTabId = sessionId;
-  state.emitSessions();
-  state.pushTranscript(sessionId);
-  state.send("navigate-event", { sessionId, turnId, eventId });
-  void persistence.persist();
-  agents.refreshCommandsIfNeeded(sessionId);
 }

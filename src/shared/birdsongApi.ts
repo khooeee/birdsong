@@ -44,6 +44,9 @@ export interface BirdsongApi {
   pinSession: (sessionId: string) => Promise<void>;
   unpinSession: (sessionId: string) => Promise<void>;
   setActiveTab: (tabId: string) => Promise<void>;
+  openSessionLink: (link: string) => Promise<void>;
+  sessionLinksReady: () => Promise<void>;
+  onNavigateToSession: (cb: (payload: { sessionId: string }) => void) => () => void;
   listSessions: () => Promise<SessionListPayload>;
   sendPrompt: (sessionId: string, text: string) => Promise<void>;
   cancelPrompt: (sessionId: string) => Promise<void>;

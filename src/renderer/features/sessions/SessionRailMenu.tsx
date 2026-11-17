@@ -1,6 +1,7 @@
 import type { RefObject } from "react";
 import type { Session } from "../../../shared/session";
 import { SAVE_MARKDOWN_VIEW_LABELS } from "../../../shared/saveMarkdownViewLabels";
+import { sessionLink } from "../../../shared/sessionLink";
 import "../settings/menus.css";
 import "../settings/settingsShortcuts.css";
 import { openSessionInEditor } from "../explorer/openSessionInEditor";
@@ -53,6 +54,11 @@ export function SessionRailMenu({
         label="Open in Editor"
         disabled={!session.cwd.trim()}
         onSelect={() => void openSessionInEditor(session.id).catch(console.error)}
+        onDismiss={onDismiss}
+      />
+      <SessionRailMenuItem
+        label="Copy Link"
+        onSelect={() => void navigator.clipboard.writeText(sessionLink(session.id)).catch(console.error)}
         onDismiss={onDismiss}
       />
       <SessionRailMenuItem

@@ -1,11 +1,13 @@
 import ReactMarkdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { MarkdownLink } from "../markdown/MarkdownLink";
+import { markdownUrlTransform } from "../markdown/markdownUrlTransform";
+import { remarkSessionLinks } from "../markdown/remarkSessionLinks";
 import { githubMarkdownCss } from "./githubMarkdownCss";
 import { GithubMarkdownPre } from "./GithubMarkdownPre";
 import { GithubMarkdownCode } from "./GithubMarkdownCode";
 
-const REMARK_PLUGINS = [remarkGfm];
+const REMARK_PLUGINS = [remarkGfm, remarkSessionLinks];
 const COMPONENTS: Components = {
   pre: GithubMarkdownPre,
   code: GithubMarkdownCode,
@@ -19,7 +21,7 @@ export function GithubMarkdown({ text, theme }: { text: string; theme: "light" |
     <>
       <style>{githubMarkdownCss(theme)}</style>
       <article className="github-markdown-preview">
-        <ReactMarkdown remarkPlugins={REMARK_PLUGINS} skipHtml components={COMPONENTS}>
+        <ReactMarkdown remarkPlugins={REMARK_PLUGINS} skipHtml components={COMPONENTS} urlTransform={markdownUrlTransform}>
           {text}
         </ReactMarkdown>
       </article>

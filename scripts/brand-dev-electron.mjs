@@ -12,6 +12,7 @@ import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { applyFinderIcon } from "./apply-finder-icon.mjs";
+import { syncDevProtocol } from "./sync-dev-protocol.mjs";
 
 const NAME_KEYS = ["CFBundleDisplayName", "CFBundleName"];
 const projectRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
@@ -169,15 +170,17 @@ function main() {
 
   const stale = NAME_KEYS.filter((key) => readPlistString(plistPath, key) !== name);
   let iconChanged;
+  let protocolChanged;
   try {
     for (const key of stale) writePlistString(plistPath, key, name);
     iconChanged = syncBundleIcon(bundle.appDir, plistPath);
+    protocolChanged = syncDevProtocol(plistPath);
   } catch (err) {
     warn(`Could not update bundle branding: ${err.message}`);
     return;
   }
 
-  if (bundle.renamed || stale.length > 0 || iconChanged) {
+  if (bundle.renamed || stale.length > 0 || iconChanged || protocolChanged) {
     const now = new Date();
     utimesSync(bundle.appDir, now, now);
     registerBundle(bundle.appDir);

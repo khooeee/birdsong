@@ -6,6 +6,7 @@ export function useSessionScrollPosition(
   sessionId: string | null,
   scrollRef: RefObject<HTMLElement | null>,
   pinByDefault = true,
+  visible = true,
 ): () => void {
   const positions = useRef(new Map<string, { top: number; pinned: boolean }>());
   const sessionIdRef = useRef(sessionId);
@@ -13,11 +14,11 @@ export function useSessionScrollPosition(
 
   useLayoutEffect(() => {
     const element = scrollRef.current;
-    if (!element || !sessionId) return;
+    if (!element || !sessionId || !visible) return;
     const position = positions.current.get(sessionId) ?? { top: 0, pinned: pinByDefault };
     positions.current.set(sessionId, position);
     return trackScrollPosition(element, position);
-  }, [sessionId, scrollRef, pinByDefault]);
+  }, [sessionId, scrollRef, pinByDefault, visible]);
 
   return useCallback(() => {
     const id = sessionIdRef.current;
