@@ -14,8 +14,6 @@ import type { SubagentUpdate } from "./subagents/SubagentUpdate";
 import { SUBAGENT_UPDATE_METHOD } from "./subagents/subagentUpdateMethod";
 
 type ConnectAcpResult = {
-  proc: ChildProcessWithoutNullStreams;
-  connection: acp.ClientConnection;
   canLoad: boolean;
   canResume: boolean;
   initializationMeta: unknown;
@@ -28,6 +26,7 @@ export type ConnectHandlers = {
   mcpServers: acp.McpServer[];
   quiet?: boolean;
   isDisposed: () => boolean;
+  onConnect: (proc: ChildProcessWithoutNullStreams, connection: acp.ClientConnection) => void;
   onStatus: (status: "connecting" | "error", message?: string) => void;
   onPermission: (params: acp.RequestPermissionRequest) => Promise<acp.RequestPermissionResponse>;
   onAskQuestion: (
@@ -53,6 +52,7 @@ export async function connectAcpAgent(handlers: ConnectHandlers): Promise<Connec
   try {
     // Presets look up CLIs on the shell's PATH, so wait for it before reading them.
     const base = await shellEnv.get();
+    if (handlers.isDisposed()) throw new Error("Session closed");
     const env = { ...base, ...preset.env, ...piMcpEnv(handlers.agent, handlers.mcpServers) };
     proc = await spawnAgentProcess(preset.command, preset.args, handlers.cwd, env);
   } catch (err) {
@@ -61,6 +61,10 @@ export async function connectAcpAgent(handlers: ConnectHandlers): Promise<Connec
     throw new Error(message);
   }
 
+  if (handlers.isDisposed()) {
+    proc.kill();
+    throw new Error("Session closed");
+  }
   drainAgentStream(proc.stderr);
 
   proc.on("exit", (code) => {
@@ -90,21 +94,31 @@ export async function connectAcpAgent(handlers: ConnectHandlers): Promise<Connec
     })
     .connect(stream);
 
+  // Keep the handles available for disposal while initialize or authenticate is pending.
+  handlers.onConnect(proc, connection);
+
   connection.signal?.addEventListener("abort", () => {
     handlers.onConnectionAbort();
   }, { once: true });
 
   const agent = connection.agent;
-  const initialized = await agent.request(acp.methods.agent.initialize, {
-    protocolVersion: acp.PROTOCOL_VERSION,
-    clientCapabilities: {
-      // No adapter routes its file tools through the client; agents read and write files themselves.
-      fs: { readTextFile: false, writeTextFile: false },
-      terminal: false,
-      ...(preset.clientCapabilityMeta ? { _meta: preset.clientCapabilityMeta } : {}),
-    },
-    clientInfo: { name: "birdsong", version: "1.0.0" },
-  });
+  let initialized: acp.InitializeResponse;
+  try {
+    initialized = await agent.request(acp.methods.agent.initialize, {
+      protocolVersion: acp.PROTOCOL_VERSION,
+      clientCapabilities: {
+        // No adapter routes its file tools through the client; agents read and write files themselves.
+        fs: { readTextFile: false, writeTextFile: false },
+        terminal: false,
+        ...(preset.clientCapabilityMeta ? { _meta: preset.clientCapabilityMeta } : {}),
+      },
+      clientInfo: { name: "birdsong", version: "1.0.0" },
+    });
+  } catch (error) {
+    connection.close();
+    if (!proc.killed) proc.kill();
+    throw error;
+  }
   const caps = initialized.agentCapabilities;
   const canLoad = caps?.loadSession === true;
   const canResume = caps?.sessionCapabilities?.resume != null;
@@ -122,5 +136,5 @@ export async function connectAcpAgent(handlers: ConnectHandlers): Promise<Connec
     }
   }
 
-  return { proc, connection, canLoad, canResume, initializationMeta };
+  return { canLoad, canResume, initializationMeta };
 }

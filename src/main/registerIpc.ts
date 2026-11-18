@@ -18,6 +18,7 @@ import { saveMarkdownFile } from "./files/saveMarkdownFile";
 import type { SessionManager } from "./sessions/SessionManager";
 import type { ControlServer } from "./control/ControlServer";
 import type { AppSettings } from "../shared/appSettings";
+import type { AgentKind } from "../shared/agentKind";
 import type { ConfigMenuCategory } from "../shared/configMenuCategory";
 import type { CreateSessionInput } from "../shared/createSessionInput";
 import type { EditContextMenuOptions } from "../shared/editContextMenuOptions";
@@ -38,6 +39,13 @@ export function registerIpc({
 }: IpcContext): void {
   const crons = new CronsStore(cronsPath());
   ipcMain.handle("agents:available", () => availableAgents());
+  ipcMain.handle("sessionDraft:start", (_e, id: string, agent: AgentKind, cwd: string) =>
+    sessions.newSessionDraft.start(id, agent, cwd),
+  );
+  ipcMain.handle("sessionDraft:select", (_e, id: string, category: ConfigMenuCategory, value: string) =>
+    sessions.newSessionDraft.select(id, category, value),
+  );
+  ipcMain.handle("sessionDraft:discard", (_e, id: string) => sessions.newSessionDraft.discard(id));
   ipcMain.handle("edit:contextMenu", (event, opts?: EditContextMenuOptions) => {
     showEditContextMenu(BrowserWindow.fromWebContents(event.sender), opts);
   });

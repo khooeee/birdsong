@@ -9,6 +9,8 @@ import { useModalKeyboard } from "../modals/useModalKeyboard";
 import { getAppSettingsCache, patchAppSettings } from "../settings/appSettingsCache";
 import { randomSessionTitle } from "./sessionTitle";
 import { useAvailableAgents } from "./useAvailableAgents";
+import { NewSessionConfigSelect } from "./NewSessionConfigSelect";
+import { useNewSessionDraft } from "./useNewSessionDraft";
 import "../modals/modal.css";
 import "./newSessionModal.css";
 
@@ -34,9 +36,10 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
   const agentOptions = AGENT_KINDS.filter((kind) => available === null || available.includes(kind));
   // Fall back when the remembered agent is no longer installed.
   const selectedAgent = agentOptions.includes(agent) ? agent : agentOptions[0];
+  const draft = useNewSessionDraft(selectedAgent, cwd);
   // Agents that title themselves get the first prompt; the rest (pi) a title.
   const asksPrompt = generatesSessionTitles(selectedAgent);
-  const canCreate = !!selectedAgent && !!cwd && (asksPrompt || !!title.trim()) && !busy;
+  const canCreate = !!selectedAgent && !!cwd.trim() && (asksPrompt || !!title.trim()) && !busy && !draft.updating;
 
   useEffect(() => {
     const input = fieldRef.current;
@@ -58,7 +61,7 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
       lastPin: pin,
     });
     try {
-      await onCreate({ agent: selectedAgent, cwd, pin, ...named });
+      await onCreate({ agent: selectedAgent, cwd, pin, draftId: draft.id, ...named });
     } catch (err) {
       setError(errorMessage(err));
       setBusy(false);
@@ -98,6 +101,23 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
             {!selectedAgent && <option value="">No ACP agents installed</option>}
           </select>
         </label>
+        <div className="new-session-config">
+          <NewSessionConfigSelect
+            label="Model"
+            config={draft.options.find((option) => option.category === "model")}
+            loading={draft.loading}
+            disabled={busy || draft.updating}
+            onChange={(value) => void draft.select("model", value)}
+          />
+          <NewSessionConfigSelect
+            label="Effort"
+            config={draft.options.find((option) => option.category === "thought_level")}
+            loading={draft.loading}
+            disabled={busy || draft.updating}
+            onChange={(value) => void draft.select("thought_level", value)}
+          />
+          {draft.error && <div className="new-session-config-error" role="status">{draft.error}</div>}
+        </div>
         <label>
           Session Folder
           <div style={{ display: "flex", gap: 8 }}>

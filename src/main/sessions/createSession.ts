@@ -14,8 +14,10 @@ export async function createSession(
   input: CreateSessionInput,
   focus: boolean,
 ): Promise<Session> {
-  const warm = state.warm.take(input.agent, input.cwd);
-  const id = warm?.acp.id ?? newSessionId();
+  const workingFolders = await loadWorkingFolders(undefined, input.cwd);
+  const draft = input.draftId ? agents.draft.claim(input.draftId, input.agent, input.cwd) : null;
+  const warm = draft ? null : state.warm.take(input.agent, input.cwd);
+  const id = draft?.id ?? warm?.acp.id ?? newSessionId();
   const title = input.title ?? folderTitle(
     input.cwd,
     input.prompt ? clipText(input.prompt, 60) : "",
@@ -26,7 +28,7 @@ export async function createSession(
     title,
     agent: input.agent,
     cwd: input.cwd,
-    workingFolders: await loadWorkingFolders(undefined, input.cwd),
+    workingFolders,
     agentSessionId: null,
     status: "connecting",
     error: null,
@@ -41,7 +43,7 @@ export async function createSession(
   state.emitSessions();
 
   try {
-    const claimed = warm && (await warm.started) ? warm.acp : null;
+    const claimed = draft ?? (warm && (await warm.started) ? warm.acp : null);
     const acp = claimed ?? agents.openSession(session);
     state.agents.set(id, acp);
     if (claimed) {

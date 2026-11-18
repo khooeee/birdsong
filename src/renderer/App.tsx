@@ -159,11 +159,10 @@ export function App() {
     onCloseRightRail: closeRightRail,
   });
 
-  const createSession = useCallback((input: CreateSessionInput) => {
+  const createSession = useCallback(async (input: CreateSessionInput) => {
+    await window.birdsong.createSession(input);
     railModeStore.set("sessions");
     setShowNewSession(false);
-    void window.birdsong.createSession(input);
-    return Promise.resolve();
   }, []);
 
   const chat = useChatActions(activeTabId, askQuestion, pinTranscriptToBottom);

@@ -2,6 +2,20 @@
   width: min(640px, 90vw);
   padding: 24px;
   gap: 16px;
+  max-height: 94vh;
+  overflow-y: auto;
+}
+
+.new-session-config {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.new-session-config-error {
+  grid-column: 1 / -1;
+  color: var(--danger);
+  font-size: var(--font-ui-size);
 }
 
 /* Matches the chat composer's prompt. */

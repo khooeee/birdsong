@@ -20,6 +20,7 @@ import type { FileMenuAction } from "./fileMenuAction";
 import type { FileWriteResult } from "./fileWriteResult";
 import type { PersistedExplorer } from "./persistedExplorer";
 import type { Session } from "./session";
+import type { SessionConfigSelect } from "./sessionConfigSelect";
 import type { TranscriptTurn } from "./transcript";
 import type { UnsavedChoice } from "./unsavedChoice";
 import type { VoiceCommand } from "./voiceCommand";
@@ -37,6 +38,9 @@ export interface SessionListPayload {
 export interface BirdsongApi {
   /** Agents whose CLI and ACP adapter are installed. */
   availableAgents: () => Promise<AgentKind[]>;
+  startSessionDraft: (id: string, agent: AgentKind, cwd: string) => Promise<SessionConfigSelect[]>;
+  selectSessionDraftConfig: (id: string, category: ConfigMenuCategory, value: string) => Promise<SessionConfigSelect[]>;
+  discardSessionDraft: (id: string) => Promise<void>;
   createSession: (input: CreateSessionInput) => Promise<Session>;
   forkSession: (sessionId: string, eventId?: string) => Promise<Session>;
   closeSession: (sessionId: string) => Promise<void>;
