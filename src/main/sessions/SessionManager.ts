@@ -95,6 +95,10 @@ export class SessionManager {
     return this.state.sessionListPayload();
   }
 
+  get newSessionDraft() {
+    return this.agents.draft;
+  }
+
   pinSession(sessionId: string): boolean {
     return this.rail.pin(sessionId);
   }
@@ -215,6 +219,7 @@ export class SessionManager {
   async disposeAll(): Promise<void> {
     this.resumer.stop();
     await this.persist();
+    await this.newSessionDraft.discard();
     await this.state.warm.dispose();
     for (const s of this.state.agents.values()) {
       await s.dispose();

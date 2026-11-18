@@ -14,15 +14,20 @@ import { recordSubagentTurn } from "./recordSubagentTurn";
 import { removeTurn } from "./removeTurn";
 import { setSessionStatus } from "./setSessionStatus";
 import { warmCallbacks } from "./warmCallbacks";
+import { NewSessionDraft } from "./NewSessionDraft";
 
 /** Starts, attaches and pre-warms ACP agent connections for sessions. */
 export class SessionAgents {
+  readonly draft: NewSessionDraft;
+
   constructor(
     private readonly state: SessionState,
     private readonly persistence: SessionPersistence,
     private readonly hydration: SessionHydration,
     private readonly resumer: UsageLimitResumer,
-  ) {}
+  ) {
+    this.draft = new NewSessionDraft(state.warm, (agent, cwd) => this.openWarm(agent, cwd));
+  }
 
   /** Return a connected agent for the session, attaching or starting one if needed. */
   async ensureSession(session: Session, options?: { quiet?: boolean }): Promise<AcpSession> {

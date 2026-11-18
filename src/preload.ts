@@ -20,6 +20,9 @@ function subscribe<T>(channel: string, cb: (payload: T) => void): () => void {
 
 const api: BirdsongApi = {
   availableAgents: () => ipcRenderer.invoke("agents:available"),
+  startSessionDraft: (id, agent, cwd) => ipcRenderer.invoke("sessionDraft:start", id, agent, cwd),
+  selectSessionDraftConfig: (id, category, value) => ipcRenderer.invoke("sessionDraft:select", id, category, value),
+  discardSessionDraft: (id) => ipcRenderer.invoke("sessionDraft:discard", id),
   createSession: (input: CreateSessionInput) => ipcRenderer.invoke("sessions:create", input),
   forkSession: (sessionId, eventId) =>
     ipcRenderer.invoke("sessions:fork", sessionId, eventId),

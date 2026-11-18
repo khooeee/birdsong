@@ -144,9 +144,10 @@ export class AcpSession extends SharedAgentConnection {
 
   /** Allocate a new agent session on the current connection. */
   private async createAgentSession(config = this.config.snapshot()): Promise<void> {
-    if (!this.connection) throw new Error("Session closed");
     const mcpServers = await birdsongMcpServers(this.id);
+    if (this.disposed || !this.connection) throw new Error("Session closed");
     const session = await createAcpSession(this.connection, this.cwd, mcpServers);
+    if (this.disposed) throw new Error("Session closed");
     this.hasBirdsongTools = mcpServers.length > 0;
     this.setSessionId(session.sessionId);
     this.config.note(session.configOptions);
@@ -238,6 +239,10 @@ export class AcpSession extends SharedAgentConnection {
       cwd: this.cwd,
       mcpServers,
       quiet: options?.quiet,
+      onConnect: (proc, connection) => {
+        this.proc = proc;
+        this.connection = connection;
+      },
       ...sessionConnectionHandlers({
         callbacks: () => this.cb,
         questions: this.questions,
@@ -249,8 +254,7 @@ export class AcpSession extends SharedAgentConnection {
         routerFor: (sessionId) => this.routerFor(sessionId),
       }),
     });
-    this.proc = result.proc;
-    this.connection = result.connection;
+    if (this.disposed) throw new Error("Session closed");
     this.hasBirdsongTools = mcpServers.length > 0;
     this.canLoad = result.canLoad;
     this.canResume = result.canResume;
@@ -288,6 +292,7 @@ export class AcpSession extends SharedAgentConnection {
   }
 
   async dispose(): Promise<void> {
+    if (this.disposed) return;
     this.finishPending("interrupted");
     this.disposed = true;
     this.runner.dispose();

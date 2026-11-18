@@ -46,6 +46,18 @@ At least one agent CLI installed and authenticated. The Claude Code, Codex, and 
 
 `PATH` here means your terminal's `PATH`. On startup Birdsong runs your login shell once (`$SHELL -i -l`), so agents get the same environment as a new terminal window, even when you open the app from the Dock. While it runs, `BIRDSONG_RESOLVING_SHELL_ENV=1` is set, so your rc files can skip slow steps. If the shell fails or takes more than 10 seconds, agents use Birdsong's own environment plus common bin dirs. After editing rc files, restart Birdsong.
 
+### Updating Codex models
+
+Birdsong gets its Codex model choices from your installed Codex CLI. To pick a newly released model such as GPT-6.2 Sol, update that CLI using your original installation method:
+
+```bash
+brew upgrade --cask codex
+# Or, for an npm installation:
+npm install -g @openai/codex@latest
+```
+
+Quit and reopen Birdsong, then choose the model in the session's model picker. Existing sessions keep their selected model. If you set `CODEX_PATH` in your shell environment, update the CLI at that path. Adding a model to Birdsong's source is unnecessary.
+
 ## Develop
 
 ```bash
