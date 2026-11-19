@@ -141,6 +141,13 @@ test("Go to File only offers folders within listed roots", () => {
     ["/Users/me/repo/src", "/Users/me/repo", "/tmp/tree"]);
 });
 
+test("Go to File labels paths relative to their working folder", () => {
+  const single = pathEntries(["/Users/me/repo/src/a.ts"], ["/Users/me/repo"]);
+  assert.deepEqual(single.map((entry) => entry.label), ["src/a.ts", "src", "repo"]);
+  const several = pathEntries(["/Users/me/repo/src/a.ts", "/tmp/tree/a.ts"], ["/Users/me/repo", "/tmp/tree"]);
+  assert.deepEqual(several.map((entry) => entry.label), ["repo/src/a.ts", "repo/src", "repo", "tree/a.ts", "tree"]);
+});
+
 test("revealing an absolute file opens its collapsed root and retains other sessions' state", () => {
   explorerStore.setRootCollapsed("reveal", "/repo", true);
   const other = explorerStore.get("untouched");

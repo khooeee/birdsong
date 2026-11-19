@@ -26,12 +26,13 @@ export function GoToFile({ sessionId, folders }: { sessionId: string; folders: W
   const { openFiles, activeFile } = useExplorerState(sessionId);
   // Ranking a big project is the slow part; typing stays ahead of it.
   const deferredQuery = useDeferredValue(query);
+  const roots = useMemo(() => folders.map((folder) => folder.path), [folders]);
 
   // The current tab goes last, so Cmd+P then Enter switches to another one.
   const tabs = useMemo<RankedEntry[]>(() => {
     const paths = [...openFiles.filter((path) => path !== activeFile), ...(activeFile ? [activeFile] : [])];
-    return paths.map((path) => ({ entry: toPathEntry(path, "file"), positions: NO_POSITIONS }));
-  }, [openFiles, activeFile]);
+    return paths.map((path) => ({ entry: toPathEntry(path, "file", roots), positions: NO_POSITIONS }));
+  }, [openFiles, activeFile, roots]);
   const results = useMemo(
     () => (deferredQuery.trim() ? rankEntries(entries, deferredQuery) : tabs),
     [entries, deferredQuery, tabs],

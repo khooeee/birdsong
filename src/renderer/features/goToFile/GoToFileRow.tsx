@@ -15,7 +15,7 @@ interface Props {
 
 /** One result: the name, then the folder holding it (an untitled tab has none); folders end in "/". */
 export const GoToFileRow = memo(function GoToFileRow({ id, index, entry, positions, selected, onPick }: Props) {
-  const { path, kind, nameStart } = entry;
+  const { path, kind, label, nameStart } = entry;
   return (
     <div
       id={id}
@@ -28,11 +28,11 @@ export const GoToFileRow = memo(function GoToFileRow({ id, index, entry, positio
       onClick={() => onPick(index)}
     >
       <span className="go-to-file-name">
-        {highlightMatches(path.slice(nameStart), nameStart, positions)}
+        {highlightMatches(label.slice(nameStart), nameStart, positions)}
         {kind === "dir" ? "/" : null}
       </span>
-      {isUntitledPath(path) ? null : (
-        <span className="go-to-file-dir">{highlightMatches(path.slice(0, Math.max(0, nameStart - 1)), 0, positions)}</span>
+      {nameStart === 0 || isUntitledPath(path) ? null : (
+        <span className="go-to-file-dir">{highlightMatches(label.slice(0, nameStart - 1), 0, positions)}</span>
       )}
     </div>
   );
