@@ -3,14 +3,9 @@ import type { VoiceCommand } from "../../shared/voiceCommand";
 import type { VoiceLogEntry } from "../../shared/voiceLogEntry";
 import type { VoiceStatus } from "../../shared/voiceStatus";
 
-/** Main → renderer voice channels; the renderer owns the WebRTC connection. */
+/** Main → renderer voice channels; the renderer owns the WebRTC audio while voice is on the desktop. */
 export class VoiceRendererLink {
   constructor(private readonly getWindow: () => BrowserWindow | null) {}
-
-  /** A realtime client event for the renderer to put on the data channel. */
-  send(event: object): void {
-    this.post("voice:client-event", event);
-  }
 
   command(command: VoiceCommand): void {
     this.post("voice:command", command);

@@ -119,9 +119,7 @@ const api: BirdsongApi = {
   onVoiceLogEntry: (cb) => subscribe<VoiceLogEntry>("voice:log-entry", cb),
   voiceAnswer: (offerSdp) => ipcRenderer.invoke("voice:answer", offerSdp),
   voiceConnection: (event) => ipcRenderer.send("voice:connection", event),
-  voiceServerEvent: (event) => ipcRenderer.send("voice:server-event", event),
   onVoiceCommand: (cb) => subscribe<VoiceCommand>("voice:command", cb),
-  onVoiceClientEvent: (cb) => subscribe<object>("voice:client-event", cb),
   onVoiceStatus: (cb) => subscribe<VoiceStatus>("voice:status", cb),
   onNavigateToEvent: (cb) =>
     subscribe<{ sessionId: string; turnId: string; eventId: string }>("navigate-event", cb),

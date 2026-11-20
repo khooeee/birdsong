@@ -6,6 +6,11 @@ options:
   createIntermediateGroups: true
   # Marks the project as checked against this Xcode, so it stops offering "recommended settings".
   xcodeVersion: "27.2"
+packages:
+  # Google's libwebrtc, prebuilt: the voice call's audio goes from the phone straight to Inworld.
+  WebRTC:
+    url: https://github.com/stasel/WebRTC
+    exactVersion: 157.0.0
 configFiles:
   Debug: Config/Base.xcconfig
   Release: Config/Base.xcconfig
@@ -23,6 +28,8 @@ targets:
     platform: iOS
     sources:
       - path: Birdsong
+    dependencies:
+      - package: WebRTC
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.khooeee.birdsong
@@ -35,6 +42,9 @@ targets:
       properties:
         CFBundleDisplayName: Birdsong
         UILaunchScreen: {}
+        NSMicrophoneUsageDescription: Talk to Birdsong's voice agent about your sessions.
+        # Voice keeps hearing and talking with the screen locked or another app open.
+        UIBackgroundModes: [audio]
         UIApplicationSupportsIndirectInputEvents: true
         UIApplicationSceneManifest:
           UIApplicationSupportsMultipleScenes: false

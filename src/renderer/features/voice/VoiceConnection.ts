@@ -3,8 +3,8 @@ import type { VoiceCommand } from "../../../shared/voiceCommand";
 import { iceGatheringDone } from "./iceGatheringDone";
 
 /**
- * The voice WebRTC peer: mic up, agent audio down, realtime events over `oai-events`.
- * Main decides what to do; this only connects and relays.
+ * The voice WebRTC peer: mic up, agent audio down. Main gets the call's events over its own sideband;
+ * the `oai-events` channel only tells main when the call is open or gone.
  */
 export class VoiceConnection {
   private pc: RTCPeerConnection | null = null;
@@ -17,10 +17,6 @@ export class VoiceConnection {
   handle(command: VoiceCommand): void {
     if (command.type === "connect") void this.connect(command.iceServers);
     else this.disconnect();
-  }
-
-  send(event: object): void {
-    if (this.channel?.readyState === "open") this.channel.send(JSON.stringify(event));
   }
 
   disconnect(): void {
@@ -69,7 +65,6 @@ export class VoiceConnection {
       this.channel = channel;
       channel.onopen = () => current() && api.voiceConnection({ type: "open" });
       channel.onclose = () => current() && api.voiceConnection({ type: "closed" });
-      channel.onmessage = (event) => this.relay(event.data);
       pc.onconnectionstatechange = () => {
         if (current() && pc.connectionState === "failed") {
           api.voiceConnection({ type: "failed", error: "The voice connection failed." });
@@ -85,18 +80,6 @@ export class VoiceConnection {
       if (!current()) return;
       this.disconnect();
       api.voiceConnection({ type: "failed", error: ipcErrorMessage(error) });
-    }
-  }
-
-  /** Forward server events to main, minus streaming deltas it never reads. */
-  private relay(data: unknown): void {
-    if (typeof data !== "string") return;
-    try {
-      const event = JSON.parse(data) as { type?: unknown };
-      if (typeof event.type !== "string" || event.type.endsWith(".delta")) return;
-      window.birdsong.voiceServerEvent(event);
-    } catch {
-      // Not JSON; nothing main can use.
     }
   }
 }

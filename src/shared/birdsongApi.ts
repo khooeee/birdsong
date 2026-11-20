@@ -193,11 +193,7 @@ export interface BirdsongApi {
   /** Exchange the WebRTC SDP offer for Inworld's answer (main holds the key). */
   voiceAnswer: (offerSdp: string) => Promise<string>;
   voiceConnection: (event: VoiceConnectionEvent) => void;
-  /** Relay a realtime server event from the data channel to main. */
-  voiceServerEvent: (event: object) => void;
   onVoiceCommand: (cb: (command: VoiceCommand) => void) => () => void;
-  /** Realtime client events main wants on the data channel. */
-  onVoiceClientEvent: (cb: (event: object) => void) => () => void;
   onVoiceStatus: (cb: (status: VoiceStatus) => void) => () => void;
   onNavigateToEvent: (cb: (payload: { sessionId: string; turnId: string; eventId: string }) => void) => () => void;
   navigateToEvent: (sessionId: string, turnId: string, eventId: string) => Promise<void>;

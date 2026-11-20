@@ -5,6 +5,8 @@ import UIKit
 final class AppCoordinator {
     private let window: UIWindow
     private let store = PairingStore()
+    /// One per pairing: voice is global, so every screen's mic shares it.
+    private var voice: VoiceController?
 
     init(window: UIWindow) {
         self.window = window
@@ -22,7 +24,10 @@ final class AppCoordinator {
     }
 
     private func showSessions(_ config: ServerConfig) {
-        let list = SessionListViewController(client: BirdsongClient(config: config)) { [weak self] in
+        voice?.stop()
+        let voice = VoiceController(client: VoiceClient(config: config))
+        self.voice = voice
+        let list = SessionListViewController(client: BirdsongClient(config: config), voice: voice) { [weak self] in
             self?.presentPairing(prefill: nil)
         }
         window.rootViewController = UINavigationController(rootViewController: list)

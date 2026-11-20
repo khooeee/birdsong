@@ -4,6 +4,7 @@ import type { AppSettings } from "../../shared/appSettings";
 import { errorMessage } from "../../shared/errorMessage";
 import type { RemoteStatus } from "../../shared/remoteStatus";
 import type { SessionManager } from "../sessions/SessionManager";
+import type { VoiceAgent } from "../voice/VoiceAgent";
 import { RemoteEventHub } from "../remote/RemoteEventHub";
 import { tailscaleDnsName } from "../remote/tailscaleDnsName";
 import { tailscaleServeFor } from "../remote/tailscaleServeFor";
@@ -32,7 +33,10 @@ export class ControlServer {
   private error: string | null = null;
   private applying = Promise.resolve();
 
-  constructor(private sessions: SessionManager) {
+  constructor(
+    private sessions: SessionManager,
+    private voice: VoiceAgent,
+  ) {
     this.hub = new RemoteEventHub(sessions);
   }
 
@@ -130,6 +134,7 @@ export class ControlServer {
         baseUrl,
         sessions: this.sessions,
         hub: this.hub,
+        voice: this.voice,
         remoteEnabled: () => this.remoteEnabled,
       }).catch((error) => {
         if (res.headersSent) res.end();

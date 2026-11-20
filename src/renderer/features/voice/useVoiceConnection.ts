@@ -6,12 +6,10 @@ export function useVoiceConnection(): void {
   useEffect(() => {
     const connection = new VoiceConnection();
     const offCommand = window.birdsong.onVoiceCommand((command) => connection.handle(command));
-    const offEvent = window.birdsong.onVoiceClientEvent((event) => connection.send(event));
     // After a reload main may think voice is still connected; this lets it reconnect.
     window.birdsong.voiceConnection({ type: "ready" });
     return () => {
       offCommand();
-      offEvent();
       connection.disconnect();
     };
   }, []);

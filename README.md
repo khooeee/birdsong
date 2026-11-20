@@ -120,6 +120,10 @@ Birdsong desktop app
 7. Run the provided command which should look similar to `tailscale serve --bg <port>`.
 8. Click **Copy iOS Link** & paste the link into the iOS app.
 
+### Voice on the iPhone
+
+Tap the mic at the top of the iOS app to talk to the same voice agent, with the Inworld key and voice settings from the desktop app. Whoever starts voice holds the mic: starting on the phone takes over from the Mac (and keeps the conversation), and the desktop mic button stops it wherever it is. The phone's audio goes straight to Inworld; the Mac attaches to the same call over Inworld's sideband (beta) to configure it, run tools and speak notices, so the phone only talks to the Mac to start, resume and stop. When the call drops (Wi-Fi to 5G, a dead spot) the phone starts a new one and the agent picks up where it left off. Voice keeps going with the screen locked.
+
 The phone uses the localhost control API, on a fixed port (7389 by default) that also serves Birdsong's MCP server to sessions. Unticking the checkbox only refuses requests that come through Tailscale; sessions keep their MCP tools. Tailscale Funnel (public internet) traffic is always refused. The iOS token stays the same across launches. To revoke it, click **Rotate Token** in **Settings** and pair again. Scripts on the Mac use a separate token from `~/.birdsong/control.json`, which is new every launch and refused over Tailscale; sessions have their own MCP keys. Neither is affected by rotating.
 
 ## History Management

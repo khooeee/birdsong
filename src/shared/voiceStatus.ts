@@ -5,4 +5,6 @@ export interface VoiceStatus {
   activity: "idle" | "thinking" | "speaking";
   /** Last connection or setup failure; cleared on the next start. */
   error: string | null;
+  /** Where the mic and speaker are: this window, or the iOS app (whoever started voice). */
+  peer: "desktop" | "phone";
 }

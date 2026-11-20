@@ -1,6 +1,6 @@
 import type { VoiceStatus } from "../../../shared/voiceStatus";
 
-let status: VoiceStatus = { state: "off", activity: "idle", error: null };
+let status: VoiceStatus = { state: "off", activity: "idle", error: null, peer: "desktop" };
 const listeners = new Set<() => void>();
 let installed = false;
 

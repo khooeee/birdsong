@@ -8,6 +8,7 @@ final class TranscriptViewController: UIViewController {
     }
 
     private let client: BirdsongClient
+    private let voice: VoiceController
     private let session: Session
     private let subscription: EventSubscription
     private let sessionSubscription: EventSubscription
@@ -19,8 +20,9 @@ final class TranscriptViewController: UIViewController {
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: Self.layout())
     private lazy var dataSource = makeDataSource()
 
-    init(client: BirdsongClient, session: Session) {
+    init(client: BirdsongClient, voice: VoiceController, session: Session) {
         self.client = client
+        self.voice = voice
         self.session = session
         subscription = EventSubscription(client: client, path: ["sessions", session.id, "events"])
         sessionSubscription = EventSubscription(client: client, path: ["events"])
@@ -35,6 +37,7 @@ final class TranscriptViewController: UIViewController {
         title = session.title.components(separatedBy: "\n").first
         navigationItem.largeTitleDisplayMode = .never
         navigationItem.subtitle = session.agent
+        navigationItem.rightBarButtonItem = VoiceBarButtonItem(voice: voice, presenter: self)
         view.backgroundColor = .systemBackground
 
         collectionView.delegate = self

@@ -47,7 +47,6 @@ app.setPath("userData", userData);
 installImageProtocol();
 
 const sessions = new SessionManager();
-const control = new ControlServer(sessions);
 let mainWindow: BrowserWindow | null = null;
 const crons = new CronScheduler((job, at) => {
   if (!mainWindow) return;
@@ -60,6 +59,7 @@ const voice = new VoiceAgent({
   sessions,
   getWindow: () => mainWindow,
 });
+const control = new ControlServer(sessions, voice);
 sessions.setObserver(voice.observer);
 const reminders = new ReminderScheduler((reminder) =>
   fireReminder(reminder, { sessions, voice, getWindow: () => mainWindow }),

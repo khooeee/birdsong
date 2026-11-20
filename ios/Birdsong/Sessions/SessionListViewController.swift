@@ -7,6 +7,7 @@ final class SessionListViewController: UIViewController {
     }
 
     private let client: BirdsongClient
+    private let voice: VoiceController
     private let onPairTapped: () -> Void
     private let subscription: EventSubscription
     private var list: SessionList?
@@ -16,8 +17,9 @@ final class SessionListViewController: UIViewController {
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: Self.layout())
     private lazy var dataSource = makeDataSource()
 
-    init(client: BirdsongClient, onPairTapped: @escaping () -> Void) {
+    init(client: BirdsongClient, voice: VoiceController, onPairTapped: @escaping () -> Void) {
         self.client = client
+        self.voice = voice
         self.onPairTapped = onPairTapped
         subscription = EventSubscription(client: client, path: ["events"])
         super.init(nibName: nil, bundle: nil)
@@ -33,6 +35,7 @@ final class SessionListViewController: UIViewController {
             image: UIImage(systemName: "gearshape"),
             primaryAction: UIAction { [weak self] _ in self?.onPairTapped() }
         )
+        navigationItem.leftBarButtonItem = VoiceBarButtonItem(voice: voice, presenter: self)
         let search = UISearchController()
         search.searchResultsUpdater = self
         search.obscuresBackgroundDuringPresentation = false
@@ -141,7 +144,7 @@ extension SessionListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         guard let id = dataSource.itemIdentifier(for: indexPath), let session = sessionsById[id] else { return }
-        navigationController?.pushViewController(TranscriptViewController(client: client, session: session), animated: true)
+        navigationController?.pushViewController(TranscriptViewController(client: client, voice: voice, session: session), animated: true)
     }
 }
 

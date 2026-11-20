@@ -1,12 +1,15 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { SessionManager } from "../sessions/SessionManager";
 import type { RemoteEventHub } from "../remote/RemoteEventHub";
+import type { VoiceAgent } from "../voice/VoiceAgent";
 import { handleMcpRequest } from "../mcp/handleMcpRequest";
 import { allowedHost } from "./allowedHost";
+import { bearerAuthorized } from "./bearerAuthorized";
 import { handleControlRequest } from "./controlRoutes";
 import { requestAuthorized } from "./requestAuthorized";
 import { sendJson } from "./sendJson";
 import { viaTailscaleServe } from "./viaTailscaleServe";
+import { handleVoiceRequest } from "./voiceRoutes";
 
 type ServerContext = {
   /** control.json scripts' token; refused over Tailscale. */
@@ -16,17 +19,18 @@ type ServerContext = {
   baseUrl: string;
   sessions: SessionManager;
   hub: RemoteEventHub;
+  voice: VoiceAgent;
   remoteEnabled: () => boolean;
 };
 
 /**
  * Refuse unexpected Host headers, Tailscale Funnel (the public internet), and Tailscale traffic unless remote
- * access is on; MCP and event streams here, everything else is the control API.
+ * access is on; MCP, event streams and the phone's voice routes here, everything else is the control API.
  */
 export async function handleServerRequest(
   req: IncomingMessage,
   res: ServerResponse,
-  { localToken, remoteToken, baseUrl, sessions, hub, remoteEnabled }: ServerContext,
+  { localToken, remoteToken, baseUrl, sessions, hub, voice, remoteEnabled }: ServerContext,
 ): Promise<void> {
   if (!allowedHost(req.headers.host)) {
     return sendJson(res, 403, { error: "Unexpected Host header" });
@@ -42,6 +46,11 @@ export async function handleServerRequest(
   const pathname = url.pathname.replace(/\/$/, "") || "/";
   const mcpMatch = /^\/mcp\/([^/]+)$/.exec(pathname);
   if (mcpMatch) return handleMcpRequest(req, res, decodeURIComponent(mcpMatch[1]!), sessions);
+  if (pathname === "/voice" || pathname.startsWith("/voice/")) {
+    // The iOS token only: scripts and agents (with the local token) can't take the mic.
+    if (!bearerAuthorized(req.headers.authorization, remoteToken)) return sendJson(res, 401, { error: "Unauthorized" });
+    return handleVoiceRequest(req, res, pathname, voice);
+  }
   const authorized = requestAuthorized(req, localToken, remoteToken);
   const streamMatch = req.method === "GET" ? /^\/(?:sessions\/([^/]+)\/)?events$/.exec(pathname) : null;
   if (!streamMatch) return handleControlRequest(req, res, authorized, baseUrl, sessions);
