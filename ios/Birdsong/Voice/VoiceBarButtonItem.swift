@@ -34,6 +34,9 @@ final class VoiceBarButtonItem: UIBarButtonItem {
     }
 
     private func update() {
+        let isVoiceOn = voice.state != .off
+        style = isVoiceOn ? .prominent : .plain
+        tintColor = isVoiceOn ? .systemIndigo : nil
         removeAllSymbolEffects()
         switch voice.state {
         case .off:
@@ -50,7 +53,7 @@ final class VoiceBarButtonItem: UIBarButtonItem {
             setSymbol("waveform")
             addSymbolEffect(.variableColor.iterative)
         }
-        accessibilityLabel = voice.state == .off ? "Start Voice" : "Stop Voice"
+        accessibilityLabel = isVoiceOn ? "Stop Voice" : "Start Voice"
     }
 
     private func setSymbol(_ name: String) {
