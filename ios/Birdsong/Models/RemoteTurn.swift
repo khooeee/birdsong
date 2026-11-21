@@ -10,6 +10,7 @@ struct RemoteTurn: Decodable, Sendable, Hashable, Identifiable {
     let at: Double
     let status: Status
     let user: String
+    let agentStarted: Bool?
     let queued: Bool?
     let assistant: String?
     /// Latest tool title (or "Thinking") while the turn runs.

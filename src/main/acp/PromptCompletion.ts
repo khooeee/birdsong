@@ -7,6 +7,10 @@ export class PromptCompletion {
 
   constructor(private notify: () => void) {}
 
+  get requestPending(): boolean {
+    return this.awaitingResponse;
+  }
+
   start(): void {
     this.awaitingResponse = true;
     this.remoteActive = false;

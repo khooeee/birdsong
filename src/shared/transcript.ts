@@ -31,12 +31,12 @@ export interface TranscriptItem {
   subagentId?: string;
 }
 
-/** One user prompt and the session updates that followed it. */
+/** One turn of work and its session updates. An agent-started turn has no user message. */
 export interface TranscriptTurn {
   id: string;
-  /** User message time — used for find sort order. */
+  /** Turn start time — used for find sort order. */
   at: number;
-  user: TranscriptItem;
+  user: TranscriptItem | null;
   /** Latest assistant message; prior assistants live in `events`. */
   assistant: TranscriptItem | null;
   events: TranscriptItem[];

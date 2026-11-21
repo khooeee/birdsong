@@ -32,7 +32,10 @@ export function buildSessionCallbacks(deps: CallbackDeps): SessionCallbacks {
       deps.scheduleResume(session, resetAt);
       deps.queuePersist();
     },
-    onTurn: (turn) => deps.handleTurn(session.id, turn),
+    onTurn: (turn) => {
+      deps.handleTurn(session.id, turn);
+      if (!turn.user && turn.status !== "running") deps.queuePersist();
+    },
     onSubagentTurn: (subagentId, turn) => deps.handleSubagentTurn(session.id, subagentId, turn),
     onTurnRemoved: (turnId) => deps.removeTurn(session.id, turnId),
     onStatus: (status, error) => deps.setStatus(session.id, status, error ?? null),

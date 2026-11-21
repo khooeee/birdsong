@@ -9,7 +9,9 @@ import { drainAgentStream } from "./drainAgentStream";
 import { piMcpEnv } from "./piMcpEnv";
 import { shellEnv } from "../shellEnv/shellEnv";
 import { parseSubagentNotification } from "./subagents/parseSubagentNotification";
-import { rewriteSubagentUpdates } from "./subagents/rewriteSubagentUpdates";
+import { rewriteExtensionUpdates } from "./rewriteExtensionUpdates";
+import { AUTONOMOUS_TURN_UPDATE_METHOD } from "./autonomousTurnUpdateMethod";
+import { parseAutonomousTurnUpdate } from "./parseAutonomousTurnUpdate";
 import type { SubagentUpdate } from "./subagents/SubagentUpdate";
 import { SUBAGENT_UPDATE_METHOD } from "./subagents/subagentUpdateMethod";
 
@@ -37,6 +39,7 @@ export type ConnectHandlers = {
   onSessionUpdate: (sessionId: string, update: acp.SessionUpdate) => void;
   /** Draft ACP subagent lifecycle, sent on the session that started the subagent. */
   onSubagentUpdate: (sessionId: string, update: SubagentUpdate) => void;
+  onAutonomousTurnUpdate: (update: NonNullable<ReturnType<typeof parseAutonomousTurnUpdate>>) => void;
   onProcessExit: (code: number | null) => void;
   onConnectionAbort: () => void;
   onForkSupport: (supported: boolean) => void;
@@ -73,7 +76,7 @@ export async function connectAcpAgent(handlers: ConnectHandlers): Promise<Connec
 
   const input = Writable.toWeb(proc.stdin) as WritableStream<Uint8Array>;
   const output = Readable.toWeb(proc.stdout) as ReadableStream<Uint8Array>;
-  const stream = rewriteSubagentUpdates(acp.ndJsonStream(input, output));
+  const stream = rewriteExtensionUpdates(acp.ndJsonStream(input, output));
 
   const connection = acp
     .client({ name: "birdsong" })
@@ -91,6 +94,9 @@ export async function connectAcpAgent(handlers: ConnectHandlers): Promise<Connec
     })
     .onNotification(SUBAGENT_UPDATE_METHOD, parseSubagentNotification, (ctx) => {
       if (ctx.params) handlers.onSubagentUpdate(ctx.params.sessionId, ctx.params.update);
+    })
+    .onNotification(AUTONOMOUS_TURN_UPDATE_METHOD, parseAutonomousTurnUpdate, (ctx) => {
+      if (ctx.params) handlers.onAutonomousTurnUpdate(ctx.params);
     })
     .connect(stream);
 

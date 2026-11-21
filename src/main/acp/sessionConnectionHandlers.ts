@@ -14,6 +14,7 @@ type SessionConnectionHost = {
   noteSystem: (text: string) => void;
   finishPending: (status: string) => void;
   closeConnection: () => void;
+  interruptSiblingTurns: (error: string) => void;
   routerFor: (sessionId: string) => SessionUpdateRouter | null;
 };
 
@@ -26,6 +27,7 @@ export function sessionConnectionHandlers({
   noteSystem,
   finishPending,
   closeConnection,
+  interruptSiblingTurns,
   routerFor,
 }: SessionConnectionHost): Omit<ConnectHandlers, "agent" | "cwd" | "mcpServers" | "quiet" | "onConnect"> {
   return {
@@ -47,14 +49,21 @@ export function sessionConnectionHandlers({
     onTodosUpdated: () => noteSystem("Todos updated"),
     onSessionUpdate: (sessionId, update) => routerFor(sessionId)?.update(sessionId, update),
     onSubagentUpdate: (sessionId, update) => routerFor(sessionId)?.lifecycle(sessionId, update),
+    onAutonomousTurnUpdate: (update) => routerFor(update.sessionId)?.autonomousTurn(update),
     onProcessExit: (code) => {
+      const error = `Agent exited (code ${code ?? "?"})`;
+      runner.interruptAutonomousTurn();
+      interruptSiblingTurns(error);
       finishPending("interrupted");
       closeConnection();
-      callbacks().onStatus("error", `Agent exited (code ${code ?? "?"})`);
+      callbacks().onStatus("error", error);
     },
     onConnectionAbort: () => {
+      const error = "Agent connection closed";
+      runner.interruptAutonomousTurn();
+      interruptSiblingTurns(error);
       finishPending("interrupted");
-      if (!isDisposed()) callbacks().onStatus("error", "Agent connection closed");
+      if (!isDisposed()) callbacks().onStatus("error", error);
     },
     onForkSupport: (supported) => callbacks().onForkSupport(supported),
     configureDelivery: (meta) => runner.configureDelivery(meta),

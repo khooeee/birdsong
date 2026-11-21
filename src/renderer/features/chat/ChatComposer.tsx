@@ -35,9 +35,12 @@ export function ChatComposer({
   const promptRef = useRef<HTMLTextAreaElement>(null);
   const previousSession = useRef({ id: session.id, status: session.status });
   const history = useMemo(() => userPromptHistory(turns), [turns]);
-  const showStop = session.status === "running" && !draft.trim();
-  const sendLabel = showStop ? "Stop agent (Escape)" : session.status === "running"
-    ? (session.supportsSteering ? "Steer agent" : "Queue message")
+  const running = session.status === "running";
+  const activeTurn = running ? turns.findLast((turn) => turn.status === "running" && !turn.user?.queued) : undefined;
+  const canSteer = session.supportsSteering && activeTurn?.user !== null;
+  const showStop = running && !draft.trim();
+  const sendLabel = showStop ? "Stop agent (Escape)" : running
+    ? (canSteer ? "Steer agent" : "Queue message")
     : "Send message";
   const usageLabel = session.usage ? formatSessionUsage(session.usage) : null;
   const { model, effort } = session.modelConfig ?? {};
@@ -112,8 +115,8 @@ export function ChatComposer({
         placeholder={
           session.status === "connecting"
             ? "Draft your message while the session is being created…"
-            : session.status === "running"
-              ? `${session.supportsSteering ? "Steer the agent" : "Queue a follow-up"}… (Enter to send, Shift+Enter for newline)`
+            : running
+              ? `${canSteer ? "Steer the agent" : "Queue a follow-up"}… (Enter to send, Shift+Enter for newline)`
               : "Message the agent… (Enter to send, Shift+Enter for newline)"
         }
         onPaste={(e) => {

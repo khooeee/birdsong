@@ -12,6 +12,11 @@ export const sessionRoutes = {
     if (sessionId) sessionsById.delete(sessionId);
   },
 
+  siblingsOf(session: AcpSession): AcpSession[] {
+    return [...new Set(sessionsById.values())]
+      .filter((target) => target !== session && target.isSameAgentConnection(session));
+  },
+
   /**
    * Resolve which AcpSession should handle a session/update.
    * Only follow a registered id when it shares this connection (fork siblings).

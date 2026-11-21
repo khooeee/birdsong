@@ -19,11 +19,11 @@ export const TurnDetail = memo(function TurnDetail({
   /** Subagent transcripts are read-only. */
   forkable?: boolean;
 }) {
-  const running = turn.status === "running" && !turn.user.queued;
+  const running = turn.status === "running" && !turn.user?.queued;
 
   return (
     <div className="session-turn" data-turn-id={turn.id}>
-      <TranscriptMessage session={session} item={turn.user} label={userLabel} forkable={forkable} />
+      {turn.user ? <TranscriptMessage session={session} item={turn.user} label={userLabel} forkable={forkable} /> : null}
       <TurnEvents session={session} events={turn.events} />
       {running && turn.assistant ? (
         <TranscriptMessage session={session} item={turn.assistant} />

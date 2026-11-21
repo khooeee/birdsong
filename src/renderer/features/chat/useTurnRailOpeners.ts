@@ -11,9 +11,11 @@ export function useTurnRailOpeners(
     (eventId: string) => onOpenRightRail(turn.id, eventId),
     [onOpenRightRail, turn.id],
   );
-  const userId = turn.user.id;
+  const userId = turn.user?.id;
   const assistantId = turn.assistant?.id;
-  const openUser = useCallback(() => openRail(userId), [openRail, userId]);
+  const openUser = useCallback(() => {
+    if (userId) openRail(userId);
+  }, [openRail, userId]);
   const openLatest = useCallback(() => openRail(RIGHT_RAIL_LATEST), [openRail]);
   const openAssistant = useCallback(() => {
     if (assistantId) openRail(assistantId);

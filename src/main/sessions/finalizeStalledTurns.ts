@@ -6,7 +6,11 @@ export function finalizeStalledTurns<T extends TranscriptTurn>(turns: T[]): T[] 
   const next = turns.map((turn) => {
     if (turn.status !== "running") return turn;
     changed = true;
-    const { queued: _queued, ...user } = turn.user;
+    let user = turn.user;
+    if (user?.queued) {
+      const { queued: _queued, ...unqueued } = user;
+      user = unqueued;
+    }
     // Subagents cannot report back across a restart either.
     const events = turn.events.map((event) =>
       event.role === "subagent" && event.toolStatus === "running"

@@ -16,8 +16,9 @@ export function toRemoteTurn(turn: TranscriptTurn): RemoteTurn {
     at: turn.at,
     status: turn.status,
     // The iOS app has no reminder row; label it so it doesn't read as a prompt.
-    user: isReminderTurn(turn) ? `⏰ Reminder: ${turn.user.text}` : turn.user.text,
-    queued: turn.user.queued || undefined,
+    user: isReminderTurn(turn) ? `⏰ Reminder: ${turn.user.text}` : turn.user?.text ?? "Claude started a turn",
+    agentStarted: turn.user ? undefined : true,
+    queued: turn.user?.queued || undefined,
     assistant: turn.assistant?.text ?? null,
     activity: turn.status === "running" ? latestActivity(turn) : undefined,
   };

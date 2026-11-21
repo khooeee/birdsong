@@ -24,7 +24,7 @@ export const SessionTurn = memo(function SessionTurn({
   turn: TranscriptTurn;
   onOpenRightRail: (turnId: string, focusEventId?: string) => void;
 }) {
-  const running = turn.status === "running" && !turn.user.queued;
+  const running = turn.status === "running" && !turn.user?.queued;
   const { openUser, openLatest, openAssistant } = useTurnRailOpeners(turn, onOpenRightRail);
   const steers = useMemo(() => steerEvents(turn.events), [turn.events]);
   const subagents = useMemo(() => subagentRows(turn.events), [turn.events]);
@@ -41,12 +41,9 @@ export const SessionTurn = memo(function SessionTurn({
 
   return (
     <div className="session-turn" data-turn-id={turn.id}>
-      <TranscriptMessage
-        session={session}
-        item={turn.user}
-        onToggleDetails={openUser}
-        forkable
-      />
+      {turn.user ? (
+        <TranscriptMessage session={session} item={turn.user} onToggleDetails={openUser} forkable />
+      ) : null}
       <TurnEvents session={session} events={steers} />
       <SubagentChips sessionId={session.id} rows={subagents} />
       {running ? <ThinkingIndicator onActivate={openLatest} /> : null}
@@ -60,7 +57,12 @@ export const SessionTurn = memo(function SessionTurn({
           forkable
         />
       ) : null}
-      {!running && !turn.assistant && turn.status === "stopped" ? (
+      {!turn.user && !running && !turn.assistant ? (
+        <button type="button" className="message" onClick={openLatest}>
+          {turn.status === "stopped" ? "Claude stopped" : "Claude turn details"}
+        </button>
+      ) : null}
+      {turn.user && !running && !turn.assistant && turn.status === "stopped" ? (
         <div className="message stopped" data-event-id={`${turn.id}-stopped`}>
           <div className="body">Stopped</div>
         </div>

@@ -56,7 +56,7 @@ export async function forkSessionAtEvent(
   if (eventId) {
     clipped = clipTurns(turns, eventId);
     const last = clipped.at(-1);
-    if (last?.user.id === eventId) {
+    if (last?.user?.id === eventId) {
       draft = last.user.text;
       clipped = clipped.slice(0, -1);
     }
@@ -100,12 +100,10 @@ export async function forkSessionAtEvent(
     // No assistant message before the fork point leaves no agent history to keep.
     const acp = cut && !forkPoint
       ? await host.ensureSession(session)
-      : await sourceSession.forkSibling(id, host.callbacksFor(session), forkPoint);
-    acp.restoreTurns(clipped);
+      : await sourceSession.forkSibling(id, host.callbacksFor(session), forkPoint, clipped);
     host.setSession(id, acp);
     session.agentSessionId = acp.sessionId;
-    session.status = "ready";
-    session.error = null;
+    if (session.status === "connecting") session.status = "ready";
     host.emitSessions();
   } catch (err) {
     session.status = "error";
