@@ -31,6 +31,10 @@ final class BirdsongClient: Sendable {
         return try JSONDecoder().decode(Session.self, from: await send(request))
     }
 
+    func setPinned(_ pinned: Bool, sessionId: String) async throws {
+        _ = try await send(request(["sessions", sessionId, pinned ? "pin" : "unpin"], method: "POST"))
+    }
+
     /// Sends, or steers into the running turn where the agent supports it.
     func sendPrompt(_ text: String, sessionId: String) async throws {
         var request = request(["sessions", sessionId, "prompt"], method: "POST")
