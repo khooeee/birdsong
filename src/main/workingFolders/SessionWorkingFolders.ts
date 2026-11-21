@@ -30,6 +30,18 @@ export class SessionWorkingFolders {
     });
   }
 
+  replace(sessionId: string, folderId: string, folderPath: string): Promise<WorkingFolder[]> {
+    return this.change(sessionId, async (session) => {
+      const folders = session.workingFolders;
+      const current = folders.find((folder) => folder.id === folderId);
+      if (!current) throw new Error("Working folder not found");
+      const path = await canonicalFolderPath(folderPath, session.cwd);
+      if (path === current.path) return folders;
+      if (folders.some((folder) => folder.path === path)) throw new Error("This folder is already in the list.");
+      return folders.map((folder) => folder === current ? { id: folderId, path } : folder);
+    });
+  }
+
   remove(sessionId: string, folderId: string): Promise<WorkingFolder[]> {
     return this.change(sessionId, (session) => {
       const next = session.workingFolders.filter((folder) => folder.id !== folderId);

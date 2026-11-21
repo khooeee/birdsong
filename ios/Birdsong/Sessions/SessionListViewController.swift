@@ -31,10 +31,16 @@ final class SessionListViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Sessions"
-        navigationItem.rightBarButtonItem = UIBarButtonItem(
+        let settings = UIBarButtonItem(
             image: UIImage(systemName: "gearshape"),
             primaryAction: UIAction { [weak self] _ in self?.onPairTapped() }
         )
+        let newSession = UIBarButtonItem(
+            systemItem: .add,
+            primaryAction: UIAction { [weak self] _ in self?.showNewSession() }
+        )
+        newSession.accessibilityLabel = "New session"
+        navigationItem.rightBarButtonItems = [settings, newSession]
         navigationItem.leftBarButtonItem = VoiceBarButtonItem(voice: voice, presenter: self)
         let search = UISearchController()
         search.searchResultsUpdater = self
@@ -63,6 +69,18 @@ final class SessionListViewController: UIViewController {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         subscription.stop()
+    }
+
+    private func showNewSession() {
+        let recent = (list?.unpinned ?? []) + (list?.pinned ?? [])
+        let form = NewSessionViewController(client: client, recent: recent) { [weak self] session in
+            self?.openSession(session)
+        }
+        present(UINavigationController(rootViewController: form), animated: true)
+    }
+
+    private func openSession(_ session: Session) {
+        navigationController?.pushViewController(TranscriptViewController(client: client, voice: voice, session: session), animated: true)
     }
 
     override func updateContentUnavailableConfiguration(using state: UIContentUnavailableConfigurationState) {
@@ -144,7 +162,7 @@ extension SessionListViewController: UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         collectionView.deselectItem(at: indexPath, animated: true)
         guard let id = dataSource.itemIdentifier(for: indexPath), let session = sessionsById[id] else { return }
-        navigationController?.pushViewController(TranscriptViewController(client: client, voice: voice, session: session), animated: true)
+        openSession(session)
     }
 }
 

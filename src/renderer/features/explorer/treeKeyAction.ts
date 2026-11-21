@@ -18,7 +18,7 @@ export function treeKeyAction(rows: TreeRow[], selectedId: string | null, key: s
     case "End": return selectAt(rows.length - 1);
     case "ArrowRight":
       if (!row) return selectAt(0);
-      if (row.kind !== "dir") return null;
+      if (row.kind !== "dir" || row.missing) return null;
       if (!row.expanded) return { type: "expand", row, open: true };
       return rows[index + 1]?.depth === row.depth + 1 ? selectAt(index + 1) : null;
     case "ArrowLeft": {
@@ -31,7 +31,7 @@ export function treeKeyAction(rows: TreeRow[], selectedId: string | null, key: s
       return null;
     }
     case "Enter":
-      if (!row) return null;
+      if (!row || row.missing) return null;
       return row.kind === "dir"
         ? { type: "expand", row, open: !row.expanded }
         : { type: "open", row };

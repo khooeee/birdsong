@@ -41,6 +41,14 @@ export function registerFileIpc(sessions: SessionManager): SessionFileWatcher {
     scope: GitDiffScope, fullContext: boolean) =>
     readGitPatch(sessionOf(id).workingFolders, root, file, oldPath, scope, fullContext));
   ipcMain.handle("folders:add", (_e, id: string, folder: string) => sessions.workingFolders.add(id, folder));
+  ipcMain.handle("folders:replace", async (_e, id: string, folderId: string, folder: string) => {
+    const previousPath = sessionOf(id).workingFolders.find((item) => item.id === folderId)?.path;
+    const folders = await sessions.workingFolders.replace(id, folderId, folder);
+    if (folders.some((item) => item.id === folderId && item.path === previousPath)) {
+      watcher.refresh(id, folders, folderId);
+    }
+    return folders;
+  });
   ipcMain.handle("folders:remove", (_e, id: string, folderId: string) => sessions.workingFolders.remove(id, folderId));
   ipcMain.handle("folders:move", (_e, id: string, folderId: string, beforeId?: string) =>
     sessions.workingFolders.move(id, folderId, beforeId));

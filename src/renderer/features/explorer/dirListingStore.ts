@@ -1,6 +1,6 @@
 import { errorMessage } from "../../../shared/errorMessage";
 import { isSameJson } from "../sessions/isSameJson";
-import type { DirListing } from "./DirListing";
+import type { DirListing } from "../../../shared/dirListing";
 
 type SessionListings = Record<string, DirListing>;
 
@@ -25,8 +25,8 @@ async function fetchListing(sessionId: string, relPath: string): Promise<void> {
   }
   inflight.set(key, false);
   try {
-    const entries = await window.birdsong.listSessionDir(sessionId, relPath);
-    set(sessionId, relPath, { entries });
+    const listing = await window.birdsong.listSessionDir(sessionId, relPath);
+    set(sessionId, relPath, listing);
   } catch (err) {
     set(sessionId, relPath, { error: errorMessage(err) });
   }

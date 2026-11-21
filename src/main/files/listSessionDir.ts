@@ -2,6 +2,7 @@ import type { Dirent } from "node:fs";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import type { DirEntry } from "../../shared/dirEntry";
+import type { DirListing } from "../../shared/dirListing";
 import { resolveInsideCwd } from "./resolveInsideCwd";
 
 const HIDDEN = new Set([".git", ".DS_Store"]);
@@ -18,9 +19,16 @@ async function entryKind(dir: string, entry: Dirent): Promise<DirEntry["kind"] |
 }
 
 /** Children of one folder under the session cwd: folders first, then files, natural name order. */
-export async function listSessionDir(cwd: string, relPath: string): Promise<DirEntry[]> {
+export async function listSessionDir(cwd: string, relPath: string): Promise<DirListing> {
   const dir = resolveInsideCwd(cwd, relPath);
-  const entries = await fs.readdir(dir, { withFileTypes: true });
+  let entries: Dirent[];
+  try {
+    entries = await fs.readdir(dir, { withFileTypes: true });
+  } catch (error) {
+    const { code, message } = error as NodeJS.ErrnoException;
+    if (code === "ENOENT" || code === "ENOTDIR") return { error: message, missing: true };
+    throw error;
+  }
   const listed = await Promise.all(
     entries
       .filter((entry) => !HIDDEN.has(entry.name))
@@ -29,7 +37,8 @@ export async function listSessionDir(cwd: string, relPath: string): Promise<DirE
         return kind ? { name: entry.name, kind } : null;
       }),
   );
-  return listed
+  const sorted = listed
     .filter((entry): entry is DirEntry => entry !== null)
     .sort((a, b) => (a.kind === b.kind ? byName.compare(a.name, b.name) : a.kind === "dir" ? -1 : 1));
+  return { entries: sorted };
 }

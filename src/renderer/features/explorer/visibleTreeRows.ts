@@ -1,6 +1,6 @@
 import type { WorkingFolder } from "../../../shared/workingFolder";
 import { childPath } from "./childPath";
-import type { DirListing } from "./DirListing";
+import type { DirListing } from "../../../shared/dirListing";
 import { projectFolderName } from "./projectFolderName";
 import type { TreeRow } from "./TreeRow";
 
@@ -28,13 +28,14 @@ export function visibleTreeRows(
     }
   };
   for (const folder of folders) {
-    const open = !collapsedRoots.includes(folder.path);
     const listing = listings[folder.path];
+    const failure = listing && "error" in listing ? listing : undefined;
+    const open = !failure?.missing && !collapsedRoots.includes(folder.path);
     rows.push({
       id: JSON.stringify([folder.id, null]),
       folderId: folder.id, rootId: folder.id, path: folder.path, name: projectFolderName(folder.path),
       kind: "dir", depth: 0, expanded: open,
-      error: listing && "error" in listing ? listing.error : undefined,
+      error: failure?.error, missing: failure?.missing,
     });
     if (open) walk(folder.path, 1, folder.id);
   }

@@ -1,22 +1,35 @@
 import { useCallback, useState } from "react";
 import { ipcErrorMessage } from "../../../shared/ipcErrorMessage";
+import type { WorkingFolder } from "../../../shared/workingFolder";
+import { dirListingStore } from "./dirListingStore";
+import { parentPath } from "./parentPath";
 
 /** UI list edits use main-process mutations, just like MCP callers. */
 export function useWorkingFolderActions(sessionId: string, cwd: string) {
   const [error, setError] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
-  const add = useCallback(async () => {
-    setAdding(true);
+  const [picking, setPicking] = useState(false);
+  const pick = useCallback(async (startPath: string, current?: WorkingFolder) => {
+    setPicking(true);
     setError(null);
     try {
-      const path = await window.birdsong.pickFolder(cwd);
-      if (path) await window.birdsong.addWorkingFolder(sessionId, path);
+      const path = await window.birdsong.pickFolder(startPath);
+      if (!path) return;
+      if (!current) {
+        await window.birdsong.addWorkingFolder(sessionId, path);
+      } else {
+        const folders = await window.birdsong.replaceWorkingFolder(sessionId, current.id, path);
+        if (folders.some((folder) => folder.id === current.id && folder.path === current.path)) {
+          dirListingStore.refresh(sessionId, current.path);
+        }
+      }
     } catch (err) {
       setError(ipcErrorMessage(err));
     } finally {
-      setAdding(false);
+      setPicking(false);
     }
-  }, [sessionId, cwd]);
+  }, [sessionId]);
+  const add = useCallback(() => pick(cwd), [pick, cwd]);
+  const locate = useCallback((id: string, path: string) => pick(parentPath(path), { id, path }), [pick]);
   const remove = useCallback(async (folderId: string) => {
     setError(null);
     try {
@@ -33,5 +46,5 @@ export function useWorkingFolderActions(sessionId: string, cwd: string) {
       setError(ipcErrorMessage(err));
     }
   }, [sessionId]);
-  return { add, remove, move, adding, error };
+  return { add, locate, remove, move, picking, error };
 }

@@ -27,12 +27,13 @@ export class SessionFileWatcher {
     this.refresh(sessionId, folders);
   }
 
-  refresh(sessionId: string, folders: WorkingFolder[]): void {
+  refresh(sessionId: string, folders: WorkingFolder[], restartFolderId?: string): void {
     const sender = this.senders.get(sessionId);
     if (!sender) return;
     for (const [key, entry] of this.watches) {
-      if (entry.sessionId === sessionId && !folders.some((folder) => folder.id === entry.folder.id
-        && folder.path === entry.folder.path)) this.close(key);
+      if (entry.sessionId !== sessionId) continue;
+      const current = folders.find((folder) => folder.id === entry.folder.id);
+      if (current?.path !== entry.folder.path || entry.folder.id === restartFolderId) this.close(key);
     }
     for (const folder of folders) this.start(sessionId, folder, sender);
   }

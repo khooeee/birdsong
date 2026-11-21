@@ -8,7 +8,7 @@ import type { ConfigMenuCategory } from "./configMenuCategory";
 import type { CreateSessionInput } from "./createSessionInput";
 import type { CronInput } from "./cronInput";
 import type { CronsSnapshot } from "./cronsSnapshot";
-import type { DirEntry } from "./dirEntry";
+import type { DirListing } from "./dirListing";
 import type { FindInFilesResult } from "./findInFilesResult";
 import type { FindInSessionsHit } from "./findInSessionsHit";
 import type { Reminder } from "./reminder";
@@ -97,12 +97,13 @@ export interface BirdsongApi {
   /** Popup the session's model or effort picker; choosing a value sets it on the agent. */
   showConfigMenu: (sessionId: string, category: ConfigMenuCategory) => Promise<void>;
   addWorkingFolder: (sessionId: string, path: string) => Promise<WorkingFolder[]>;
+  replaceWorkingFolder: (sessionId: string, folderId: string, path: string) => Promise<WorkingFolder[]>;
   removeWorkingFolder: (sessionId: string, folderId: string) => Promise<WorkingFolder[]>;
   moveWorkingFolder: (sessionId: string, folderId: string, beforeId?: string) => Promise<WorkingFolder[]>;
   /** Absolute editor path; relative input resolves against the Session Folder. */
   resolveSessionPath: (sessionId: string, path: string) => Promise<string>;
   /** Children of an absolute directory inside a registered working folder. */
-  listSessionDir: (sessionId: string, relPath: string) => Promise<DirEntry[]>;
+  listSessionDir: (sessionId: string, relPath: string) => Promise<DirListing>;
   /** Absolute file paths across working folders for Go to File: git's tracked and unignored files in a repo, else a capped folder walk. */
   listSessionFiles: (sessionId: string) => Promise<string[]>;
   findInFiles: (sessionId: string, query: string, matchCase: boolean) => Promise<FindInFilesResult>;

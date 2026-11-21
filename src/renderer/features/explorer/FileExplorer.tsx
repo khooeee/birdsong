@@ -13,7 +13,7 @@ import "./explorer.css";
 export function FileExplorer({ session }: { session: Session }) {
   const restored = useExplorerRestored(session.id);
   useSessionFileWatch(session.id, session.workingFolders);
-  const { add, remove, move, adding, error } = useWorkingFolderActions(session.id, session.cwd);
+  const { add, locate, remove, move, picking, error } = useWorkingFolderActions(session.id, session.cwd);
   const [searching, setSearching] = useState(false);
   const closeSearch = useCallback(() => setSearching(false), []);
   const openSearch = useCallback(() => {
@@ -30,12 +30,14 @@ export function FileExplorer({ session }: { session: Session }) {
         <span>Working Folders</span>
         <div className="explorer-header-actions">
           <button type="button" onClick={openSearch} title={`Find in Files (${modLabel("F", true)})`} aria-label="Find in Files">Find</button>
-          <button type="button" onClick={add} disabled={adding} title="Add Working Folder" aria-label="Add Working Folder">+</button>
+          <button type="button" onClick={add} disabled={picking} title="Add Working Folder" aria-label="Add Working Folder">+</button>
         </div>
       </div>
       {error ? <div className="explorer-empty" role="alert">{error}</div> : null}
       {session.workingFolders.length === 0 ? <div className="explorer-empty">Add a working folder to browse files.</div> : null}
-      {restored ? <FileTree sessionId={session.id} folders={session.workingFolders} onRemove={remove} onMove={move} /> : null}
+      {restored ? (
+        <FileTree sessionId={session.id} folders={session.workingFolders} picking={picking} onLocate={locate} onRemove={remove} onMove={move} />
+      ) : null}
     </div>
   );
 }

@@ -13,18 +13,21 @@ type Props = TreeRow & {
   first: boolean;
   last: boolean;
   selected: boolean;
+  picking?: boolean;
   onToggle: (id: string) => void;
+  onLocate: (id: string, path: string) => void;
   onRemove: (id: string) => void;
   onMove: (id: string, beforeId?: string) => void;
 };
 
 /** A draggable root. Removing it only changes the list; open editor tabs stay put. */
 export const WorkingFolderRow = memo(function WorkingFolderRow({
-  id, rootId, sessionId, path, name, expanded, error, selected,
-  previousId, nextId, afterNextId, first, last, onToggle, onRemove, onMove,
+  id, rootId, sessionId, path, name, expanded, error, missing, selected, picking,
+  previousId, nextId, afterNextId, first, last, onToggle, onLocate, onRemove, onMove,
 }: Props) {
   const [dropTarget, setDropTarget] = useState<"before" | "after" | null>(null);
   const toggle = useCallback(() => onToggle(id), [onToggle, id]);
+  const locate = useCallback(() => onLocate(rootId, path), [onLocate, rootId, path]);
   const remove = useCallback(() => onRemove(rootId), [onRemove, rootId]);
   const moveUp = useCallback(() => onMove(rootId, previousId), [onMove, rootId, previousId]);
   const moveDown = useCallback(() => onMove(rootId, afterNextId), [onMove, rootId, afterNextId]);
@@ -40,8 +43,8 @@ export const WorkingFolderRow = memo(function WorkingFolderRow({
       role="treeitem"
       aria-level={1}
       aria-selected={selected}
-      aria-expanded={expanded}
-      className={`explorer-row working-folder-row${selected ? " selected" : ""}${error ? " error" : ""}${dropTarget ? ` drop-${dropTarget}` : ""}`}
+      aria-expanded={missing ? undefined : expanded}
+      className={`explorer-row working-folder-row${selected ? " selected" : ""}${error ? " error" : ""}${missing ? " missing" : ""}${dropTarget ? ` drop-${dropTarget}` : ""}`}
       data-path={path}
       data-row-id={id}
       title={error ? `${path}\nUnavailable: ${error}` : path}
@@ -62,16 +65,22 @@ export const WorkingFolderRow = memo(function WorkingFolderRow({
         } catch { /* Ignore unrelated drags. */ }
       }}
     >
-      <button type="button" className="working-folder-toggle" onClick={toggle} aria-label={`${expanded ? "Collapse" : "Expand"} ${path}`}>
-        <span className="explorer-chevron"><ChevronIcon /></span>
+      <button type="button" className="working-folder-toggle" onClick={toggle} aria-label={missing ? `${path}, folder missing` : `${expanded ? "Collapse" : "Expand"} ${path}`}>
+        {missing ? null : <span className="explorer-chevron"><ChevronIcon /></span>}
         <span className="explorer-name">{name}</span>
-        {error ? <span className="working-folder-unavailable">Unavailable</span> : null}
+        {error ? <span className="working-folder-unavailable">{missing ? "Folder missing" : "Unavailable"}</span> : null}
       </button>
       <div className="working-folder-actions">
         <button type="button" disabled={first} title="Move Up" aria-label={`Move ${path} up`} onClick={moveUp}>↑</button>
         <button type="button" disabled={last} title="Move Down" aria-label={`Move ${path} down`} onClick={moveDown}>↓</button>
-        <button type="button" title="Remove Working Folder" aria-label={`Remove ${path} from working folders`} onClick={remove}>×</button>
+        {missing ? null : <button type="button" title="Remove Working Folder" aria-label={`Remove ${path} from working folders`} onClick={remove}>×</button>}
       </div>
+      {missing ? (
+        <div className="working-folder-recovery">
+          <button type="button" disabled={picking} onClick={locate} aria-label={`Locate folder ${path}`}>Locate folder…</button>
+          <button type="button" onClick={remove} title="Remove from list" aria-label={`Remove ${path} from working folders`}>Remove</button>
+        </div>
+      ) : null}
     </div>
   );
 });

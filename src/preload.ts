@@ -62,6 +62,7 @@ const api: BirdsongApi = {
   showImageContextMenu: (name) => ipcRenderer.invoke("image:contextMenu", name),
   showConfigMenu: (sessionId, category) => ipcRenderer.invoke("session:configMenu", sessionId, category),
   addWorkingFolder: (sessionId, path) => ipcRenderer.invoke("folders:add", sessionId, path),
+  replaceWorkingFolder: (sessionId, folderId, path) => ipcRenderer.invoke("folders:replace", sessionId, folderId, path),
   removeWorkingFolder: (sessionId, folderId) => ipcRenderer.invoke("folders:remove", sessionId, folderId),
   moveWorkingFolder: (sessionId, folderId, beforeId) => ipcRenderer.invoke("folders:move", sessionId, folderId, beforeId),
   resolveSessionPath: (sessionId, path) => ipcRenderer.invoke("files:resolve", sessionId, path),

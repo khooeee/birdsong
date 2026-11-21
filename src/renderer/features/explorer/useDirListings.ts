@@ -1,5 +1,5 @@
 import { useCallback, useSyncExternalStore } from "react";
-import type { DirListing } from "./DirListing";
+import type { DirListing } from "../../../shared/dirListing";
 import { dirListingStore } from "./dirListingStore";
 
 /** Loaded folders of one session, keyed by relative path ("" is the root). */

@@ -11,4 +11,5 @@ export interface TreeRow {
   expanded: boolean;
   /** Why an expanded folder could not be read. */
   error?: string;
+  missing?: boolean;
 }

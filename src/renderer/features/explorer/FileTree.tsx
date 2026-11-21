@@ -22,9 +22,11 @@ function setExpanded(sessionId: string, row: TreeRow, open: boolean): void {
 }
 
 /** The session's working folders, with stable identities for each appearance of a path. */
-export function FileTree({ sessionId, folders, onRemove, onMove }: {
+export function FileTree({ sessionId, folders, picking, onLocate, onRemove, onMove }: {
   sessionId: string;
   folders: WorkingFolder[];
+  picking: boolean;
+  onLocate: (id: string, path: string) => void;
   onRemove: (id: string) => void;
   onMove: (id: string, beforeId?: string) => void;
 }) {
@@ -58,7 +60,7 @@ export function FileTree({ sessionId, folders, onRemove, onMove }: {
     if (row.kind === "file") previewFileTab(sessionId, row.path);
     else {
       explorerStore.select(sessionId, row.path);
-      setExpanded(sessionId, row, !row.expanded);
+      if (!row.missing) setExpanded(sessionId, row, !row.expanded);
     }
   }, [sessionId]);
 
@@ -114,7 +116,9 @@ export function FileTree({ sessionId, folders, onRemove, onMove }: {
           nextId={folders[folders.findIndex((folder) => folder.id === row.rootId) + 1]?.id}
           afterNextId={folders[folders.findIndex((folder) => folder.id === row.rootId) + 2]?.id}
           selected={row.id === selected?.id}
+          picking={row.missing ? picking : undefined}
           onToggle={onRowClick}
+          onLocate={onLocate}
           onRemove={onRemove}
           onMove={onMove}
         />

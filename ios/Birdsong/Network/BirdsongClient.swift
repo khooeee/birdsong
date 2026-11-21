@@ -18,6 +18,13 @@ final class BirdsongClient: Sendable {
         _ = try await send(request(["sessions"]))
     }
 
+    func createSession(agent: SessionAgent, cwd: String) async throws -> Session {
+        var request = request(["sessions"], method: "POST")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(["agent": agent.rawValue, "cwd": cwd])
+        return try JSONDecoder().decode(Session.self, from: await send(request))
+    }
+
     /// Sends, or steers into the running turn where the agent supports it.
     func sendPrompt(_ text: String, sessionId: String) async throws {
         var request = request(["sessions", sessionId, "prompt"], method: "POST")

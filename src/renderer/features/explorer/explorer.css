@@ -112,7 +112,8 @@
 }
 
 .working-folders-header button,
-.working-folder-actions button {
+.working-folder-actions button,
+.working-folder-recovery button {
   border: 0;
   border-radius: 3px;
   background: transparent;
@@ -123,13 +124,22 @@
 }
 
 .working-folders-header button:hover,
-.working-folder-actions button:hover:not(:disabled) {
+.working-folder-actions button:hover:not(:disabled),
+.working-folder-recovery button:hover:not(:disabled) {
   background: var(--bg-2);
   color: var(--text);
 }
 
-.working-folder-actions button:disabled { opacity: 0.3; cursor: default; }
+.working-folder-actions button:disabled,
+.working-folder-recovery button:disabled { opacity: 0.3; cursor: default; }
 .working-folder-row { font-weight: 600; }
+.working-folder-row.missing {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: repeat(2, 22px);
+  height: 44px;
+  contain-intrinsic-size: auto 44px;
+}
 .working-folder-row.drop-before { box-shadow: inset 0 2px var(--accent); }
 .working-folder-row.drop-after { box-shadow: inset 0 -2px var(--accent); }
 .working-folder-toggle {
@@ -150,4 +160,5 @@
 .explorer-header-actions { display: flex; margin-left: auto; }
 .working-folder-row:hover .working-folder-actions,
 .working-folder-row:focus-within .working-folder-actions { display: flex; }
+.working-folder-recovery { display: flex; grid-column: 1 / -1; font-weight: 400; }
 .working-folder-unavailable { margin-left: 4px; font-weight: 400; font-size: 0.9em; }

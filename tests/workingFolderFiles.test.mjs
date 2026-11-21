@@ -9,6 +9,7 @@ import { createJiti } from "jiti";
 const jiti = createJiti(import.meta.url);
 const { migrateExplorerPaths } = await jiti.import("../src/main/files/migrateExplorerPaths.ts");
 const { workingFolderRoot } = await jiti.import("../src/main/files/workingFolderRoot.ts");
+const { listSessionDir } = await jiti.import("../src/main/files/listSessionDir.ts");
 const { readSessionFile } = await jiti.import("../src/main/files/readSessionFile.ts");
 const { writeSessionFile } = await jiti.import("../src/main/files/writeSessionFile.ts");
 const { renameSessionFile } = await jiti.import("../src/main/files/renameSessionFile.ts");
@@ -113,14 +114,46 @@ test("root reorder keeps expansion and file identities; missing roots remain vis
   const listings = {
     "/repo": { entries: [{ name: "src", kind: "dir" }] },
     "/repo/src": { entries: [{ name: "same.ts", kind: "file" }] },
-    "/worktree": { error: "ENOENT" },
+    "/worktree": { error: "ENOENT", missing: true },
   };
   const expanded = new Set(["/repo/src"]);
   const rows = visibleTreeRows(listings, expanded, [...folders].reverse(), []);
   assert.deepEqual(rows.map((row) => row.path), ["/worktree", "/repo", "/repo/src", "/repo/src/same.ts"]);
   assert.equal(rows[0].error, "ENOENT");
+  assert.equal(rows[0].missing, true);
+  assert.equal(rows[0].expanded, false);
   const collapsed = visibleTreeRows(listings, expanded, folders, ["/repo"]);
   assert.deepEqual(collapsed.map((row) => row.path), ["/repo", "/worktree"]);
+});
+
+test("locating a missing working folder saves a replacement in the same position", async (t) => {
+  const { cwd, roots, session } = await fixture(t);
+  const [missing, other] = roots;
+  const replacement = path.join(cwd, "moved");
+  await fs.writeFile(path.join(missing.path, "file.ts"), "text");
+  await fs.rename(missing.path, replacement);
+
+  const listing = await listSessionDir(missing.path, missing.path);
+  assert.equal(listing.missing, true);
+  assert.deepEqual(session.workingFolders, roots);
+
+  const savedPath = path.join(cwd, "session-meta.json");
+  let updates = 0;
+  const folders = new SessionWorkingFolders({
+    getSession: () => session, ensure: async () => session,
+    save: (value) => fs.writeFile(savedPath, JSON.stringify(value)),
+    emit: () => { updates++; },
+  });
+  await assert.rejects(folders.replace(session.id, missing.id, other.path), /already in the list/);
+  assert.equal(session.workingFolders, roots);
+
+  const located = await folders.replace(session.id, missing.id, replacement);
+  assert.deepEqual(located, [{ id: missing.id, path: replacement }, other]);
+  assert.equal(located[1], other);
+  assert.deepEqual(JSON.parse(await fs.readFile(savedPath, "utf8")).workingFolders, located);
+  assert.deepEqual(await listSessionDir(replacement, replacement), { entries: [{ name: "file.ts", kind: "file" }] });
+  assert.equal(await folders.replace(session.id, missing.id, replacement), located);
+  assert.equal(updates, 1);
 });
 
 test("nested roots give duplicate visible file paths separate row identities", () => {
