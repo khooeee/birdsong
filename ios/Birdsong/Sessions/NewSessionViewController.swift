@@ -42,7 +42,7 @@ final class NewSessionViewController: UIViewController {
         navigationItem.rightBarButtonItem = createButton
 
         agentButton.accessibilityLabel = "Agent"
-        agentButton.contentHorizontalAlignment = .leading
+        agentButton.contentHorizontalAlignment = .fill
         agentButton.showsMenuAsPrimaryAction = true
         updateAgentMenu()
 
@@ -60,7 +60,7 @@ final class NewSessionViewController: UIViewController {
         folderField.addAction(UIAction { [weak self] _ in self?.clearError() }, for: .editingChanged)
         folderField.addAction(UIAction { [weak self] _ in self?.create() }, for: .editingDidEndOnExit)
 
-        recentButton.configuration?.image = UIImage(systemName: "clock")
+        recentButton.configuration?.title = "Recent"
         recentButton.accessibilityLabel = "Recent folders"
         recentButton.showsMenuAsPrimaryAction = true
         recentButton.menu = UIMenu(children: recentFolders.map { path in
@@ -125,7 +125,7 @@ final class NewSessionViewController: UIViewController {
 
     private func updateAgentMenu() {
         agentButton.configuration?.title = agent.label
-        agentButton.configuration?.image = UIImage(systemName: "chevron.up.chevron.down")
+        agentButton.configuration?.image = UIImage(systemName: "chevron.down")
         agentButton.configuration?.imagePlacement = .trailing
         agentButton.configuration?.imagePadding = 8
         agentButton.accessibilityValue = agent.label
