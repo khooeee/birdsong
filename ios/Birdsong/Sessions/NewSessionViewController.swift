@@ -9,6 +9,7 @@ final class NewSessionViewController: UIViewController {
     private let agentButton = UIButton(configuration: .gray())
     private let folderField = UITextField()
     private let recentButton = UIButton(configuration: .gray())
+    private let pinCheckbox = UIButton(configuration: .plain())
     private let errorLabel = UILabel()
     private var isCreating = false
     private lazy var createButton = UIBarButtonItem(
@@ -75,6 +76,20 @@ final class NewSessionViewController: UIViewController {
         let folderRow = UIStackView(arrangedSubviews: [folderField, recentButton])
         folderRow.spacing = 8
 
+        pinCheckbox.configuration?.title = "Pin"
+        pinCheckbox.configuration?.baseForegroundColor = .label
+        pinCheckbox.configuration?.contentInsets = .zero
+        pinCheckbox.configuration?.imagePadding = 8
+        pinCheckbox.configuration?.background.backgroundColorTransformer = .init { _ in .clear }
+        pinCheckbox.contentHorizontalAlignment = .leading
+        pinCheckbox.changesSelectionAsPrimaryAction = true
+        pinCheckbox.accessibilityTraits.insert(.toggleButton)
+        pinCheckbox.configurationUpdateHandler = { button in
+            let checked = button.isSelected
+            button.configuration?.image = UIImage(systemName: checked ? "checkmark.square.fill" : "square")
+            button.accessibilityValue = checked ? "Checked" : "Unchecked"
+        }
+
         errorLabel.numberOfLines = 0
         errorLabel.font = .preferredFont(forTextStyle: .footnote)
         errorLabel.adjustsFontForContentSizeCategory = true
@@ -83,7 +98,7 @@ final class NewSessionViewController: UIViewController {
 
         let agentLabel = fieldLabel("Agent")
         let folderLabel = fieldLabel("Session Folder on Mac")
-        let stack = UIStackView(arrangedSubviews: [agentLabel, agentButton, folderLabel, folderRow, errorLabel])
+        let stack = UIStackView(arrangedSubviews: [agentLabel, agentButton, folderLabel, folderRow, pinCheckbox, errorLabel])
         stack.axis = .vertical
         stack.spacing = 8
         stack.setCustomSpacing(20, after: agentButton)
@@ -105,6 +120,7 @@ final class NewSessionViewController: UIViewController {
             stack.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -40),
             agentButton.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
             folderRow.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
+            pinCheckbox.heightAnchor.constraint(greaterThanOrEqualToConstant: 44),
         ])
         clearError()
     }
@@ -161,7 +177,7 @@ final class NewSessionViewController: UIViewController {
         setCreating(true)
         Task {
             do {
-                let session = try await client.createSession(agent: agent, cwd: cwd)
+                let session = try await client.createSession(agent: agent, cwd: cwd, pin: pinCheckbox.isSelected)
                 if session.status == .error {
                     setCreating(false)
                     showError(session.error ?? "The session failed to start.")
@@ -184,5 +200,6 @@ final class NewSessionViewController: UIViewController {
         agentButton.isEnabled = !creating
         folderField.isEnabled = !creating
         recentButton.isEnabled = !creating
+        pinCheckbox.isEnabled = !creating
     }
 }

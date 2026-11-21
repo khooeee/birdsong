@@ -2,6 +2,12 @@ import Foundation
 
 /// REST calls and event streams against the desktop app's remote server.
 final class BirdsongClient: Sendable {
+    private struct CreateSessionBody: Encodable {
+        let agent: String
+        let cwd: String
+        let pin: Bool
+    }
+
     let config: ServerConfig
     private let session: URLSession
 
@@ -18,10 +24,10 @@ final class BirdsongClient: Sendable {
         _ = try await send(request(["sessions"]))
     }
 
-    func createSession(agent: SessionAgent, cwd: String) async throws -> Session {
+    func createSession(agent: SessionAgent, cwd: String, pin: Bool) async throws -> Session {
         var request = request(["sessions"], method: "POST")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(["agent": agent.rawValue, "cwd": cwd])
+        request.httpBody = try JSONEncoder().encode(CreateSessionBody(agent: agent.rawValue, cwd: cwd, pin: pin))
         return try JSONDecoder().decode(Session.self, from: await send(request))
     }
 
