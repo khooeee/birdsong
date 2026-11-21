@@ -17,6 +17,7 @@ interface PromptQueueHooks {
 export class PromptQueue {
   private pending: PendingMessage[] = [];
   private running = false;
+  private paused = false;
   private disposed = false;
 
   constructor(
@@ -29,11 +30,14 @@ export class PromptQueue {
     const result = new Promise<void>((resolve, reject) => {
       this.pending.push({ id, text, resolve, reject });
     });
-    if (this.running) this.hooks.onWaiting?.(id);
-    if (!this.running) {
-      void this.drain();
-    }
+    if (this.running || this.paused) this.hooks.onWaiting?.(id);
+    else void this.drain();
     return result;
+  }
+
+  setPaused(paused: boolean): void {
+    this.paused = paused;
+    if (!paused && !this.running) void this.drain();
   }
 
   /** Drop waiting follow-ups without stopping the in-flight prompt. */
@@ -54,7 +58,7 @@ export class PromptQueue {
 
   private async drain(): Promise<void> {
     this.running = true;
-    while (this.pending.length && !this.disposed) {
+    while (this.pending.length && !this.paused && !this.disposed) {
       const message = this.pending.shift();
       if (!message) break;
       this.hooks.onReleased?.(message.id);

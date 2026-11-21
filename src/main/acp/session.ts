@@ -85,7 +85,7 @@ export class AcpSession extends SharedAgentConnection {
         await this.createAgentSession();
       },
       finishPending: (status) => this.finishPending(status),
-      noteSystem: (text) => this.noteSystem(text),
+      noteSystem: (text, turnId) => this.noteSystem(text, turnId),
       worksUnprompted: agent === "claude",
     });
     this.config = new SessionConfigOptions({
@@ -101,6 +101,13 @@ export class AcpSession extends SharedAgentConnection {
       callbacks: () => this.cb,
       mirroring: () => this.mirrorUpdates,
       applyThreadStatus: (status) => this.runner.applyThreadStatus(status),
+      startAutonomousTurn: (id) => this.runner.startAutonomousTurn(id),
+      endAutonomousTurn: (id, state, summary) => this.runner.endAutonomousTurn(id, state, summary),
+      endReplay: () => {
+        if (this.mirrorUpdates) return;
+        this.output.reset();
+        this.mirrorUpdates = true;
+      },
       onConfigOptions: (options) => this.config.note(options),
       owner: this,
     });
@@ -146,14 +153,14 @@ export class AcpSession extends SharedAgentConnection {
   private async createAgentSession(config = this.config.snapshot()): Promise<void> {
     const mcpServers = await birdsongMcpServers(this.id);
     if (this.disposed || !this.connection) throw new Error("Session closed");
+    this.runner.markIdle();
     const session = await createAcpSession(this.connection, this.cwd, mcpServers);
     if (this.disposed) throw new Error("Session closed");
     this.hasBirdsongTools = mcpServers.length > 0;
     this.setSessionId(session.sessionId);
     this.config.note(session.configOptions);
     await this.config.restore(config);
-    this.runner.markIdle();
-    this.cb.onStatus("ready");
+    this.runner.reportReady();
   }
 
   private async attachSession(sessionId: string, options?: { quiet?: boolean }): Promise<void> {
@@ -164,6 +171,7 @@ export class AcpSession extends SharedAgentConnection {
       connection: this.connection,
       canLoad: this.canLoad,
       canResume: this.canResume,
+      resumesWithoutReplay: this.agent === "claude",
       cwd: this.cwd,
       mcpServers,
       turnCount: () => this.turns.count,
@@ -172,7 +180,7 @@ export class AcpSession extends SharedAgentConnection {
       setSessionId: (id) => this.setSessionId(id),
       clearSessionId: () => this.clearSessionId(),
       resetOutput: () => this.output.reset(),
-      onReady: () => this.cb.onStatus("ready"),
+      onReady: () => this.runner.reportReady(),
       onConfigOptions: async (options) => {
         this.config.note(options);
         await this.config.restore(config);
@@ -186,6 +194,7 @@ export class AcpSession extends SharedAgentConnection {
     id: string,
     cb: SessionCallbacks,
     forkPoint?: AirForkPoint,
+    turns?: TranscriptTurn[],
   ): Promise<AcpSession> {
     // The fork's own MCP servers: they name its new Birdsong session id.
     const mcpServers = await birdsongMcpServers(id);
@@ -193,6 +202,7 @@ export class AcpSession extends SharedAgentConnection {
     const forked = await forkAcpSession(this.connection, this.sessionId, this.cwd, forkPoint, mcpServers);
     const forkedId = forked.sessionId;
     const child = new AcpSession(id, this.agent, this.cwd, cb);
+    if (turns) child.restoreTurns(turns);
     child.hasBirdsongTools = mcpServers.length > 0;
     child.updates.availableCommands = this.updates.availableCommands;
     child.cb.onAvailableCommands([...child.updates.availableCommands]);
@@ -208,17 +218,16 @@ export class AcpSession extends SharedAgentConnection {
       // prompts/updates work on the forked id.
       if (this.agent === "codex" || this.agent === "claude") {
         if (!child.connection) throw new Error("Session closed while forking");
-        // Resume may replay history after the RPC returns; keep mirroring off until prompt.
-        child.mirrorUpdates = false;
+        // Claude's v1 resume sends live updates only. Codex can replay history.
+        child.mirrorUpdates = this.agent === "claude";
         const resumed = await resumeAcpSession(child.connection, forkedId, this.cwd, mcpServers);
         child.config.note(resumed.configOptions);
-        child.output.reset();
       }
     } catch (error) {
       await child.dispose();
       throw error;
     }
-    child.cb.onStatus("ready");
+    child.runner.reportReady();
     return child;
   }
 
@@ -251,6 +260,11 @@ export class AcpSession extends SharedAgentConnection {
         noteSystem: (text) => this.noteSystem(text),
         finishPending: (status) => this.finishPending(status),
         closeConnection: () => this.connection?.close(),
+        interruptSiblingTurns: (error) => {
+          for (const sibling of sessionRoutes.siblingsOf(this)) {
+            if (sibling.runner.interruptAutonomousTurn()) sibling.cb.onStatus("error", error);
+          }
+        },
         routerFor: (sessionId) => this.routerFor(sessionId),
       }),
     });
@@ -286,9 +300,9 @@ export class AcpSession extends SharedAgentConnection {
     this.updates.subagents.finish();
   }
 
-  private noteSystem(text: string): void {
+  private noteSystem(text: string, turnId?: string): void {
     if (this.disposed || !this.mirrorUpdates) return;
-    this.turns.apply({ id: randomUUID(), role: "system", text, at: Date.now() });
+    this.turns.apply({ id: randomUUID(), role: "system", text, at: Date.now() }, undefined, turnId);
   }
 
   async dispose(): Promise<void> {

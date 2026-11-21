@@ -45,7 +45,7 @@ export const AGENT_PRESETS: Record<AgentKind, AgentPreset> = {
       return [packageBin("@agentclientprotocol/claude-agent-acp")];
     },
     forksAtMessage: true,
-    clientCapabilityMeta: subagentCapabilityMeta(),
+    clientCapabilityMeta: subagentCapabilityMeta("asyncTasks", "loadReplayEnd"),
     get requiredCommand() {
       return claudeCommand();
     },

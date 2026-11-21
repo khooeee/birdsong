@@ -4,7 +4,7 @@ import type { TranscriptTurn } from "../../shared/transcript";
 export function cloneTurn(turn: TranscriptTurn): TranscriptTurn {
   return {
     ...turn,
-    user: { ...turn.user },
+    user: turn.user ? { ...turn.user } : null,
     assistant: turn.assistant ? { ...turn.assistant } : null,
     events: turn.events.map((event) => ({ ...event })),
     fileChanges: turn.fileChanges.map((change) => ({ ...change })),

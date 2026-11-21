@@ -12,7 +12,7 @@ function stripQueued(item: TranscriptItem): TranscriptItem {
 function stripTurnQueued(turn: TranscriptTurn): TranscriptTurn {
   return {
     ...turn,
-    user: stripQueued(turn.user),
+    user: turn.user ? stripQueued(turn.user) : null,
     assistant: turn.assistant ? stripQueued(turn.assistant) : null,
     events: turn.events.map(stripQueued),
   };

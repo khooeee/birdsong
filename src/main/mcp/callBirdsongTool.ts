@@ -90,7 +90,7 @@ async function run(sessions: SessionManager, callerId: string, name: string, arg
       return turns.map((turn) =>
         isReminderTurn(turn)
           ? { turnId: turn.id, reminder: turn.user.text }
-          : { turnId: turn.id, status: turn.status, prompt: turn.user.text, reply: turn.assistant?.text ?? null },
+          : { turnId: turn.id, status: turn.status, prompt: turn.user?.text ?? null, reply: turn.assistant?.text ?? null },
       );
     }
     case "update_session": {

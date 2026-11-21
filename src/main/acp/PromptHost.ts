@@ -21,7 +21,7 @@ export type PromptHost = {
   /** Drop the stale agent session id and mint a fresh agent session. */
   renewSession: () => Promise<void>;
   finishPending: (status: string) => void;
-  noteSystem: (text: string) => void;
+  noteSystem: (text: string, turnId?: string) => void;
   /** The agent can work with no prompt in flight and report no turn for it (Claude Code on ACP v1). */
   worksUnprompted: boolean;
 };

@@ -10,7 +10,7 @@ export function turnMarkdown(
   turn: TranscriptTurn,
   { agent, userLabel = "user" }: { agent: AgentKind; userLabel?: string },
 ): string {
-  const sections = [itemSection(turn.user, agent, userLabel)];
+  const sections = turn.user ? [itemSection(turn.user, agent, userLabel)] : [];
   for (const item of turn.events) sections.push(itemSection(item, agent, item.role));
   if (turn.assistant) sections.push(itemSection(turn.assistant, agent, "assistant"));
   else if (turn.status === "stopped") sections.push("_Stopped_");

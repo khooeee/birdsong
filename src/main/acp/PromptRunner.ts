@@ -14,6 +14,8 @@ export class PromptRunner {
   private turnRunning = false;
   private remoteTurnActive: boolean | null = null;
   private stopping = false;
+  private promptTurnId: string | null = null;
+  private autonomousTurnId: string | null = null;
   private completion: PromptCompletion;
   private prompts: PromptQueue;
   private delivery: PromptDelivery;
@@ -21,7 +23,7 @@ export class PromptRunner {
   constructor(private host: PromptHost) {
     const { turns } = host;
     this.completion = new PromptCompletion(() => {
-      turns.complete();
+      if (this.promptTurnId) turns.complete(this.promptTurnId);
       host.callbacks().onPromptComplete();
     });
     this.prompts = new PromptQueue(
@@ -60,10 +62,52 @@ export class PromptRunner {
     this.delivery.configure(meta);
   }
 
-  /** No turn in flight; remote status unknown until the agent reports it. */
   markIdle(): void {
     this.turnRunning = false;
     this.remoteTurnActive = null;
+  }
+
+  reportReady(): void {
+    if (!this.turnRunning) this.host.callbacks().onStatus("ready");
+  }
+
+  startAutonomousTurn(id: string): void {
+    if (this.autonomousTurnId) return;
+    this.autonomousTurnId = id;
+    this.turnRunning = true;
+    this.stopping = false;
+    this.prompts.setPaused(true);
+    this.host.output.reset();
+    this.host.turns.openAutonomous(id);
+    this.host.callbacks().onStatus("running");
+  }
+
+  endAutonomousTurn(id: string, state: "completed" | "failed" | "stopped" | "disconnected", summary?: string): void {
+    if (id !== this.autonomousTurnId) return;
+    const { host } = this;
+    const error = state === "failed" ? summary || "Claude's self-started turn failed" : undefined;
+    host.output.finish(state === "completed" ? "status unavailable" : "interrupted");
+    host.output.reset();
+    if (state === "stopped" || state === "disconnected") this.stopTurn(id);
+    else {
+      if (error) host.noteSystem(error, id);
+      host.turns.complete(id);
+    }
+    this.autonomousTurnId = null;
+    this.stopping = false;
+    this.turnRunning = this.completion.requestPending;
+    // A prompt sent just before the start update can take over Claude's active work.
+    if (state === "disconnected") this.prompts.clearPending();
+    else if (this.turnRunning && this.promptTurnId) host.turns.activateTurn(this.promptTurnId);
+    else host.callbacks().onStatus(error ? "error" : "ready", error);
+    if (state === "completed" && !this.turnRunning) host.callbacks().onPromptComplete();
+    this.prompts.setPaused(false);
+  }
+
+  interruptAutonomousTurn(): boolean {
+    if (!this.autonomousTurnId) return false;
+    this.endAutonomousTurn(this.autonomousTurnId, "disconnected");
+    return true;
   }
 
   /** Apply a codex `threadStatus` live update. */
@@ -75,38 +119,32 @@ export class PromptRunner {
     this.host.callbacks().onStatus(status === "active" ? "running" : status === "idle" ? "ready" : "error");
   }
 
-  /**
-   * Start a prompt. By default waits until the turn finishes.
-   * Pass `{ wait: false }` to return the turn id as soon as delivery is accepted.
-   */
+  /** Pass `{ wait: false }` to return the turn id before the turn finishes. */
   async prompt(text: string, options?: { wait?: boolean }): Promise<string> {
     const { host } = this;
     if (!host.sessionId() || host.isDisposed()) throw new Error("Session not ready");
     host.showUpdates();
-    host.output.reset();
     const userItem: TranscriptItem = {
       id: randomUUID(),
       role: "user",
       text,
       at: Date.now(),
     };
-    // Decide steer vs prompt before opening a turn so an inject lands on the
-    // in-flight turn as an event instead of a sibling user-only turn.
-    // Prompt mode must NOT start the agent request until the turn exists —
-    // otherwise a fast end_turn drops every streamed chunk.
+    // A steer uses the active turn. A prompt opens its own before requesting output.
     const decision = await this.delivery.enqueue(text);
 
     let turnId: string;
     let completion: Promise<void>;
     if (decision.mode === "injected") {
-      // Start a fresh assistant bubble after the steer so chunks don't splice into pre-steer text.
       host.output.reset();
       host.turns.apply(userItem);
       turnId = host.turns.activeTurnId() ?? userItem.id;
       completion = decision.completion;
     } else if (decision.mode === "startedNewTurn") {
+      host.output.reset();
       const turn = host.turns.open(userItem);
       turnId = turn.id;
+      this.promptTurnId = turnId;
       this.completion.detached();
       host.turns.activateLatestRunning();
       if (this.remoteTurnActive !== false) {
@@ -123,13 +161,11 @@ export class PromptRunner {
     const finished = completion.then(
       () => {
         if (decision.mode === "injected") return;
-        // Steering startedNewTurn finishes without runPrompt; prompt mode waits on the queue.
-        if (!this.turnRunning) host.turns.complete();
+        if (!this.turnRunning) host.turns.complete(turnId);
         else host.turns.completeIfOrphan(userItem.id);
       },
       (error) => {
-        // Errors must clear the thinking state even when PromptCompletion cancels.
-        host.turns.complete();
+        host.turns.complete(turnId);
         throw error;
       },
     );
@@ -156,17 +192,35 @@ export class PromptRunner {
     }
     this.stopping = true;
     host.questions.cancel();
+    const autonomousId = this.autonomousTurnId;
+    const turnId = host.turns.activeTurnId();
+    if (autonomousId) {
+      try {
+        const result = await connection.agent.request("_session/async_task/stop", {
+          sessionId, asyncTaskId: autonomousId,
+        }) as { stopped?: boolean };
+        if (result.stopped) this.endAutonomousTurn(autonomousId, "stopped");
+      } finally {
+        if (this.autonomousTurnId === autonomousId) this.stopping = false;
+      }
+      return;
+    }
     this.completion.cancel();
     try {
       await connection.agent.notify(acp.methods.agent.session.cancel, { sessionId });
-      host.turns.stop({ id: randomUUID(), role: "stopped", text: "Stopped", at: Date.now() });
+      if (turnId) this.stopTurn(turnId);
     } catch (error) {
       this.stopping = false;
       throw error;
     }
   }
 
+  private stopTurn(turnId: string): void {
+    this.host.turns.stop({ id: randomUUID(), role: "stopped", text: "Stopped", at: Date.now() }, turnId);
+  }
+
   dispose(): void {
+    this.interruptAutonomousTurn();
     this.completion.cancel();
     this.prompts.dispose();
   }
@@ -174,6 +228,7 @@ export class PromptRunner {
   private async runPrompt(text: string): Promise<void> {
     const { host } = this;
     if (!host.connection() || !host.sessionId() || host.isDisposed()) throw new Error("Session not ready");
+    this.promptTurnId = host.turns.activeTurnId();
     this.completion.start();
     this.stopping = false;
     this.markRunning();
@@ -215,22 +270,24 @@ export class PromptRunner {
       sessionId,
       prompt: agentPrompt(text, host.hasBirdsongTools(), host.slashCommands()),
     });
-    if (this.remoteTurnActive !== true) host.finishPending(response.stopReason === "end_turn" ? "status unavailable" : "interrupted");
+    if (!this.autonomousTurnId && this.remoteTurnActive !== true) {
+      host.finishPending(response.stopReason === "end_turn" ? "status unavailable" : "interrupted");
+    }
     this.completion.finish(response.stopReason);
     this.markSettled("ready");
   }
 
   private failPrompt(msg: string): void {
     const { host } = this;
-    host.finishPending("interrupted");
-    // finish("error") cancels PromptCompletion (no done-sound) — still end the turn.
+    if (!this.autonomousTurnId) host.finishPending("interrupted");
     this.completion.finish("error");
-    host.noteSystem(msg);
-    host.turns.complete();
+    if (this.promptTurnId) {
+      host.noteSystem(msg, this.promptTurnId);
+      host.turns.complete(this.promptTurnId);
+    }
     this.markSettled("error", msg);
   }
 
-  /** A prompt request is in flight; remote status is unknown until the agent reports it. */
   private markRunning(): void {
     this.turnRunning = true;
     this.remoteTurnActive = null;
@@ -239,8 +296,7 @@ export class PromptRunner {
 
   /** The prompt request settled; go idle unless the agent still reports an active turn. */
   private markSettled(status: "ready" | "error", error?: string): void {
-    if (this.remoteTurnActive === true || this.host.isDisposed()) return;
-    // A stopped turn is over; questions from later work (a background command's follow-up) must reach the user.
+    if (this.autonomousTurnId || this.remoteTurnActive === true || this.host.isDisposed()) return;
     this.stopping = false;
     this.turnRunning = false;
     this.host.callbacks().onStatus(status, error);

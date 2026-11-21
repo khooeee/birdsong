@@ -122,14 +122,18 @@ final class TranscriptViewController: UIViewController {
     private func apply(changed: [String]) {
         var snapshot = NSDiffableDataSourceSnapshot<Int, Row>()
         snapshot.appendSections([0])
-        snapshot.appendItems(turns.flatMap { [Row(turnId: $0.id, isReply: false), Row(turnId: $0.id, isReply: true)] })
+        snapshot.appendItems(turns.flatMap { turn -> [Row] in
+            let reply = Row(turnId: turn.id, isReply: true)
+            if turn.agentStarted == true { return [reply] }
+            return [Row(turnId: turn.id, isReply: false), reply]
+        })
         let changedRows = changed.flatMap { [Row(turnId: $0, isReply: false), Row(turnId: $0, isReply: true)] }
         snapshot.reconfigureItems(changedRows.filter { snapshot.indexOfItem($0) != nil })
         dataSource.apply(snapshot, animatingDifferences: false) { [weak self] in
             guard let self, followsEnd else { return }
             scrollToEnd()
         }
-        composer.isRunning = turns.contains { $0.status == .running }
+        composer.isRunning = turns.contains { $0.status == .running && $0.queued != true }
         setNeedsUpdateContentUnavailableConfiguration()
     }
 

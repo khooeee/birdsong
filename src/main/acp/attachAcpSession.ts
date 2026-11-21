@@ -5,6 +5,8 @@ type AttachHost = {
   connection: acp.ClientConnection | null;
   canLoad: boolean;
   canResume: boolean;
+  /** Claude v1 resume attaches without replay; load has an explicit replay end update. */
+  resumesWithoutReplay: boolean;
   cwd: string;
   /** Agents connect MCP servers per load/resume, so they go with every attach. */
   mcpServers: acp.McpServer[];
@@ -30,7 +32,7 @@ export async function attachAcpSession(
   // transcript. Resuming them yields a hollow session that completes with no
   // assistant text. Mint a fresh agent session instead.
   if (host.turnCount() === 0) {
-    host.setMirrorUpdates(false);
+    host.setMirrorUpdates(true);
     await host.createAgentSession();
     return;
   }
@@ -47,10 +49,9 @@ export async function attachAcpSession(
     let configOptions: acp.SessionConfigOption[] | null | undefined;
     try {
       host.setSessionId(sessionId);
-      // load/resume often replays history as session updates — keep those off the
-      // transcript until the next prompt (replay can arrive after the RPC returns).
-      host.setMirrorUpdates(false);
+      host.setMirrorUpdates(host.resumesWithoutReplay && method === acp.methods.agent.session.resume);
       host.markIdle();
+      host.resetOutput();
       const response = await host.connection.agent.request(method, params) as {
         sessionId?: string;
         configOptions?: acp.SessionConfigOption[] | null;
@@ -60,9 +61,6 @@ export async function attachAcpSession(
           ? response.sessionId
           : sessionId;
       host.setSessionId(resumedId);
-      // Replay may have flipped turnRunning via status updates; we are idle until the next prompt.
-      host.markIdle();
-      host.resetOutput();
       configOptions = response?.configOptions;
     } catch (err) {
       host.clearSessionId();
@@ -79,7 +77,7 @@ export async function attachAcpSession(
   // Empty / never-prompted agent sessions often fail load/resume (Cursor: not found;
   // Codex: no rollout for the thread id). Reuse this connection and mint a fresh one.
   if (/invalid params|not found|no conversation|no rollout/i.test(detail)) {
-    host.setMirrorUpdates(false);
+    host.setMirrorUpdates(true);
     await host.createAgentSession();
     return;
   }

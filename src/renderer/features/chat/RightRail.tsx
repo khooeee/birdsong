@@ -69,7 +69,7 @@ export const RightRail = memo(function RightRail({
               view={saveView}
               getMarkdown={() =>
                 turnsMarkdown(turns, { agent: session.agent, title: subagentTitle, userLabel })}
-              nameHint={subagentTitle ?? turns[0].user.text}
+              nameHint={subagentTitle ?? turns[0].user?.text ?? session.title}
             />
           ) : null}
           <button

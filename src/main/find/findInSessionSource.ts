@@ -4,7 +4,7 @@ import type { FindSource } from "./FindSource";
 import { matchSnippet } from "./matchSnippet";
 
 function turnItems(turn: TranscriptTurn): TranscriptItem[] {
-  const items = [turn.user, ...turn.events];
+  const items = turn.user ? [turn.user, ...turn.events] : [...turn.events];
   if (turn.assistant) items.push(turn.assistant);
   return items;
 }

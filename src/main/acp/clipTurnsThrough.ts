@@ -12,7 +12,7 @@ export function clipTurnsThrough(turns: TranscriptTurn[], eventId: string): Tran
   const clipped: TranscriptTurn[] = [];
   for (const turn of turns) {
     const copy = cloneTurn(turn);
-    if (turn.user.id === eventId) {
+    if (turn.user?.id === eventId) {
       clipped.push(settled({ ...copy, assistant: null, events: [], fileChanges: [] }));
       return clipped;
     }

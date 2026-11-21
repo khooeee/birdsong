@@ -6,7 +6,7 @@ import { cloneTurn } from "./cloneTurn";
 
 /** The turn's prompt has been sent, so it is no longer waiting in the queue. */
 function unqueue(turn: TranscriptTurn): void {
-  if (!turn.user.queued) return;
+  if (!turn.user?.queued) return;
   const { queued: _queued, ...user } = turn.user;
   turn.user = user;
 }
@@ -34,10 +34,19 @@ export class TurnBuilder {
   }
 
   open(user: TranscriptItem): TranscriptTurn {
+    return this.openTurn(randomUUID(), user.at, { ...user });
+  }
+
+  openAutonomous(id: string): void {
+    this.activeId = id;
+    this.openTurn(id, Date.now(), null);
+  }
+
+  private openTurn(id: string, at: number, user: TranscriptItem | null): TranscriptTurn {
     const turn: TranscriptTurn = {
-      id: randomUUID(),
-      at: user.at,
-      user: { ...user },
+      id,
+      at,
+      user,
       assistant: null,
       events: [],
       fileChanges: [],
@@ -52,17 +61,21 @@ export class TurnBuilder {
 
   /** Mark a turn as the one receiving agent updates (when a queued prompt starts). */
   activate(userId: string): void {
-    const turn = this.turns.find((entry) => entry.user.id === userId);
-    if (!turn) return;
+    const turn = this.turns.find((entry) => entry.user?.id === userId);
+    if (turn) this.activateTurn(turn.id);
+  }
+
+  activateTurn(turnId: string): void {
+    const turn = this.turns.find((entry) => entry.id === turnId);
+    if (!turn || turn.status !== "running") return;
     this.activeId = turn.id;
-    turn.status = "running";
     unqueue(turn);
     this.emit(turn);
   }
 
   setQueued(userId: string, queued: boolean): void {
-    const turn = this.turns.find((entry) => entry.user.id === userId);
-    if (!turn) return;
+    const turn = this.turns.find((entry) => entry.user?.id === userId);
+    if (!turn?.user) return;
     if (queued) turn.user = { ...turn.user, queued: true };
     else unqueue(turn);
     this.emit(turn);
@@ -70,7 +83,7 @@ export class TurnBuilder {
 
   /** Drop a queued turn that was never sent. */
   discard(userId: string): TranscriptTurn | null {
-    const idx = this.turns.findIndex((entry) => entry.user.id === userId);
+    const idx = this.turns.findIndex((entry) => entry.user?.id === userId);
     if (idx < 0) return null;
     const [removed] = this.turns.splice(idx, 1);
     if (!removed) return null;
@@ -78,8 +91,12 @@ export class TurnBuilder {
     return cloneTurn(removed);
   }
 
-  apply(item: TranscriptItem, replaceId?: string): void {
-    const turn = this.targetTurn();
+  apply(item: TranscriptItem, replaceId?: string, turnId?: string): void {
+    // A late tool result belongs with its original call, even during a newer turn.
+    const toolTurn = item.role === "tool" && replaceId
+      ? this.turns.findLast((turn) => turn.events.some((event) => event.id === replaceId))
+      : undefined;
+    const turn = turnId ? this.turns.find((entry) => entry.id === turnId) : toolTurn ?? this.targetTurn();
     if (!turn) return;
 
     if (replaceId) {
@@ -134,7 +151,7 @@ export class TurnBuilder {
 
   /** Mark a non-active running turn complete (unused prompt orphan). */
   completeIfOrphan(userId: string): void {
-    const turn = this.turns.find((entry) => entry.user.id === userId);
+    const turn = this.turns.find((entry) => entry.user?.id === userId);
     if (!turn || turn.id === this.activeId || turn.status !== "running") return;
     turn.status = "complete";
     this.emit(turn);
@@ -157,20 +174,20 @@ export class TurnBuilder {
     }
   }
 
-  complete(): void {
-    const turn = this.activeTurn() ?? this.latestRunning();
+  complete(turnId?: string): void {
+    const turn = turnId ? this.turns.find((entry) => entry.id === turnId) : this.activeTurn() ?? this.latestRunning();
     if (!turn || turn.status !== "running") return;
     turn.status = "complete";
-    this.activeId = null;
+    if (this.activeId === turn.id) this.activeId = null;
     this.emit(turn);
   }
 
-  stop(stopped: TranscriptItem): void {
-    const turn = this.activeTurn();
-    if (!turn) return;
+  stop(stopped: TranscriptItem, turnId = this.activeId): void {
+    const turn = this.turns.find((entry) => entry.id === turnId);
+    if (!turn || turn.status !== "running") return;
     turn.events = [...turn.events, { ...stopped }];
     turn.status = "stopped";
-    this.activeId = null;
+    if (this.activeId === turn.id) this.activeId = null;
     this.emit(turn);
   }
 

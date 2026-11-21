@@ -4,6 +4,7 @@ export interface RemoteTurn {
   at: number;
   status: "running" | "complete" | "stopped";
   user: string;
+  agentStarted?: true;
   queued?: boolean;
   assistant: string | null;
   /** Latest tool title (or "Thinking") while the turn runs. */
