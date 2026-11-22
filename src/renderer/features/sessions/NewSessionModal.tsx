@@ -123,6 +123,11 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
             onChange={(value) => void draft.select("thought_level", value)}
           />
           {draft.error && <div className="new-session-config-error" role="status">{draft.error}</div>}
+          {draft.missingFolder && (
+            <div className="new-session-config-note" role="status">
+              This folder doesn't exist yet. You'll be asked to create it.
+            </div>
+          )}
         </div>
         <label>
           Session Folder

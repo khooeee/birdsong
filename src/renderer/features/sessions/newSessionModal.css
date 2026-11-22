@@ -18,6 +18,12 @@
   font-size: var(--font-ui-size);
 }
 
+.new-session-config-note {
+  grid-column: 1 / -1;
+  color: var(--text-dim);
+  font-size: var(--font-ui-size);
+}
+
 /* Matches the chat composer's prompt. */
 .modal.new-session-modal .composer-prompt {
   width: 100%;

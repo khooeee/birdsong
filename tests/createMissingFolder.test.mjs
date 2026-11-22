@@ -8,6 +8,7 @@ import { createJiti } from "jiti";
 
 const jiti = createJiti(import.meta.url);
 const { handleControlRequest } = await jiti.import("../src/main/control/controlRoutes.ts");
+const { NewSessionDraft } = await jiti.import("../src/main/sessions/NewSessionDraft.ts");
 
 async function post(body) {
   const req = Readable.from([Buffer.from(JSON.stringify(body))]);
@@ -43,4 +44,14 @@ test("POST /sessions starts in an existing folder without asking", async (t) => 
   const { status, created } = await post({ agent: "claude", cwd });
   assert.equal(status, 200);
   assert.equal(created.length, 1);
+});
+
+test("the new session modal starts no agent in a missing folder", async (t) => {
+  const root = await fs.mkdtemp(path.join(os.tmpdir(), "birdsong-cwd-"));
+  t.after(() => fs.rm(root, { recursive: true, force: true }));
+  const opened = [];
+  const warm = { take: () => null };
+  const draft = new NewSessionDraft(warm, (agent, cwd) => { opened.push(cwd); throw new Error("opened"); }, () => {});
+  assert.equal(await draft.start("d", "claude", path.join(root, "missing")), null);
+  assert.deepEqual(opened, []);
 });

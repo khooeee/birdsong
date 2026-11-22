@@ -39,7 +39,8 @@ export interface SessionListPayload {
 export interface BirdsongApi {
   /** Agents whose CLI and ACP adapter are installed. */
   availableAgents: () => Promise<AgentKind[]>;
-  startSessionDraft: (id: string, agent: AgentKind, cwd: string) => Promise<SessionConfigSelect[]>;
+  /** Null when `cwd` doesn't exist yet, so no agent starts there. */
+  startSessionDraft: (id: string, agent: AgentKind, cwd: string) => Promise<SessionConfigSelect[] | null>;
   selectSessionDraftConfig: (id: string, category: ConfigMenuCategory, value: string) => Promise<SessionConfigSelect[]>;
   discardSessionDraft: (id: string) => Promise<void>;
   /** Slash commands for the new-session draft, including ones that arrive after it starts. */

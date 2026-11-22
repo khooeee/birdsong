@@ -3,6 +3,7 @@ import type { ConfigMenuCategory } from "../../shared/configMenuCategory";
 import type { SessionConfigSelect } from "../../shared/sessionConfigSelect";
 import type { WarmSessionPool } from "../acp/WarmSessionPool";
 import type { AcpSession } from "../acp/session";
+import { isMissingFolder } from "../files/isMissingFolder";
 
 type Draft = {
   id: string;
@@ -28,8 +29,10 @@ export class NewSessionDraft {
     private readonly send: (channel: string, payload: unknown) => void,
   ) {}
 
-  async start(id: string, agent: AgentKind, cwd: string): Promise<SessionConfigSelect[]> {
+  /** The agent's model and effort choices, or null when `cwd` doesn't exist yet. */
+  async start(id: string, agent: AgentKind, cwd: string): Promise<SessionConfigSelect[] | null> {
     void this.discard().catch(() => undefined);
+    if (await isMissingFolder(cwd)) return null;
     const warm = this.warm.take(agent, cwd);
     const acp = warm?.acp ?? this.open(agent, cwd);
     const draft = { id, acp, ready: false, updating: false };
