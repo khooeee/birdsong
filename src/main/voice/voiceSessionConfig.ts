@@ -1,6 +1,7 @@
 import type { AppSettings } from "../../shared/appSettings";
 import instructions from "./voiceInstructions.md?raw";
 import { voiceToolDefs } from "./voiceToolDefs";
+import { VOICE_TTS_MODEL } from "./voiceTtsModel";
 
 /** `session.update` sent when the data channel opens: model, voice, turn detection, tools. */
 export function voiceSessionConfig(settings: AppSettings) {
@@ -21,7 +22,7 @@ export function voiceSessionConfig(settings: AppSettings) {
           // Low eagerness: pauses mid-sentence (hands busy at the sink) don't end the turn.
           turn_detection: { type: "semantic_vad", eagerness: "low", create_response: true, interrupt_response: true },
         },
-        output: { model: "inworld-tts-2", voice: settings.voiceName },
+        output: { model: VOICE_TTS_MODEL, voice: settings.voiceName },
       },
       tools: voiceToolDefs,
       tool_choice: "auto",

@@ -18,6 +18,7 @@ import type { EditContextMenuOptions } from "./editContextMenuOptions";
 import type { FileContent } from "./fileContent";
 import type { FileMenuAction } from "./fileMenuAction";
 import type { FileWriteResult } from "./fileWriteResult";
+import type { InworldVoice } from "./inworldVoice";
 import type { PersistedExplorer } from "./persistedExplorer";
 import type { Session, SlashCommand } from "./session";
 import type { SessionConfigSelect } from "./sessionConfigSelect";
@@ -195,6 +196,10 @@ export interface BirdsongApi {
   getVoiceKeyInfo: () => Promise<VoiceKeyInfo>;
   /** Save the Inworld API key (encrypted in main); empty removes it. */
   setVoiceKey: (key: string) => Promise<void>;
+  /** Voices the saved key's Inworld workspace can use, cached in main until `refresh` or a new key. */
+  listVoices: (refresh?: boolean) => Promise<InworldVoice[]>;
+  /** Inworld's MP3 sample of a voice, cached in main. */
+  getVoicePreview: (voiceId: string) => Promise<Uint8Array>;
   /** The newest few hundred voice log entries (across days), oldest first. */
   getVoiceLog: () => Promise<VoiceLogEntry[]>;
   /** Each voice log entry as it is written. */

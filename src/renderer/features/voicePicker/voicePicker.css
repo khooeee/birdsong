@@ -1,0 +1,99 @@
+.voice-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: var(--font-ui-size);
+}
+
+.voice-field-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.voice-field-row > input,
+.voice-picker {
+  flex: 1;
+  min-width: 0;
+}
+
+.voice-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.voice-picker-list {
+  max-height: 220px;
+  overflow: auto;
+  padding: 4px 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-2);
+  color: var(--text);
+}
+
+html[data-theme="light"] .voice-picker-list {
+  background: #ffffff;
+}
+
+.voice-option {
+  padding: 5px 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.voice-option:hover {
+  background: color-mix(in srgb, var(--bg-3) 60%, transparent);
+}
+
+.voice-option[aria-selected="true"] {
+  background: var(--bg-selected-tab);
+}
+
+.voice-option-head {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.voice-option-name {
+  flex-shrink: 0;
+}
+
+.voice-option[data-chosen] .voice-option-name {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.voice-option-traits,
+.voice-option-description,
+.voice-picker-empty {
+  color: var(--text-dim);
+  font-size: var(--font-mono-small-size);
+}
+
+.voice-option-description {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.voice-picker-empty {
+  padding: 6px 10px;
+}
+
+.link-button {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--accent);
+  font: inherit;
+  cursor: pointer;
+}
+
+.link-button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

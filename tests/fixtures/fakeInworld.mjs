@@ -1,5 +1,5 @@
 /** Inworld's REST API and sideband sockets, faked on the globals VoiceCall uses. */
-export function fakeInworld(t, { refuseAttach = () => false } = {}) {
+export function fakeInworld(t, { refuseAttach = () => false, respond = () => null } = {}) {
   const requests = [];
   const sockets = [];
   let calls = 0;
@@ -7,6 +7,8 @@ export function fakeInworld(t, { refuseAttach = () => false } = {}) {
   const RealWebSocket = globalThis.WebSocket;
   globalThis.fetch = async (url, init) => {
     requests.push({ url: String(url), method: init.method, auth: init.headers.Authorization, body: init.body });
+    const custom = respond(new URL(String(url)));
+    if (custom) return custom;
     if (String(url).endsWith("/v1/realtime/ice-servers")) return Response.json({ ice_servers: [{ urls: "turn:inworld" }] });
     if (String(url).endsWith("/v1/realtime/calls")) {
       calls += 1;
