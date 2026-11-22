@@ -57,10 +57,17 @@
   display: block;
   max-width: none;
   max-height: none;
+  cursor: grab;
+  touch-action: none;
+}
+
+.image-viewer-frame img.dragging {
+  cursor: grabbing;
 }
 
 .image-viewer-frame img.pending {
   visibility: hidden;
+  cursor: default;
 }
 
 .image-viewer-missing {

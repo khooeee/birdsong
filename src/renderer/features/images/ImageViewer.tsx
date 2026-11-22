@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState, type MouseEvent, type PointerEvent } from "react";
 import { imageViewer } from "./imageViewerStore";
 import { transcriptImageUrl } from "./transcriptImageUrl";
 import { ZOOM_STEPS, fitScale, nextZoom, openScale, pinchScale } from "./zoomScale";
@@ -22,6 +22,17 @@ export function ImageViewer({ name }: { name: string }) {
   const modeRef = useRef<ZoomMode>("auto");
   const naturalRef = useRef<{ width: number; height: number } | null>(null);
   const anchorRef = useRef<Anchor | null>(null);
+  const panRef = useRef({ x: 0, y: 0 });
+  const dragRef = useRef<{
+    pointerId: number;
+    x: number;
+    y: number;
+    scrollLeft: number;
+    scrollTop: number;
+    panX: number;
+    panY: number;
+  } | null>(null);
+  const [dragging, setDragging] = useState(false);
   const [natural, setNatural] = useState<{ width: number; height: number } | null>(null);
   const [scale, setScale] = useState(1);
   const [mode, setMode] = useState<ZoomMode>("auto");
@@ -81,6 +92,9 @@ export function ImageViewer({ name }: { name: string }) {
       return;
     }
     const apply = () => {
+      // Fit and the open scale are centered; a drag offset would leave the image off to the side.
+      panRef.current = { x: 0, y: 0 };
+      if (imgRef.current) imgRef.current.style.translate = "";
       // Measure the pane, not the scroller, so a scrollbar cannot shrink the fit.
       const fitToPane = fitScale(viewer.clientWidth, viewer.clientHeight, natural.width, natural.height);
       const next = mode === "auto" ? openScale(fitToPane) : fitToPane;
@@ -167,10 +181,42 @@ export function ImageViewer({ name }: { name: string }) {
     return () => window.removeEventListener("keydown", onKey, true);
   }, [actualSize, zoomFromCenter]);
 
-  const onStageClick = (event: MouseEvent<HTMLDivElement>) => {
-    // A click on the stage itself is the scrollbar.
-    if (event.target === stageRef.current) return;
-    imageViewer.close();
+  const onPointerDown = (event: PointerEvent<HTMLImageElement>) => {
+    if (event.button !== 0) return;
+    const stage = stageRef.current;
+    if (!stage) return;
+    dragRef.current = {
+      pointerId: event.pointerId,
+      x: event.clientX,
+      y: event.clientY,
+      scrollLeft: stage.scrollLeft,
+      scrollTop: stage.scrollTop,
+      panX: panRef.current.x,
+      panY: panRef.current.y,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDragging(true);
+  };
+
+  const onPointerMove = (event: PointerEvent<HTMLImageElement>) => {
+    const drag = dragRef.current;
+    const stage = stageRef.current;
+    if (!drag || drag.pointerId !== event.pointerId || !stage) return;
+    const dx = event.clientX - drag.x;
+    const dy = event.clientY - drag.y;
+    stage.scrollLeft = drag.scrollLeft - dx;
+    stage.scrollTop = drag.scrollTop - dy;
+    // Scroll absorbs the drag while the image overflows. The rest shifts it across the plate.
+    const panX = drag.panX + dx - (drag.scrollLeft - stage.scrollLeft);
+    const panY = drag.panY + dy - (drag.scrollTop - stage.scrollTop);
+    panRef.current = { x: panX, y: panY };
+    event.currentTarget.style.translate = `${panX}px ${panY}px`;
+  };
+
+  const endDrag = (event: PointerEvent<HTMLImageElement>) => {
+    if (dragRef.current?.pointerId !== event.pointerId) return;
+    dragRef.current = null;
+    setDragging(false);
   };
 
   const onContextMenu = (event: MouseEvent) => {
@@ -185,7 +231,7 @@ export function ImageViewer({ name }: { name: string }) {
 
   return (
     <div ref={viewerRef} className="image-viewer" role="dialog" aria-modal="true" aria-label="Image" onContextMenu={onContextMenu}>
-      <div ref={stageRef} className="image-viewer-stage" onClick={onStageClick}>
+      <div ref={stageRef} className="image-viewer-stage">
         {missing ? (
           <div className="image-viewer-missing">Image unavailable</div>
         ) : (
@@ -195,8 +241,16 @@ export function ImageViewer({ name }: { name: string }) {
               src={transcriptImageUrl(name)}
               alt=""
               draggable={false}
-              className={ready ? undefined : "pending"}
-              style={natural ? { width: natural.width * scale, height: natural.height * scale } : undefined}
+              className={!ready ? "pending" : dragging ? "dragging" : undefined}
+              style={natural ? {
+                width: natural.width * scale,
+                height: natural.height * scale,
+                translate: `${panRef.current.x}px ${panRef.current.y}px`,
+              } : undefined}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={endDrag}
+              onPointerCancel={endDrag}
               onLoad={(event) => {
                 const image = event.currentTarget;
                 const size = { width: image.naturalWidth, height: image.naturalHeight };
