@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import type { VoiceKeyInfo } from "../../../shared/voiceKeyInfo";
 import { VOICE_REASONING_EFFORTS, type VoiceReasoningEffort } from "../../../shared/voiceReasoningEffort";
 import type { SettingsFieldsProps } from "../settings/SettingsFieldsProps";
+import { VoiceNameField } from "../voicePicker/VoiceNameField";
 
 /** Stand-in shown for a saved key, which never leaves main. */
 const KEY_MASK = "•".repeat(16);
@@ -74,17 +75,12 @@ export function VoiceSettingsFields({ draft, busy, onChange }: SettingsFieldsPro
         </select>
       </label>
       <div className="settings-note">Reasoning delays spoken replies. Some models reject some levels.</div>
-      <label>
-        Voice
-        <input value={draft.voiceName} disabled={busy} onChange={(e) => onChange({ voiceName: e.target.value })} spellCheck={false} />
-      </label>
-      <div className="settings-note">
-        See available voices at{" "}
-        <a href="https://platform.inworld.ai/voice-library" target="_blank" rel="noopener noreferrer">
-          platform.inworld.ai/voice-library
-        </a>
-        .
-      </div>
+      <VoiceNameField
+        value={draft.voiceName}
+        hasKey={keyInfo?.hasKey ?? false}
+        busy={busy}
+        onChange={(voiceName) => onChange({ voiceName })}
+      />
       <label>
         Language
         <input
@@ -104,7 +100,7 @@ export function VoiceSettingsFields({ draft, busy, onChange }: SettingsFieldsPro
           onChange={(e) => onChange({ voiceIdleMinutes: e.target.value })}
         />
       </label>
-      <div className="settings-note">Model, reasoning, voice and language apply on the next connect.</div>
+      <div className="settings-note">Model, reasoning and language apply on the next connect.</div>
     </>
   );
 }

@@ -5,18 +5,19 @@ import type { VoiceConnectionEvent } from "../../shared/voiceConnectionEvent";
 import type { VoiceStatus } from "../../shared/voiceStatus";
 import type { SessionManager } from "../sessions/SessionManager";
 import type { SessionObserver } from "../sessions/SessionObserver";
+import { answerToolCall } from "./answerToolCall";
 import { appendVoiceLog } from "./appendVoiceLog";
 import { clipText } from "../../shared/clipText";
 import { CurrentVoiceCall } from "./CurrentVoiceCall";
 import { prepareVoiceCall } from "./prepareVoiceCall";
 import { runVoiceSearch } from "./runVoiceSearch";
-import { runVoiceTool } from "./runVoiceTool";
 import { VoiceAnnouncer } from "./VoiceAnnouncer";
 import { VoiceConversation } from "./VoiceConversation";
 import { VoiceIdleTimer } from "./VoiceIdleTimer";
 import { voiceLogFeed } from "./voiceLogFeed";
 import { voiceNoticeText } from "./voiceNoticeText";
 import { VoiceNotices } from "./VoiceNotices";
+import { voiceOutputUpdate } from "./voiceOutputUpdate";
 import { VoiceRendererLink } from "./VoiceRendererLink";
 import { VoiceServerEvents } from "./VoiceServerEvents";
 import { voiceSessionConfig } from "./voiceSessionConfig";
@@ -27,7 +28,6 @@ type Deps = {
   sessions: SessionManager;
   getWindow: () => BrowserWindow | null;
 };
-type ServerEvent = Record<string, unknown>;
 type VoicePeer = VoiceStatus["peer"];
 
 const MAX_RETRIES = 3;
@@ -91,7 +91,7 @@ export class VoiceAgent {
       setStatus: (patch) => this.setStatus(patch),
       resetIdle: () => this.resetIdle(),
       pokeNotices: () => this.notices.poke(),
-      runTool: (event) => this.runTool(event),
+      runTool: (event) => answerToolCall(event, this.call, this.tools, this.conversation.trigger),
     });
   }
 
@@ -170,6 +170,14 @@ export class VoiceAgent {
     this.serverEvents.listening(this.opened);
     this.call.send(voiceSessionConfig(this.deps.sessions.getSettings()));
     return answer;
+  }
+
+  /** Settings changed the speaking voice: switch a live call now (desktop or phone); new calls read settings. */
+  voiceChanged(): void {
+    if (this.status.state === "off" || !this.call.current) return;
+    const voice = this.deps.sessions.getSettings().voiceName;
+    this.call.send(voiceOutputUpdate(voice));
+    appendVoiceLog("state", { voice });
   }
 
   /** The peer's media is up. */
@@ -258,20 +266,6 @@ export class VoiceAgent {
     this.stop();
     this.setStatus({ error });
     appendVoiceLog("error", { error, fatal: true });
-  }
-
-  private async runTool(event: ServerEvent): Promise<void> {
-    const callId = String(event.call_id ?? "");
-    const name = String(event.name ?? "");
-    const args = String(event.arguments ?? "");
-    if (!callId) return;
-    const call = this.call.current;
-    const trigger = this.conversation.trigger;
-    const output = await runVoiceTool(this.tools, name, args, trigger);
-    appendVoiceLog("tool", { name, args: clipText(args, 500), trigger, output: clipText(output, 800) });
-    // A new call after a reconnect never asked for this output.
-    if (!call || call !== this.call.current) return;
-    call.send({ type: "conversation.item.create", item: { type: "function_call_output", call_id: callId, output } });
   }
 
   /** Speak queued notices; the response they trigger may not change sessions (runVoiceTool). */

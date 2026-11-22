@@ -133,6 +133,7 @@ if (installSingleInstanceLock(() => mainWindow)) {
     registerIpc({
       sessions,
       control,
+      voice,
       getMainWindow: () => mainWindow,
       refreshMenus,
     });

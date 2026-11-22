@@ -23,10 +23,12 @@ import type { ConfigMenuCategory } from "../shared/configMenuCategory";
 import type { CreateSessionInput } from "../shared/createSessionInput";
 import type { EditContextMenuOptions } from "../shared/editContextMenuOptions";
 import { pickApnsKey } from "./push/pickApnsKey";
+import type { VoiceAgent } from "./voice/VoiceAgent";
 
 type IpcContext = {
   sessions: SessionManager;
   control: ControlServer;
+  voice: VoiceAgent;
   getMainWindow: () => BrowserWindow | null;
   refreshMenus: () => void;
 };
@@ -35,6 +37,7 @@ type IpcContext = {
 export function registerIpc({
   sessions,
   control,
+  voice,
   getMainWindow,
   refreshMenus,
 }: IpcContext): void {
@@ -116,7 +119,10 @@ export function registerIpc({
   ipcMain.handle("reminders:cancel", (_e, id: string) => cancelReminder(id));
   ipcMain.handle("settings:get", () => sessions.getSettings());
   ipcMain.handle("settings:update", async (_e, patch: Partial<AppSettings>) => {
+    const prev = sessions.getSettings();
     const next = sessions.updateSettings(patch);
+    // A live call (on this Mac or the phone) switches voice at once; everything else waits for the next connect.
+    if (next.voiceName !== prev.voiceName) voice.voiceChanged();
     // Keep command availability and the Word Wrap checkmark in sync with settings.
     if (patch.railMode !== undefined || patch.editorWordWrap !== undefined) refreshMenus();
     await control.apply(next);

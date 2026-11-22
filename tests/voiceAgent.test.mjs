@@ -16,7 +16,7 @@ const jiti = createJiti(import.meta.url, {
 const { VoiceAgent } = await jiti.import("../src/main/voice/VoiceAgent.ts");
 const settle = () => new Promise((resolve) => setImmediate(resolve));
 
-const settings = { voiceModel: "model", voiceReasoning: "DEFAULT", voiceLanguage: "English", voiceName: "Ava", voiceIdleMinutes: 0 };
+let settings = { voiceModel: "model", voiceReasoning: "DEFAULT", voiceLanguage: "English", voiceName: "Ava", voiceIdleMinutes: 0 };
 
 function agent(t, options) {
   const inworld = fakeInworld(t, options);
@@ -102,4 +102,22 @@ test("when the phone's call ends, main waits for it to resume, then gives up", a
 
   t.mock.timers.tick(60_000);
   assert.deepEqual(voice.getStatus(), { state: "off", activity: "idle", error: "Lost the connection to the phone.", peer: "phone" });
+});
+
+test("changing the voice in settings switches a live phone call's voice without reconnecting", async (t) => {
+  const { voice, sockets } = agent(t);
+  voice.voiceChanged();
+  assert.equal(sockets.length, 0);
+
+  await phoneOn(voice);
+  const before = sockets[0].sent.length;
+  settings = { ...settings, voiceName: "Olivia" };
+  t.after(() => (settings = { ...settings, voiceName: "Ava" }));
+  voice.voiceChanged();
+
+  assert.equal(sockets.length, 1);
+  assert.deepEqual(sockets[0].sent.slice(before), [
+    { type: "session.update", session: { type: "realtime", audio: { output: { model: "inworld-tts-2", voice: "Olivia" } } } },
+  ]);
+  assert.equal(voice.getStatus().state, "listening");
 });
