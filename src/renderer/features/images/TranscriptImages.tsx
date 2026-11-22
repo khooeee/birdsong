@@ -2,7 +2,7 @@ import { memo, useCallback, useState, type MouseEvent } from "react";
 import { transcriptImageUrl } from "./transcriptImageUrl";
 import "./images.css";
 
-/** Images an agent's tools returned or viewed; click one to toggle full size, right-click to save it. */
+/** Images an agent's tools returned or viewed; click one to toggle full size, right-click to copy or save it. */
 export const TranscriptImages = memo(function TranscriptImages({ names }: { names?: string[] }) {
   if (!names?.length) return null;
   return (
