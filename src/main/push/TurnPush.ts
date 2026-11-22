@@ -40,7 +40,14 @@ export class TurnPush {
       await Promise.all(
         devices.map(async (device) => {
           try {
-            const status = await sendApnsAlert({ ...alert, token: device.token, sandbox: device.sandbox, jwt, sessionId });
+            const status = await sendApnsAlert({
+              ...alert,
+              token: device.token,
+              sandbox: device.sandbox,
+              topic: device.topic,
+              jwt,
+              sessionId,
+            });
             if (status === 410) await this.devices.remove(device.token);
           } catch (error) {
             console.warn(`[push] ${errorMessage(error)}`);

@@ -5,6 +5,7 @@ import { sendJson } from "../control/sendJson";
 import type { PushDevices } from "./PushDevices";
 
 const TOKEN = /^[0-9a-f]{32,200}$/;
+const TOPIC = /^[A-Za-z0-9][A-Za-z0-9.-]{1,200}$/;
 
 /** `POST /devices` registers a phone; `DELETE /devices` drops it. The iOS bearer token is required. */
 export async function handleDeviceRequest(req: IncomingMessage, res: ServerResponse, devices: PushDevices): Promise<void> {
@@ -18,7 +19,9 @@ export async function handleDeviceRequest(req: IncomingMessage, res: ServerRespo
       await devices.remove(token);
       return sendJson(res, 200, { ok: true });
     }
-    await devices.upsert({ token, sandbox: body.sandbox === true });
+    const topic = typeof body.topic === "string" ? body.topic.trim() : "";
+    if (!TOPIC.test(topic)) return sendJson(res, 400, { error: "topic is required" });
+    await devices.upsert({ token, sandbox: body.sandbox === true, topic });
     return sendJson(res, 200, { ok: true });
   } catch (err) {
     return sendJson(res, 400, { error: errorMessage(err) });

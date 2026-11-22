@@ -2,7 +2,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import { pushDevicesPath } from "../storage/userDataPaths";
 
-type PushDevice = { token: string; sandbox: boolean };
+type PushDevice = { token: string; sandbox: boolean; topic: string };
 
 /** iPhones that asked to be alerted when a turn finishes. */
 export class PushDevices {
@@ -61,8 +61,9 @@ function parseDevices(raw: unknown): PushDevice[] {
   if (!Array.isArray(devices)) return [];
   return devices.flatMap((item) => {
     if (!item || typeof item !== "object") return [];
-    const { token, sandbox } = item as { token?: unknown; sandbox?: unknown };
+    const { token, sandbox, topic } = item as { token?: unknown; sandbox?: unknown; topic?: unknown };
     if (typeof token !== "string" || !/^[0-9a-f]{32,200}$/.test(token)) return [];
-    return [{ token, sandbox: sandbox === true }];
+    if (typeof topic !== "string" || !/^[A-Za-z0-9][A-Za-z0-9.-]{1,200}$/.test(topic)) return [];
+    return [{ token, sandbox: sandbox === true, topic }];
   });
 }

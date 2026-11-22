@@ -1,11 +1,10 @@
 import { connect } from "node:http2";
 
-/** Matches the iOS bundle id. Xcode installs use the sandbox gateway. */
-const TOPIC = "com.khooeee.birdsong";
-
 type ApnsAlert = {
   token: string;
   sandbox: boolean;
+  /** The phone's bundle id. The APNs key's team must be the team that signed that app. */
+  topic: string;
   jwt: string;
   title: string;
   body: string;
@@ -32,7 +31,7 @@ export function sendApnsAlert(input: ApnsAlert): Promise<number> {
       ":method": "POST",
       ":path": `/3/device/${input.token}`,
       authorization: `bearer ${input.jwt}`,
-      "apns-topic": TOPIC,
+      "apns-topic": input.topic,
       "apns-push-type": "alert",
       "apns-priority": "10",
     });

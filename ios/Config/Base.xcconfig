@@ -1,2 +1,5 @@
-// Put DEVELOPMENT_TEAM = <your team id> in Local.xcconfig (gitignored) to run on a device.
+// Default bundle id. Another Apple team cannot sign this id; override it in Local.xcconfig.
+PRODUCT_BUNDLE_IDENTIFIER = com.khooeee.birdsong
+
+// Put DEVELOPMENT_TEAM, and PRODUCT_BUNDLE_IDENTIFIER when it is not yours, in Local.xcconfig (gitignored).
 #include? "Local.xcconfig"

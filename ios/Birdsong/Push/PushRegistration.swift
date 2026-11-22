@@ -29,7 +29,11 @@ final class PushRegistration: NSObject, UNUserNotificationCenterDelegate {
         Task {
             do {
                 // The entitlement is aps-environment development, so the token is only valid on the sandbox gateway.
-                try await client.registerDevice(token: token, sandbox: true)
+                guard let topic = Bundle.main.bundleIdentifier else {
+                    postedToken = nil
+                    return
+                }
+                try await client.registerDevice(token: token, sandbox: true, topic: topic)
             } catch {
                 postedToken = nil
             }
