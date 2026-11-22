@@ -41,6 +41,14 @@ final class BirdsongClient: Sendable {
         _ = try await send(request(["sessions", sessionId, pinned ? "pin" : "unpin"], method: "POST"))
     }
 
+    /// Replaces the title; the agent stops naming the session.
+    func rename(sessionId: String, title: String) async throws {
+        var request = request(["sessions", sessionId, "rename"], method: "POST")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(["title": title])
+        _ = try await send(request)
+    }
+
     /// Sends, or steers into the running turn where the agent supports it.
     func sendPrompt(_ text: String, sessionId: String) async throws {
         var request = request(["sessions", sessionId, "prompt"], method: "POST")
