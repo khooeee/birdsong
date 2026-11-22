@@ -1,8 +1,9 @@
 import { memo, useCallback, useState, type MouseEvent } from "react";
+import { imageViewer } from "./imageViewerStore";
 import { transcriptImageUrl } from "./transcriptImageUrl";
 import "./images.css";
 
-/** Images an agent's tools returned or viewed; click one to toggle full size, right-click to copy or save it. */
+/** Images an agent's tools returned or viewed; click one to view it, right-click to copy or save it. */
 export const TranscriptImages = memo(function TranscriptImages({ names }: { names?: string[] }) {
   if (!names?.length) return null;
   return (
@@ -13,9 +14,8 @@ export const TranscriptImages = memo(function TranscriptImages({ names }: { name
 });
 
 const TranscriptImage = memo(function TranscriptImage({ name }: { name: string }) {
-  const [expanded, setExpanded] = useState(false);
   const [missing, setMissing] = useState(false);
-  const toggle = useCallback(() => setExpanded((value) => !value), []);
+  const open = useCallback(() => imageViewer.open(name), [name]);
   const markMissing = useCallback(() => setMissing(true), []);
   const openMenu = useCallback((event: MouseEvent) => {
     event.preventDefault();
@@ -25,10 +25,10 @@ const TranscriptImage = memo(function TranscriptImage({ name }: { name: string }
   return (
     <button
       type="button"
-      className={`transcript-image${expanded ? " expanded" : ""}`}
-      onClick={toggle}
+      className="transcript-image"
+      onClick={open}
       onContextMenu={openMenu}
-      aria-label={expanded ? "Shrink image" : "Expand image"}
+      aria-label="View image"
     >
       <img src={transcriptImageUrl(name)} alt="" loading="lazy" onError={markMissing} />
     </button>

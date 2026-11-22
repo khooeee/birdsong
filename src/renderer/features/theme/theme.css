@@ -28,6 +28,7 @@
   --mark: rgba(240, 163, 94, 0.45);
   --shadow: rgba(0, 0, 0, 0.35);
   --backdrop: rgba(0, 0, 0, 0.55);
+  --image-bg: #e8eef3;
   --placeholder: #3a4450;
   --code-bg: var(--bg-0);
   --copy-icon: #7d8b9a;
@@ -85,6 +86,7 @@ html[data-theme="light"] {
   --mark: rgba(184, 106, 34, 0.35);
   --shadow: rgba(23, 32, 38, 0.14);
   --backdrop: rgba(23, 32, 38, 0.35);
+  --image-bg: #d7e2e8;
   --placeholder: #c5d2d8;
   --code-bg: var(--bg-0);
   --copy-icon: #c9d5dc;
