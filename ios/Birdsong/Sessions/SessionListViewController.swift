@@ -12,7 +12,7 @@ final class SessionListViewController: UIViewController {
     private let subscription: EventSubscription
     private var list: SessionList?
     private var sessionsById: [String: Session] = [:]
-    private var pendingPinUpdates = Set<String>()
+    private lazy var swipeActions = SessionSwipeActions(client: client, presenter: self)
     private var filter = ""
     /// A notification tap that arrived before the rail did.
     private var pendingSessionId: String?
@@ -165,49 +165,13 @@ final class SessionListViewController: UIViewController {
         var config = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
         config.headerMode = .supplementary
         config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-            self?.pinSwipeActions(at: indexPath)
+            guard let self,
+                  let id = dataSource.itemIdentifier(for: indexPath),
+                  let session = sessionsById[id],
+                  let section = dataSource.sectionIdentifier(for: indexPath.section) else { return nil }
+            return swipeActions.configuration(for: session, pinned: section == .pinned)
         }
         return UICollectionViewCompositionalLayout.list(using: config)
-    }
-
-    private func pinSwipeActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard let id = dataSource.itemIdentifier(for: indexPath),
-              let section = dataSource.sectionIdentifier(for: indexPath.section),
-              !pendingPinUpdates.contains(id) else { return nil }
-        let pin = section == .recent
-        let action = UIContextualAction(style: .normal, title: pin ? "Pin" : "Unpin") { [weak self] _, _, finish in
-            guard let self, pendingPinUpdates.insert(id).inserted else {
-                finish(false)
-                return
-            }
-            Task {
-                defer { pendingPinUpdates.remove(id) }
-                do {
-                    try await client.setPinned(pin, sessionId: id)
-                    finish(true)
-                } catch {
-                    finish(false)
-                    showPinError(error, pin: pin)
-                }
-            }
-        }
-        action.backgroundColor = .systemBlue
-        let config = UISwipeActionsConfiguration(actions: [action])
-        config.performsFirstActionWithFullSwipe = false
-        return config
-    }
-
-    private func showPinError(_ error: any Error, pin: Bool) {
-        guard viewIfLoaded?.window != nil else { return }
-        let presenter = presentedViewController as? UISearchController ?? self
-        guard presenter.presentedViewController == nil else { return }
-        let alert = UIAlertController(
-            title: pin ? "Couldn't pin session" : "Couldn't unpin session",
-            message: error.localizedDescription,
-            preferredStyle: .alert
-        )
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        presenter.present(alert, animated: true)
     }
 
     private func makeDataSource() -> UICollectionViewDiffableDataSource<Section, String> {
