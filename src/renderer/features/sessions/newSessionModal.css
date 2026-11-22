@@ -19,7 +19,12 @@
 }
 
 /* Matches the chat composer's prompt. */
+.modal.new-session-modal .composer-prompt {
+  width: 100%;
+}
+
 .modal.new-session-modal textarea.new-session-prompt {
+  width: 100%;
   font-family: var(--font-mono);
   font-weight: var(--font-mono-weight);
   font-size: var(--font-mono-size);

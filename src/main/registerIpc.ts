@@ -128,12 +128,12 @@ export function registerIpc({
     await control.rotateToken();
     return control.status();
   });
-  ipcMain.handle("images:savePaste", async (_e, sessionId: string, mimeType: string, bytes: Uint8Array) => {
-    requireSession(sessionId);
+  ipcMain.handle("images:savePaste", async (_e, sessionId: string | null, mimeType: string, bytes: Uint8Array) => {
+    if (sessionId) requireSession(sessionId);
     return savePastedImage(bytes, mimeType);
   });
-  ipcMain.handle("images:saveClipboard", async (_e, sessionId: string) => {
-    requireSession(sessionId);
+  ipcMain.handle("images:saveClipboard", async (_e, sessionId: string | null) => {
+    if (sessionId) requireSession(sessionId);
     const png = await readClipboardPng();
     if (!png) return null;
     return savePastedImage(png, "image/png");

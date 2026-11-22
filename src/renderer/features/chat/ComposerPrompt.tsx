@@ -10,6 +10,8 @@ export function ComposerPrompt({
   placeholder,
   promptRef,
   commands,
+  className,
+  disabled,
   onDraftChange,
   onKeyDown,
   onPaste,
@@ -18,6 +20,8 @@ export function ComposerPrompt({
   placeholder: string;
   promptRef: RefObject<HTMLTextAreaElement | null>;
   commands: SlashCommand[];
+  className?: string;
+  disabled?: boolean;
   onDraftChange: (text: string) => void;
   onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => boolean;
   onPaste: (event: ClipboardEvent<HTMLTextAreaElement>) => void;
@@ -61,9 +65,11 @@ export function ComposerPrompt({
       ) : null}
       <textarea
         ref={promptRef}
+        className={className}
         value={draft}
         placeholder={placeholder}
         spellCheck={false}
+        disabled={disabled}
         onChange={(e) => onDraftChange(e.target.value)}
         onPaste={onPaste}
         onContextMenu={onComposerContextMenu}

@@ -19,7 +19,7 @@ import type { FileContent } from "./fileContent";
 import type { FileMenuAction } from "./fileMenuAction";
 import type { FileWriteResult } from "./fileWriteResult";
 import type { PersistedExplorer } from "./persistedExplorer";
-import type { Session } from "./session";
+import type { Session, SlashCommand } from "./session";
 import type { SessionConfigSelect } from "./sessionConfigSelect";
 import type { TranscriptTurn } from "./transcript";
 import type { UnsavedChoice } from "./unsavedChoice";
@@ -41,6 +41,8 @@ export interface BirdsongApi {
   startSessionDraft: (id: string, agent: AgentKind, cwd: string) => Promise<SessionConfigSelect[]>;
   selectSessionDraftConfig: (id: string, category: ConfigMenuCategory, value: string) => Promise<SessionConfigSelect[]>;
   discardSessionDraft: (id: string) => Promise<void>;
+  /** Slash commands for the new-session draft, including ones that arrive after it starts. */
+  onSessionDraftCommands: (cb: (payload: { id: string; commands: SlashCommand[] }) => void) => () => void;
   createSession: (input: CreateSessionInput) => Promise<Session>;
   forkSession: (sessionId: string, eventId?: string) => Promise<Session>;
   closeSession: (sessionId: string) => Promise<void>;
@@ -81,11 +83,15 @@ export interface BirdsongApi {
   pickApnsKey: () => Promise<string | null>;
   /** New token for the iOS app (control.json scripts keep theirs); returns the status with the new link. */
   rotateControlToken: () => Promise<RemoteStatus>;
+  /**
+   * Save a pasted image to a temp file and return its path.
+   * `sessionId` is null in the new-session prompt, which has no session yet.
+   */
   savePastedImage: (
-    sessionId: string,
+    sessionId: string | null,
     image: { mimeType: string; bytes: Uint8Array },
   ) => Promise<string>;
-  saveClipboardImage: (sessionId: string) => Promise<string | null>;
+  saveClipboardImage: (sessionId: string | null) => Promise<string | null>;
   /** Popup native Copy (+ Copy Link / Copy Code / Copy Message / Save Message as Markdown / Find / Turn Details / Save <view> as Markdown) at the cursor. */
   showEditContextMenu: (opts?: EditContextMenuOptions) => Promise<void>;
   /** Native Save Image menu for a stored transcript image. */

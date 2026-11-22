@@ -5,6 +5,8 @@ import type { CreateSessionInput } from "../../../shared/createSessionInput";
 import { errorMessage } from "../../../shared/errorMessage";
 import { folderTitle } from "../../../shared/folderTitle";
 import { generatesSessionTitles } from "../../../shared/generatesSessionTitles";
+import { applyPromptImagePaste } from "../chat/applyPromptImagePaste";
+import { ComposerPrompt } from "../chat/ComposerPrompt";
 import { useModalKeyboard } from "../modals/useModalKeyboard";
 import { getAppSettingsCache, patchAppSettings } from "../settings/appSettingsCache";
 import { randomSessionTitle } from "./sessionTitle";
@@ -46,7 +48,7 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
     if (!input) return;
     input.focus();
     input.select();
-  }, []);
+  }, [asksPrompt]);
 
   const create = async () => {
     if (!canCreate) return;
@@ -145,17 +147,44 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
         </label>
         <label>
           {asksPrompt ? "Prompt" : "Title"}
-          <textarea
-            ref={fieldRef}
-            className={asksPrompt ? "new-session-prompt" : undefined}
-            value={asksPrompt ? prompt : title}
-            rows={2}
-            disabled={busy}
-            onChange={(e) => (asksPrompt ? setPrompt : setTitle)(e.target.value)}
-            onKeyDown={createOnEnter}
-            placeholder={asksPrompt ? "Message the agent… (Enter to send, Shift+Enter for newline)" : undefined}
-            spellCheck={false}
-          />
+          {asksPrompt ? (
+            <ComposerPrompt
+              className="new-session-prompt"
+              draft={prompt}
+              placeholder="Message the agent… (Enter to send, Shift+Enter for newline)"
+              promptRef={fieldRef}
+              commands={draft.commands}
+              disabled={busy}
+              onDraftChange={setPrompt}
+              onPaste={(e) => {
+                void applyPromptImagePaste({
+                  event: e.nativeEvent,
+                  sessionId: null,
+                  draft: prompt,
+                  textarea: e.currentTarget,
+                  onDraftChange: setPrompt,
+                  onError: setError,
+                });
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+                  void create();
+                  return true;
+                }
+                return false;
+              }}
+            />
+          ) : (
+            <textarea
+              ref={fieldRef}
+              value={title}
+              rows={2}
+              disabled={busy}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={createOnEnter}
+              spellCheck={false}
+            />
+          )}
         </label>
         <div className="modal-checks">
           <label className="modal-check">
