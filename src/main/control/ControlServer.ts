@@ -5,6 +5,7 @@ import { errorMessage } from "../../shared/errorMessage";
 import type { RemoteStatus } from "../../shared/remoteStatus";
 import type { SessionManager } from "../sessions/SessionManager";
 import type { VoiceAgent } from "../voice/VoiceAgent";
+import type { QuotaTracker } from "../quota/QuotaTracker";
 import { RemoteEventHub } from "../remote/RemoteEventHub";
 import { TurnPush } from "../push/TurnPush";
 import { tailscaleDnsName } from "../remote/tailscaleDnsName";
@@ -38,8 +39,9 @@ export class ControlServer {
   constructor(
     private sessions: SessionManager,
     private voice: VoiceAgent,
+    quota: QuotaTracker,
   ) {
-    this.hub = new RemoteEventHub(sessions);
+    this.hub = new RemoteEventHub(sessions, quota);
     this.push = new TurnPush(sessions, this.hub);
   }
 

@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from "electron";
 import type { CursorAskQuestionRequest } from "./shared/agentRequests";
+import type { AgentQuota } from "./shared/agentQuota";
 import type { AppSettings } from "./shared/appSettings";
 import type { CreateSessionInput } from "./shared/createSessionInput";
 import type { FindInSessionsHit } from "./shared/findInSessionsHit";
@@ -126,6 +127,8 @@ const api: BirdsongApi = {
   voiceConnection: (event) => ipcRenderer.send("voice:connection", event),
   onVoiceCommand: (cb) => subscribe<VoiceCommand>("voice:command", cb),
   onVoiceStatus: (cb) => subscribe<VoiceStatus>("voice:status", cb),
+  listQuotas: () => ipcRenderer.invoke("quota:list"),
+  onQuotasChanged: (cb) => subscribe<AgentQuota[]>("quota:changed", cb),
   onNavigateToEvent: (cb) =>
     subscribe<{ sessionId: string; turnId: string; eventId: string }>("navigate-event", cb),
   onFindProgress: (cb) =>

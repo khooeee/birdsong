@@ -2,6 +2,7 @@ import { SettingsMenu } from "../settings/SettingsMenu";
 import { VoiceButton } from "../voice/VoiceButton";
 import { VoiceLogButton } from "../voiceLog/VoiceLogButton";
 import { RailModeBar } from "../explorer/RailModeBar";
+import { QuotaMeters } from "../quota/QuotaMeters";
 import { SessionList, type SessionListProps } from "./SessionList";
 import { startRailResize } from "./startRailResize";
 import "./sessionRail.css";
@@ -22,6 +23,7 @@ export function SessionRail(props: SessionListProps) {
       />
       <RailModeBar hasSessions={props.pinned.length + props.unpinned.length > 0} />
       <SessionList {...props} />
+      <QuotaMeters />
       <div className="rail-footer">
         <VoiceLogButton />
         <VoiceButton />

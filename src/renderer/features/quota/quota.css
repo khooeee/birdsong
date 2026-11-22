@@ -1,0 +1,48 @@
+/* One thin row above the footer buttons, so it fits the narrowest rail. */
+.rail-quota {
+  flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  padding: 0 14px;
+  cursor: default;
+}
+
+.quota-meter {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  line-height: 1;
+  color: var(--text-dim);
+}
+
+.quota-bar {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+
+.quota-fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.quota-warn .quota-fill {
+  background: var(--accent-2);
+}
+
+.quota-full .quota-fill {
+  background: var(--danger);
+}
+
+/* The latest refresh failed; these are the last good numbers. */
+.quota-stale {
+  opacity: 0.5;
+}

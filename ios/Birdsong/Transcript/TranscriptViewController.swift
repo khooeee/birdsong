@@ -117,6 +117,8 @@ final class TranscriptViewController: UIViewController {
         case .sessions(let list):
             let current = (list.pinned + list.unpinned).first { $0.id == session.id }
             composer.resumeNotice = current?.continuationNotice
+        case .quotas:
+            break
         }
     }
 

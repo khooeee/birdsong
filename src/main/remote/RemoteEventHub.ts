@@ -1,6 +1,7 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { TranscriptTurn } from "../../shared/transcript";
 import type { SessionManager } from "../sessions/SessionManager";
+import type { QuotaTracker } from "../quota/QuotaTracker";
 import { remoteSessionList } from "./remoteSessionList";
 import { toRemoteTurn } from "./toRemoteTurn";
 import { SseStream } from "./SseStream";
@@ -20,15 +21,19 @@ export class RemoteEventHub {
   private listTimer: NodeJS.Timeout | null = null;
   private turnTimers = new Map<string, NodeJS.Timeout>();
 
-  constructor(private sessions: SessionManager) {
+  constructor(private sessions: SessionManager, private quota: QuotaTracker) {
     sessions.subscribe((channel, payload) => this.onEvent(channel, payload));
+    quota.subscribe((quotas) => {
+      for (const stream of this.listStreams) stream.send("quotas", { quotas });
+    });
   }
 
-  /** `GET /events`: the rail now, then on every change. */
+  /** `GET /events`: the rail and quotas now, then on every change. */
   openList(req: IncomingMessage, res: ServerResponse): void {
     const stream = new SseStream(req, res, () => this.listStreams.delete(stream));
     this.listStreams.add(stream);
     stream.send("sessions", remoteSessionList(this.sessions.list()));
+    stream.send("quotas", { quotas: this.quota.list() });
   }
 
   /** `GET /sessions/:id/events`: recent turns now, then each turn as it streams. */

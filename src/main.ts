@@ -28,6 +28,8 @@ import type { AppMenuOptions } from "./main/appMenu/AppMenuOptions";
 import { VoiceAgent } from "./main/voice/VoiceAgent";
 import { registerVoiceIpc } from "./main/voice/registerVoiceIpc";
 import { shellEnv } from "./main/shellEnv/shellEnv";
+import { QuotaTracker } from "./main/quota/QuotaTracker";
+import { registerQuotaIpc } from "./main/quota/registerQuotaIpc";
 import { errorMessage } from "./shared/errorMessage";
 import { INITIAL_THEME_ARG } from "./shared/initialThemeArg";
 
@@ -59,7 +61,8 @@ const voice = new VoiceAgent({
   sessions,
   getWindow: () => mainWindow,
 });
-const control = new ControlServer(sessions, voice);
+const quota = new QuotaTracker();
+const control = new ControlServer(sessions, voice, quota);
 sessions.setObserver(voice.observer);
 const reminders = new ReminderScheduler((reminder) =>
   fireReminder(reminder, { sessions, voice, getWindow: () => mainWindow }),
@@ -77,6 +80,7 @@ function refreshMenus() {
 
 sessions.subscribe((channel) => {
   if (channel === "sessions:changed") refreshMenus();
+  if (channel === "prompt:complete") quota.refreshSoon();
 });
 
 const createWindow = async () => {
@@ -137,6 +141,7 @@ if (installSingleInstanceLock(() => mainWindow)) {
       refreshMenus,
     });
     registerVoiceIpc(voice);
+    registerQuotaIpc(quota, () => mainWindow);
     fileWatcher = registerFileIpc(sessions);
     const menuOptions: AppMenuOptions = {
       getMainWindow: () => mainWindow,
@@ -148,6 +153,7 @@ if (installSingleInstanceLock(() => mainWindow)) {
     void createWindow().then(() => {
       crons.start();
       reminders.start();
+      quota.start();
       void control.apply(sessions.getSettings());
     });
   });
@@ -167,6 +173,7 @@ if (installSingleInstanceLock(() => mainWindow)) {
       fileWatcher?.dispose();
       crons.stop();
       reminders.stop();
+      quota.stop();
       await sessions.disposeAll();
       await control.stop();
     },

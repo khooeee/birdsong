@@ -17,6 +17,8 @@ final class SessionListViewController: UIViewController {
     /// A notification tap that arrived before the rail did.
     private var pendingSessionId: String?
     private var connection: EventSubscription.State = .connecting
+    private let quotaItem = QuotaBarButtonItem()
+    private var quotas: [AgentQuota] = []
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
     private lazy var dataSource = makeDataSource()
 
@@ -49,6 +51,7 @@ final class SessionListViewController: UIViewController {
         search.searchResultsUpdater = self
         search.obscuresBackgroundDuringPresentation = false
         navigationItem.searchController = search
+        toolbarItems = [.flexibleSpace(), quotaItem, .flexibleSpace()]
 
         collectionView.frame = view.bounds
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
@@ -56,7 +59,11 @@ final class SessionListViewController: UIViewController {
         view.addSubview(collectionView)
 
         subscription.onEvent = { [weak self] event in
-            if case .sessions(let list) = event { self?.apply(list) }
+            switch event {
+            case .sessions(let list): self?.apply(list)
+            case .quotas(let quotas): self?.showQuotas(quotas)
+            case .reset, .turn: break
+            }
         }
         subscription.onState = { [weak self] state in
             self?.connection = state
@@ -66,12 +73,26 @@ final class SessionListViewController: UIViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        navigationController?.setToolbarHidden(quotas.isEmpty, animated: animated)
         subscription.start()
+    }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        // The transcript's composer owns the bottom edge.
+        navigationController?.setToolbarHidden(true, animated: animated)
     }
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         subscription.stop()
+    }
+
+    private func showQuotas(_ next: [AgentQuota]) {
+        quotas = next
+        quotaItem.update(next)
+        guard navigationController?.topViewController === self else { return }
+        navigationController?.setToolbarHidden(next.isEmpty, animated: view.window != nil)
     }
 
     private func showNewSession() {

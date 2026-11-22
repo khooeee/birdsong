@@ -3,6 +3,7 @@ import type { GitDiffScope, GitDiffSnapshot, GitFilePatch } from "./gitDiff";
 import type { ActiveTabId } from "./activeTabId";
 import type { CursorAskQuestionRequest } from "./agentRequests";
 import type { AgentKind } from "./agentKind";
+import type { AgentQuota } from "./agentQuota";
 import type { AppSettings } from "./appSettings";
 import type { ConfigMenuCategory } from "./configMenuCategory";
 import type { CreateSessionInput } from "./createSessionInput";
@@ -204,6 +205,9 @@ export interface BirdsongApi {
   voiceConnection: (event: VoiceConnectionEvent) => void;
   onVoiceCommand: (cb: (command: VoiceCommand) => void) => () => void;
   onVoiceStatus: (cb: (status: VoiceStatus) => void) => () => void;
+  /** Subscription quotas of logged-in agents (rail footer). */
+  listQuotas: () => Promise<AgentQuota[]>;
+  onQuotasChanged: (cb: (quotas: AgentQuota[]) => void) => () => void;
   onNavigateToEvent: (cb: (payload: { sessionId: string; turnId: string; eventId: string }) => void) => () => void;
   navigateToEvent: (sessionId: string, turnId: string, eventId: string) => Promise<void>;
 }

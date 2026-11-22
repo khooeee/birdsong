@@ -170,6 +170,7 @@ Niceties:
 - Save message or session as Markdown
 - Preview Markdown files like how they would appear in GitHub
 - [Reminders](#reminders) that agents or voice can set for you, with a popup, chime and transcript note when due
+- Claude, Codex and Cursor quota meters in the rail footer (and the iOS Sessions toolbar), with reset times on hover, read with each CLI's own login
 
 ## Shortcuts
 
