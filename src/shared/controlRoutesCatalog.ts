@@ -44,6 +44,7 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
         cwd: "absolute workspace path",
         title: "optional string",
         pin: "optional boolean — pin the session at the top of the rail",
+        createFolder: "optional boolean — create cwd if it doesn't exist; otherwise a missing cwd is a 409",
       },
       response: "Session",
       example:

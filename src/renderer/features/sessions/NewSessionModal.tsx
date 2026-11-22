@@ -57,12 +57,16 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
       : { title: folderTitle(cwd, title, selectedAgent) };
     setBusy(true);
     setError(null);
-    void patchAppSettings({
-      lastAgent: selectedAgent,
-      lastCwd: cwd,
-      lastPin: pin,
-    });
     try {
+      if (!(await window.birdsong.confirmCreateFolder(cwd))) {
+        setBusy(false);
+        return;
+      }
+      void patchAppSettings({
+        lastAgent: selectedAgent,
+        lastCwd: cwd,
+        lastPin: pin,
+      });
       await onCreate({ agent: selectedAgent, cwd, pin, draftId: draft.id, ...named });
     } catch (err) {
       setError(errorMessage(err));

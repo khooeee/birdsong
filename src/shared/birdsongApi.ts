@@ -68,6 +68,8 @@ export interface BirdsongApi {
       | { outcome: "cancelled" },
   ) => Promise<void>;
   pickFolder: (startPath?: string) => Promise<string | null>;
+  /** Ask to create `path` when it doesn't exist; false when the user declines. */
+  confirmCreateFolder: (path: string) => Promise<boolean>;
   /** Save-as dialog that writes `text` to a `.md` file named from `nameHint` (else `text`); false when cancelled. */
   saveMarkdown: (text: string, nameHint?: string) => Promise<boolean>;
   openTranscriptsFolder: () => Promise<void>;
