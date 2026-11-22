@@ -110,7 +110,7 @@ Pending reminders live in `reminders.json`. Click the Settings button on the bot
 
 Initial setup
 1. In the [Tailscale admin console](https://login.tailscale.com/admin/dns), turn on MagicDNS and HTTPS certificates.
-2. Build the app on iOS: `brew install xcodegen`, then `npm run ios` and open `ios/Birdsong.xcodeproj`. To run on a device, put `DEVELOPMENT_TEAM = <your team id>` in `ios/Config/Local.xcconfig`.
+2. Build the app on iOS: `brew install xcodegen`, then `npm run ios` and open `ios/Birdsong.xcodeproj`. To run on a device, put `DEVELOPMENT_TEAM = <your team id>` in `ios/Config/Local.xcconfig`. The default bundle id is `com.khooeee.birdsong`, which only that Apple team can sign. To use your own team, also set `PRODUCT_BUNDLE_IDENTIFIER = <your bundle id>` in that file.
 
 Birdsong desktop app
 3. If using a MacBook, plug it in.
@@ -119,6 +119,17 @@ Birdsong desktop app
 6. In Birdsong desktop app, open **Settings** and tick **Allow the iOS app over Tailscale**.
 7. Run the provided command which should look similar to `tailscale serve --bg <port>`.
 8. Click **Copy iOS Link** & paste the link into the iOS app.
+
+### Alerts when a turn finishes
+
+A finished turn alerts the phone when the app is in the background or the screen is locked. With the app open, the session list updates and there is no banner. Tapping the banner opens that session. The simulator cannot receive these.
+
+1. In the [Apple developer portal](https://developer.apple.com/account/resources/identifiers/list), register the bundle id you sign (the default, or the one in `Local.xcconfig`) and enable **Push Notifications**. The key below has to belong to that same Apple team.
+2. Under [Keys](https://developer.apple.com/account/resources/authkeys/list), create a key with **Apple Push Notifications service (APNs)**. Download the `.p8` (Apple allows this once) and note the **Key ID**. The **Team ID** is the same value as `DEVELOPMENT_TEAM`.
+3. In Birdsong, open **Settings**, fill in **APNs key ID** and **APNs team ID**, choose the `.p8`, and click **Save**.
+4. Run the app on a device from Xcode and allow notifications. The phone tells the Mac its bundle id, so the alert is sent to that app.
+
+Xcode installs use Apple's sandbox gateway, and this key works for that.
 
 ### Voice on the iPhone
 

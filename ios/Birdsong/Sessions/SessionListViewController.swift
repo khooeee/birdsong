@@ -14,6 +14,8 @@ final class SessionListViewController: UIViewController {
     private var sessionsById: [String: Session] = [:]
     private var pendingPinUpdates = Set<String>()
     private var filter = ""
+    /// A notification tap that arrived before the rail did.
+    private var pendingSessionId: String?
     private var connection: EventSubscription.State = .connecting
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
     private lazy var dataSource = makeDataSource()
@@ -80,6 +82,27 @@ final class SessionListViewController: UIViewController {
         present(UINavigationController(rootViewController: form), animated: true)
     }
 
+    /// Opens the session a push named, once the rail knows it.
+    func reveal(sessionId: String) {
+        guard let session = sessionsById[sessionId] else {
+            pendingSessionId = sessionId
+            return
+        }
+        pendingSessionId = nil
+        present(session)
+    }
+
+    private func present(_ session: Session) {
+        guard let navigationController else { return }
+        if let transcript = navigationController.topViewController as? TranscriptViewController, transcript.sessionId == session.id {
+            return
+        }
+        if navigationController.viewControllers.count > 1 {
+            navigationController.popToRootViewController(animated: false)
+        }
+        openSession(session)
+    }
+
     private func openSession(_ session: Session) {
         navigationController?.pushViewController(TranscriptViewController(client: client, voice: voice, session: session), animated: true)
     }
@@ -110,6 +133,10 @@ final class SessionListViewController: UIViewController {
         sessionsById = Dictionary((next.pinned + next.unpinned).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
         applySnapshot(changed: sessionsById.keys.filter { previous[$0] != nil && previous[$0] != sessionsById[$0] })
         setNeedsUpdateContentUnavailableConfiguration()
+        if let id = pendingSessionId {
+            pendingSessionId = nil
+            if let session = sessionsById[id] { present(session) }
+        }
     }
 
     private func applySnapshot(changed: [String] = []) {

@@ -15,4 +15,7 @@ export type SettingsDraft = {
   voiceIdleMinutes: string;
   remoteEnabled: boolean;
   controlPort: string;
+  apnsKeyId: string;
+  apnsTeamId: string;
+  apnsKeyPath: string;
 };

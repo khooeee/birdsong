@@ -2,7 +2,9 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { SessionManager } from "../sessions/SessionManager";
 import type { RemoteEventHub } from "../remote/RemoteEventHub";
 import type { VoiceAgent } from "../voice/VoiceAgent";
+import type { PushDevices } from "../push/PushDevices";
 import { handleMcpRequest } from "../mcp/handleMcpRequest";
+import { handleDeviceRequest } from "../push/handleDeviceRequest";
 import { allowedHost } from "./allowedHost";
 import { bearerAuthorized } from "./bearerAuthorized";
 import { handleControlRequest } from "./controlRoutes";
@@ -20,6 +22,7 @@ type ServerContext = {
   sessions: SessionManager;
   hub: RemoteEventHub;
   voice: VoiceAgent;
+  devices: PushDevices;
   remoteEnabled: () => boolean;
 };
 
@@ -30,7 +33,7 @@ type ServerContext = {
 export async function handleServerRequest(
   req: IncomingMessage,
   res: ServerResponse,
-  { localToken, remoteToken, baseUrl, sessions, hub, voice, remoteEnabled }: ServerContext,
+  { localToken, remoteToken, baseUrl, sessions, hub, voice, devices, remoteEnabled }: ServerContext,
 ): Promise<void> {
   if (!allowedHost(req.headers.host)) {
     return sendJson(res, 403, { error: "Unexpected Host header" });
@@ -46,6 +49,10 @@ export async function handleServerRequest(
   const pathname = url.pathname.replace(/\/$/, "") || "/";
   const mcpMatch = /^\/mcp\/([^/]+)$/.exec(pathname);
   if (mcpMatch) return handleMcpRequest(req, res, decodeURIComponent(mcpMatch[1]!), sessions);
+  if (pathname === "/devices") {
+    if (!bearerAuthorized(req.headers.authorization, remoteToken)) return sendJson(res, 401, { error: "Unauthorized" });
+    return handleDeviceRequest(req, res, devices);
+  }
   if (pathname === "/voice" || pathname.startsWith("/voice/")) {
     // The iOS token only: scripts and agents (with the local token) can't take the mic.
     if (!bearerAuthorized(req.headers.authorization, remoteToken)) return sendJson(res, 401, { error: "Unauthorized" });
