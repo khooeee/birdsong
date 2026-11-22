@@ -158,8 +158,8 @@ export function ImageViewer({ name }: { name: string }) {
   }, [actualSize, zoomFromCenter]);
 
   const onStageClick = (event: MouseEvent<HTMLDivElement>) => {
-    // The image stays open. A click on the stage itself is the scrollbar.
-    if (event.target === imgRef.current || event.target === stageRef.current) return;
+    // A click on the stage itself is the scrollbar.
+    if (event.target === stageRef.current) return;
     imageViewer.close();
   };
 
