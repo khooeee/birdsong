@@ -32,37 +32,38 @@
   position: absolute;
   inset: 0;
   z-index: 30;
-  background: var(--image-bg);
+  background: var(--image-canvas);
   user-select: none;
 }
 
 .image-viewer-stage {
   position: absolute;
   inset: 0;
+  display: flex;
   overflow: auto;
   overscroll-behavior: none;
+  background: var(--image-canvas);
+  cursor: grab;
+}
+
+.image-viewer-stage.dragging {
+  cursor: grabbing;
 }
 
 .image-viewer-frame {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 100%;
-  min-height: 100%;
-  width: max-content;
-  height: max-content;
+  margin: auto;
+  flex: none;
+  background: var(--image-bg);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--text) 35%, transparent),
+    0 8px 24px var(--shadow);
 }
 
 .image-viewer-frame img {
   display: block;
   max-width: none;
   max-height: none;
-  cursor: grab;
   touch-action: none;
-}
-
-.image-viewer-frame img.dragging {
-  cursor: grabbing;
 }
 
 .image-viewer-frame img.pending {
@@ -71,9 +72,7 @@
 }
 
 .image-viewer-missing {
-  display: grid;
-  place-items: center;
-  min-height: 100%;
+  margin: auto;
   color: var(--text);
 }
 

@@ -26,7 +26,6 @@ export function useImageZoom() {
   const modeRef = useRef<ZoomMode>("auto");
   const naturalRef = useRef<ImageSize | null>(null);
   const anchorRef = useRef<Anchor | null>(null);
-  const panRef = useRef({ x: 0, y: 0 });
   const [natural, setNatural] = useState<ImageSize | null>(null);
   const [scale, setScale] = useState(1);
   const [mode, setMode] = useState<ZoomMode>("auto");
@@ -87,9 +86,6 @@ export function useImageZoom() {
       return;
     }
     const apply = () => {
-      // Fit and the open scale are centered; a drag offset would leave the image off to the side.
-      panRef.current = { x: 0, y: 0 };
-      if (imgRef.current) imgRef.current.style.translate = "";
       // Measure the pane, not the scroller, so a scrollbar cannot shrink the fit.
       const fitToPane = fitScale(viewer.clientWidth, viewer.clientHeight, natural.width, natural.height);
       const next = mode === "auto" ? openScale(fitToPane) : fitToPane;
@@ -123,7 +119,6 @@ export function useImageZoom() {
     imgRef,
     scaleRef,
     naturalRef,
-    panRef,
     natural,
     scale,
     ready,

@@ -1,52 +1,41 @@
 import { useRef, useState, type PointerEvent, type RefObject } from "react";
 
-type Pan = { x: number; y: number };
+function onScrollbar(stage: HTMLElement, event: PointerEvent<HTMLElement>): boolean {
+  const rect = stage.getBoundingClientRect();
+  const barX = stage.offsetHeight - stage.clientHeight;
+  const barY = stage.offsetWidth - stage.clientWidth;
+  return event.clientY >= rect.bottom - barX || event.clientX >= rect.right - barY;
+}
 
-/** Drag the image: the scroller takes overflow, and the rest pans it across the plate. */
-export function useImagePan(stageRef: RefObject<HTMLDivElement | null>, panRef: RefObject<Pan>) {
-  const dragRef = useRef<{
-    pointerId: number;
-    x: number;
-    y: number;
-    scrollLeft: number;
-    scrollTop: number;
-    panX: number;
-    panY: number;
-  } | null>(null);
+/** Drag scrolls the workspace. The scrollbars move with the pointer. */
+export function useImagePan(stageRef: RefObject<HTMLDivElement | null>) {
+  const dragRef = useRef<{ pointerId: number; x: number; y: number; scrollLeft: number; scrollTop: number } | null>(null);
   const [dragging, setDragging] = useState(false);
 
-  const onPointerDown = (event: PointerEvent<HTMLImageElement>) => {
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
     const stage = stageRef.current;
-    if (!stage) return;
+    if (!stage || onScrollbar(stage, event)) return;
     dragRef.current = {
       pointerId: event.pointerId,
       x: event.clientX,
       y: event.clientY,
       scrollLeft: stage.scrollLeft,
       scrollTop: stage.scrollTop,
-      panX: panRef.current.x,
-      panY: panRef.current.y,
     };
-    event.currentTarget.setPointerCapture(event.pointerId);
+    stage.setPointerCapture(event.pointerId);
     setDragging(true);
   };
 
-  const onPointerMove = (event: PointerEvent<HTMLImageElement>) => {
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const drag = dragRef.current;
     const stage = stageRef.current;
     if (!drag || drag.pointerId !== event.pointerId || !stage) return;
-    const dx = event.clientX - drag.x;
-    const dy = event.clientY - drag.y;
-    stage.scrollLeft = drag.scrollLeft - dx;
-    stage.scrollTop = drag.scrollTop - dy;
-    const panX = drag.panX + dx - (drag.scrollLeft - stage.scrollLeft);
-    const panY = drag.panY + dy - (drag.scrollTop - stage.scrollTop);
-    panRef.current = { x: panX, y: panY };
-    event.currentTarget.style.translate = `${panX}px ${panY}px`;
+    stage.scrollLeft = drag.scrollLeft - (event.clientX - drag.x);
+    stage.scrollTop = drag.scrollTop - (event.clientY - drag.y);
   };
 
-  const endDrag = (event: PointerEvent<HTMLImageElement>) => {
+  const endDrag = (event: PointerEvent<HTMLDivElement>) => {
     if (dragRef.current?.pointerId !== event.pointerId) return;
     dragRef.current = null;
     setDragging(false);

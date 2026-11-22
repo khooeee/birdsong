@@ -10,7 +10,7 @@ import "./images.css";
 /** Full-pane viewer for one stored transcript image. Scrolls both ways; zoom steps or fits. */
 export function ImageViewer({ name }: { name: string }) {
   const zoom = useImageZoom();
-  const pan = useImagePan(zoom.stageRef, zoom.panRef);
+  const pan = useImagePan(zoom.stageRef);
   usePinchZoom(zoom.viewerRef, zoom.naturalRef, zoom.scaleRef, zoom.zoomTo);
   useImageViewerKeys(zoom.naturalRef, zoom.zoomFromCenter, zoom.actualSize);
   const [missing, setMissing] = useState(false);
@@ -23,7 +23,14 @@ export function ImageViewer({ name }: { name: string }) {
 
   return (
     <div ref={zoom.viewerRef} className="image-viewer" role="dialog" aria-modal="true" aria-label="Image" onContextMenu={onContextMenu}>
-      <div ref={zoom.stageRef} className="image-viewer-stage">
+      <div
+        ref={zoom.stageRef}
+        className={pan.dragging ? "image-viewer-stage dragging" : "image-viewer-stage"}
+        onPointerDown={pan.onPointerDown}
+        onPointerMove={pan.onPointerMove}
+        onPointerUp={pan.endDrag}
+        onPointerCancel={pan.endDrag}
+      >
         {missing ? (
           <div className="image-viewer-missing">Image unavailable</div>
         ) : (
@@ -33,16 +40,11 @@ export function ImageViewer({ name }: { name: string }) {
               src={transcriptImageUrl(name)}
               alt=""
               draggable={false}
-              className={!zoom.ready ? "pending" : pan.dragging ? "dragging" : undefined}
+              className={!zoom.ready ? "pending" : undefined}
               style={zoom.natural ? {
                 width: zoom.natural.width * zoom.scale,
                 height: zoom.natural.height * zoom.scale,
-                translate: `${zoom.panRef.current.x}px ${zoom.panRef.current.y}px`,
               } : undefined}
-              onPointerDown={pan.onPointerDown}
-              onPointerMove={pan.onPointerMove}
-              onPointerUp={pan.endDrag}
-              onPointerCancel={pan.endDrag}
               onLoad={(event) => zoom.onLoad(event.currentTarget)}
               onError={() => setMissing(true)}
             />
