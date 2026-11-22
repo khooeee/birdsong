@@ -36,6 +36,8 @@ import { useRailModeShortcuts } from "./features/explorer/useRailModeShortcuts";
 import { useQuitGuard } from "./features/editor/useQuitGuard";
 import { CommandPalette } from "./features/commandPalette/CommandPalette";
 import { DiffView } from "./features/diff/DiffView";
+import { ImageViewer } from "./features/images/ImageViewer";
+import { imageViewer } from "./features/images/imageViewerStore";
 
 /** Stable fallback so memoized SessionTranscript does not re-render on a new `[]`. */
 const NO_TURNS: TranscriptTurn[] = [];
@@ -69,6 +71,8 @@ export function App() {
   const sessionsMode = mode === "sessions";
 
   useEffect(() => { voiceLogView.close(); }, [mode]);
+  const viewedImage = useSyncExternalStore(imageViewer.subscribe, imageViewer.getSnapshot);
+  useEffect(() => { imageViewer.close(); }, [activeTabId, mode, voiceLogOpen]);
 
   const [showNewSession, setShowNewSession] = useState(false);
   const [sessionFilter, setSessionFilter] = useState("");
@@ -233,6 +237,9 @@ export function App() {
               {mode === "diff" ? <DiffView session={activeSession} /> : null}
             </>
           )}
+          {viewedImage && sessionsMode && !voiceLogOpen ? (
+            <ImageViewer key={viewedImage} name={viewedImage} />
+          ) : null}
         </div>
 
         {rightRailView && !voiceLogOpen && sessionsMode ? (
