@@ -14,6 +14,18 @@ export function openScale(fit: number): number {
   return Math.min(1, fit);
 }
 
+const MIN_ZOOM = ZOOM_STEPS[0];
+const MAX_ZOOM = ZOOM_STEPS[ZOOM_STEPS.length - 1];
+
+/**
+ * Trackpad pinch scale. Positive `deltaY` (fingers together) zooms out;
+ * negative (fingers apart) zooms in. Stays inside the step range.
+ */
+export function pinchScale(scale: number, deltaY: number): number {
+  const next = scale * Math.exp(-deltaY / 100);
+  return Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, next));
+}
+
 /** Next larger or smaller step. Stays put at either end. */
 export function nextZoom(scale: number, direction: 1 | -1): number {
   if (direction > 0) {

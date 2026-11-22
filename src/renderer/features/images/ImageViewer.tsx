@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type MouseEvent } from "react";
 import { imageViewer } from "./imageViewerStore";
 import { transcriptImageUrl } from "./transcriptImageUrl";
-import { ZOOM_STEPS, fitScale, nextZoom, openScale } from "./zoomScale";
+import { ZOOM_STEPS, fitScale, nextZoom, openScale, pinchScale } from "./zoomScale";
 import "./images.css";
 
 type ZoomMode = "auto" | "fit" | "fixed";
@@ -111,23 +111,33 @@ export function ImageViewer({ name }: { name: string }) {
   useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer) return;
-    let accumulated = 0;
+    let pending: { scale: number; x: number; y: number } | null = null;
+    let frame = 0;
     const onWheel = (event: WheelEvent) => {
+      // Trackpad pinch sets ctrlKey. Fingers apart is a negative delta; together is positive.
       if (!event.ctrlKey && !event.metaKey) return;
       event.preventDefault();
       if (!naturalRef.current) return;
       let delta = event.deltaY;
       if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) delta *= 16;
       if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) delta *= viewer.clientHeight;
-      accumulated += delta;
-      if (Math.abs(accumulated) < 40) return;
-      const direction: 1 | -1 = accumulated > 0 ? -1 : 1;
-      accumulated = 0;
-      zoomBy(direction, event.clientX, event.clientY);
+      const current = pending?.scale ?? scaleRef.current;
+      pending = { scale: pinchScale(current, delta), x: event.clientX, y: event.clientY };
+      if (frame) return;
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        const gesture = pending;
+        pending = null;
+        if (!gesture) return;
+        zoomTo(gesture.scale, gesture.x, gesture.y);
+      });
     };
-    viewer.addEventListener("wheel", onWheel, { passive: false });
-    return () => viewer.removeEventListener("wheel", onWheel);
-  }, [zoomBy]);
+    viewer.addEventListener("wheel", onWheel, { capture: true, passive: false });
+    return () => {
+      viewer.removeEventListener("wheel", onWheel, { capture: true });
+      if (frame) cancelAnimationFrame(frame);
+    };
+  }, [zoomTo]);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
