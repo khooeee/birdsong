@@ -124,15 +124,9 @@ export class PromptRunner {
     const { host } = this;
     if (!host.sessionId() || host.isDisposed()) throw new Error("Session not ready");
     host.showUpdates();
-    const userItem: TranscriptItem = {
-      id: randomUUID(),
-      role: "user",
-      text,
-      at: Date.now(),
-    };
+    const userItem: TranscriptItem = { id: randomUUID(), role: "user", text, at: Date.now() };
     // A steer uses the active turn. A prompt opens its own before requesting output.
     const decision = await this.delivery.enqueue(text);
-
     let turnId: string;
     let completion: Promise<void>;
     if (decision.mode === "injected") {

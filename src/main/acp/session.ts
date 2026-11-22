@@ -22,9 +22,6 @@ import { sessionConnectionHandlers } from "./sessionConnectionHandlers";
 import { birdsongMcpServers } from "../mcp/birdsongMcpServers";
 
 export class AcpSession extends SharedAgentConnection {
-  readonly id: string;
-  readonly agent: AgentKind;
-  readonly cwd: string;
   sessionId: string | null = null;
   /** Model, effort and other agent config options. */
   readonly config: SessionConfigOptions;
@@ -33,7 +30,6 @@ export class AcpSession extends SharedAgentConnection {
   private canResume = false;
   private hasBirdsongTools = false;
   private initializationMeta: unknown;
-  private cb: SessionCallbacks;
   private questions: PendingQuestions;
   private output: SessionOutput;
   private turns: TurnBuilder;
@@ -45,26 +41,20 @@ export class AcpSession extends SharedAgentConnection {
   private starting: Promise<void> | null = null;
 
   constructor(
-    id: string,
-    agent: AgentKind,
-    cwd: string,
-    cb: SessionCallbacks,
+    readonly id: string,
+    readonly agent: AgentKind,
+    readonly cwd: string,
+    private cb: SessionCallbacks,
     modelConfig?: SessionModelConfig,
   ) {
     super();
-    this.id = id;
-    this.agent = agent;
-    this.cwd = cwd;
-    this.cb = cb;
     this.questions = new PendingQuestions(
       id,
       (req) => this.cb.onAskQuestion(req),
       (requestId) => this.cb.onQuestionSettled?.(requestId),
     );
     // Lifecycle emits must reach the UI; only gate streamed load/resume replay below.
-    this.turns = new TurnBuilder((turn) => {
-      this.cb.onTurn(turn);
-    });
+    this.turns = new TurnBuilder((turn) => this.cb.onTurn(turn));
     this.output = new SessionOutput(agent, cwd, (item, replaceId) => {
       if (!this.mirrorUpdates) return;
       this.turns.apply(item, replaceId);
@@ -128,7 +118,10 @@ export class AcpSession extends SharedAgentConnection {
   }
 
   start(options?: { quiet?: boolean }): Promise<void> {
-    return this.startOnce(() => this.startSession(options));
+    return this.startOnce(async () => {
+      await this.connectAgent(await birdsongMcpServers(this.id), options);
+      await this.createAgentSession();
+    });
   }
 
   /** Reopen a persisted session via load or resume. */
@@ -142,11 +135,6 @@ export class AcpSession extends SharedAgentConnection {
     if (this.sessionId) return Promise.resolve();
     this.starting = run().finally(() => { this.starting = null; });
     return this.starting;
-  }
-
-  private async startSession(options?: { quiet?: boolean }): Promise<void> {
-    await this.connectAgent(await birdsongMcpServers(this.id), options);
-    await this.createAgentSession();
   }
 
   /** Allocate a new agent session on the current connection. */
@@ -190,24 +178,18 @@ export class AcpSession extends SharedAgentConnection {
   }
 
   /** Fork on this connection and return a sibling session sharing the agent process. */
-  async forkSibling(
-    id: string,
-    cb: SessionCallbacks,
-    forkPoint?: AirForkPoint,
-    turns?: TranscriptTurn[],
-  ): Promise<AcpSession> {
+  async forkSibling(id: string, cb: SessionCallbacks, forkPoint?: AirForkPoint, turns?: TranscriptTurn[]): Promise<AcpSession> {
     // The fork's own MCP servers: they name its new Birdsong session id.
     const mcpServers = await birdsongMcpServers(id);
     if (!this.connection || !this.sessionId || this.disposed) throw new Error("Session not ready to fork");
     const forked = await forkAcpSession(this.connection, this.sessionId, this.cwd, forkPoint, mcpServers);
-    const forkedId = forked.sessionId;
     const child = new AcpSession(id, this.agent, this.cwd, cb);
     if (turns) child.restoreTurns(turns);
     child.hasBirdsongTools = mcpServers.length > 0;
     child.updates.availableCommands = this.updates.availableCommands;
     child.cb.onAvailableCommands([...child.updates.availableCommands]);
     this.shareConnectionWith(child);
-    child.setSessionId(forkedId);
+    child.setSessionId(forked.sessionId);
     child.initializationMeta = this.initializationMeta;
     child.runner.configureDelivery(this.initializationMeta);
     // The fork's session record already copies the parent's model/effort; only report what differs.
@@ -220,7 +202,7 @@ export class AcpSession extends SharedAgentConnection {
         if (!child.connection) throw new Error("Session closed while forking");
         // Claude's v1 resume sends live updates only. Codex can replay history.
         child.mirrorUpdates = this.agent === "claude";
-        const resumed = await resumeAcpSession(child.connection, forkedId, this.cwd, mcpServers);
+        const resumed = await resumeAcpSession(child.connection, forked.sessionId, this.cwd, mcpServers);
         child.config.note(resumed.configOptions);
       }
     } catch (error) {
