@@ -4,6 +4,7 @@ import type { AppSettings } from "./shared/appSettings";
 import type { CreateSessionInput } from "./shared/createSessionInput";
 import type { FindInSessionsHit } from "./shared/findInSessionsHit";
 import type { SessionListPayload, BirdsongApi } from "./shared/birdsongApi";
+import type { SlashCommand } from "./shared/session";
 import type { TranscriptTurn } from "./shared/transcript";
 import type { VoiceCommand } from "./shared/voiceCommand";
 import type { VoiceLogEntry } from "./shared/voiceLogEntry";
@@ -23,6 +24,8 @@ const api: BirdsongApi = {
   startSessionDraft: (id, agent, cwd) => ipcRenderer.invoke("sessionDraft:start", id, agent, cwd),
   selectSessionDraftConfig: (id, category, value) => ipcRenderer.invoke("sessionDraft:select", id, category, value),
   discardSessionDraft: (id) => ipcRenderer.invoke("sessionDraft:discard", id),
+  onSessionDraftCommands: (cb) =>
+    subscribe<{ id: string; commands: SlashCommand[] }>("sessionDraft:commands", cb),
   createSession: (input: CreateSessionInput) => ipcRenderer.invoke("sessions:create", input),
   forkSession: (sessionId, eventId) =>
     ipcRenderer.invoke("sessions:fork", sessionId, eventId),

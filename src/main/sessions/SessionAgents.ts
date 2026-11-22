@@ -26,7 +26,11 @@ export class SessionAgents {
     private readonly hydration: SessionHydration,
     private readonly resumer: UsageLimitResumer,
   ) {
-    this.draft = new NewSessionDraft(state.warm, (agent, cwd) => this.openWarm(agent, cwd));
+    this.draft = new NewSessionDraft(
+      state.warm,
+      (agent, cwd) => this.openWarm(agent, cwd),
+      (channel, payload) => state.send(channel, payload),
+    );
   }
 
   /** Return a connected agent for the session, attaching or starting one if needed. */

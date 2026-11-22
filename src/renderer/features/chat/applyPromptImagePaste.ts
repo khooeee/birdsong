@@ -4,7 +4,7 @@ import { errorMessage } from "../../../shared/errorMessage";
 
 interface Args {
   event: ClipboardEvent;
-  sessionId: string;
+  sessionId: string | null;
   draft: string;
   textarea: HTMLTextAreaElement;
   onDraftChange: (text: string) => void;

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { AgentKind } from "../../../shared/agentKind";
 import type { ConfigMenuCategory } from "../../../shared/configMenuCategory";
 import type { SessionConfigSelect } from "../../../shared/sessionConfigSelect";
+import type { SlashCommand } from "../../../shared/session";
 import { errorMessage } from "../../../shared/errorMessage";
 
 type DraftState = {
@@ -9,6 +10,7 @@ type DraftState = {
   agent: AgentKind;
   cwd: string;
   options: SessionConfigSelect[] | null;
+  commands: SlashCommand[];
   updating: boolean;
   error?: string;
 };
@@ -17,14 +19,23 @@ export function useNewSessionDraft(agent: AgentKind | undefined, cwd: string) {
   const [state, setState] = useState<DraftState | null>(null);
   const draft = state?.agent === agent && state?.cwd === cwd ? state : null;
 
+  useEffect(() => window.birdsong.onSessionDraftCommands(({ id, commands }) => {
+    setState((current) => current?.id === id ? { ...current, commands } : current);
+  }), []);
+
   useEffect(() => {
     if (!agent || !cwd.trim()) return;
     const id = crypto.randomUUID();
-    const initial = { id, agent, cwd, options: null, updating: false };
+    const initial = { id, agent, cwd, options: null, commands: [] as SlashCommand[], updating: false };
     let active = true;
     let started = false;
     const finish = (result: Partial<DraftState>) => {
-      if (active) setState({ ...initial, ...result });
+      if (!active) return;
+      setState((current) => ({
+        ...initial,
+        ...(current?.id === id ? { commands: current.commands } : {}),
+        ...result,
+      }));
     };
     setState(initial);
     // Wait for folder edits to settle before starting an agent process.
@@ -61,6 +72,7 @@ export function useNewSessionDraft(agent: AgentKind | undefined, cwd: string) {
   return {
     id: draft?.options ? draft.id : undefined,
     options: draft?.options ?? [],
+    commands: draft?.commands ?? [],
     loading: !!agent && !!cwd.trim() && !draft?.options && !draft?.error,
     updating: draft?.updating ?? false,
     error: draft?.error,

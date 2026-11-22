@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type * as acp from "@agentclientprotocol/sdk/unstable";
 import type { AgentKind } from "../../shared/agentKind";
-import type { SessionModelConfig } from "../../shared/session";
+import type { SessionModelConfig, SlashCommand } from "../../shared/session";
 import type { TranscriptTurn } from "../../shared/transcript";
 import { SessionOutput } from "./SessionOutput";
 import type { SessionCallbacks } from "./SessionCallbacks";
@@ -36,6 +36,7 @@ export class AcpSession extends SharedAgentConnection {
   private updates: SessionUpdateRouter;
   private runner: PromptRunner;
   private disposed = false;
+  private commandListeners = new Set<(commands: readonly SlashCommand[]) => void>();
   /** When false, session updates are not mirrored to the transcript (load/resume replay). */
   private mirrorUpdates = true;
   private starting: Promise<void> | null = null;
@@ -88,7 +89,7 @@ export class AcpSession extends SharedAgentConnection {
       cwd,
       turns: this.turns,
       output: this.output,
-      callbacks: () => this.cb,
+      callbacks: () => this.callbacks(),
       mirroring: () => this.mirrorUpdates,
       applyThreadStatus: (status) => this.runner.applyThreadStatus(status),
       startAutonomousTurn: (id) => this.runner.startAutonomousTurn(id),
@@ -101,6 +102,13 @@ export class AcpSession extends SharedAgentConnection {
       onConfigOptions: (options) => this.config.note(options),
       owner: this,
     });
+  }
+
+  /** Current slash commands, plus later `available_commands_update`s. Replays immediately. */
+  watchSlashCommands(listener: (commands: readonly SlashCommand[]) => void): () => void {
+    this.commandListeners.add(listener);
+    listener([...this.updates.availableCommands]);
+    return () => { this.commandListeners.delete(listener); };
   }
 
   /** Replace in-memory turns after hydrate/fork (does not emit). */
@@ -211,6 +219,16 @@ export class AcpSession extends SharedAgentConnection {
     }
     child.runner.reportReady();
     return child;
+  }
+
+  private callbacks(): SessionCallbacks {
+    return {
+      ...this.cb,
+      onAvailableCommands: (commands) => {
+        this.cb.onAvailableCommands(commands);
+        for (const listener of this.commandListeners) listener(commands);
+      },
+    };
   }
 
   private setSessionId(sessionId: string): void {

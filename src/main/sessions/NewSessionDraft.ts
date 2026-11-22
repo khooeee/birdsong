@@ -20,10 +20,12 @@ function configChoices(acp: AcpSession): SessionConfigSelect[] {
 /** Holds the modal's unprompted agent session until it is created or abandoned. */
 export class NewSessionDraft {
   private draft: Draft | undefined;
+  private unwatchCommands: (() => void) | undefined;
 
   constructor(
     private readonly warm: WarmSessionPool<AcpSession>,
     private readonly open: (agent: AgentKind, cwd: string) => AcpSession,
+    private readonly send: (channel: string, payload: unknown) => void,
   ) {}
 
   async start(id: string, agent: AgentKind, cwd: string): Promise<SessionConfigSelect[]> {
@@ -32,6 +34,7 @@ export class NewSessionDraft {
     const acp = warm?.acp ?? this.open(agent, cwd);
     const draft = { id, acp, ready: false, updating: false };
     this.draft = draft;
+    this.watchCommands(draft, acp);
     try {
       const started = warm ? await warm.started : await acp.start({ quiet: true }).then(() => true);
       if (this.draft !== draft || acp.connectionClosed) throw new Error("Agent session closed");
@@ -63,6 +66,7 @@ export class NewSessionDraft {
   claim(id: string, agent: AgentKind, cwd: string): AcpSession {
     const draft = this.requireReady(id);
     if (draft.acp.agent !== agent || draft.acp.cwd !== cwd) throw new Error("Agent or folder changed");
+    this.stopWatchingCommands();
     this.draft = undefined;
     return draft.acp;
   }
@@ -70,8 +74,22 @@ export class NewSessionDraft {
   async discard(id?: string): Promise<void> {
     const draft = this.draft;
     if (!draft || (id !== undefined && id !== draft.id)) return;
+    this.stopWatchingCommands();
     this.draft = undefined;
     await draft.acp.dispose();
+  }
+
+  private watchCommands(draft: Draft, acp: AcpSession): void {
+    this.stopWatchingCommands();
+    this.unwatchCommands = acp.watchSlashCommands((commands) => {
+      if (this.draft !== draft) return;
+      this.send("sessionDraft:commands", { id: draft.id, commands: [...commands] });
+    });
+  }
+
+  private stopWatchingCommands(): void {
+    this.unwatchCommands?.();
+    this.unwatchCommands = undefined;
   }
 
   private requireReady(id: string): Draft {
