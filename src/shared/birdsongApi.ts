@@ -77,6 +77,8 @@ export interface BirdsongApi {
   updateSettings: (patch: Partial<AppSettings>) => Promise<AppSettings>;
   /** iOS remote access: the pairing link and `tailscale serve` setup. */
   getRemoteStatus: () => Promise<RemoteStatus>;
+  /** Pick an APNs auth key (.p8) for iPhone alerts when a turn finishes. */
+  pickApnsKey: () => Promise<string | null>;
   /** New token for the iOS app (control.json scripts keep theirs); returns the status with the new link. */
   rotateControlToken: () => Promise<RemoteStatus>;
   savePastedImage: (

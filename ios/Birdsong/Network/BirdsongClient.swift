@@ -8,6 +8,11 @@ final class BirdsongClient: Sendable {
         let pin: Bool
     }
 
+    private struct DeviceBody: Encodable {
+        let token: String
+        let sandbox: Bool
+    }
+
     let config: ServerConfig
     private let session: URLSession
 
@@ -40,6 +45,14 @@ final class BirdsongClient: Sendable {
         var request = request(["sessions", sessionId, "prompt"], method: "POST")
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(["text": text])
+        _ = try await send(request)
+    }
+
+    /// Registers this phone for an alert when a turn finishes. `sandbox` is true for an Xcode install.
+    func registerDevice(token: String, sandbox: Bool) async throws {
+        var request = request(["devices"], method: "POST")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(DeviceBody(token: token, sandbox: sandbox))
         _ = try await send(request)
     }
 

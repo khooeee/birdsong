@@ -111,6 +111,44 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
           {pasteHint && " Paste the link into the iOS app."}
         </div>
       )}
+      <label>
+        APNs key ID
+        <input
+          type="text"
+          value={draft.apnsKeyId}
+          disabled={busy}
+          spellCheck={false}
+          onChange={(e) => onChange({ apnsKeyId: e.target.value })}
+        />
+      </label>
+      <label>
+        APNs team ID
+        <input
+          type="text"
+          value={draft.apnsTeamId}
+          disabled={busy}
+          spellCheck={false}
+          onChange={(e) => onChange({ apnsTeamId: e.target.value })}
+        />
+      </label>
+      <div className="settings-note">
+        <button
+          type="button"
+          className="btn"
+          disabled={busy}
+          onClick={() => {
+            void window.birdsong.pickApnsKey().then((path) => {
+              if (path) onChange({ apnsKeyPath: path });
+            });
+          }}
+        >
+          {draft.apnsKeyPath ? "Change APNs Key" : "Choose APNs Key"}
+        </button>
+        {draft.apnsKeyPath ? ` ${draft.apnsKeyPath.split("/").pop()}` : ""}
+      </div>
+      <div className="settings-note">
+        Alerts the iPhone when a turn finishes and the app is in the background. Use the .p8 from the Apple developer portal.
+      </div>
     </>
   );
 }

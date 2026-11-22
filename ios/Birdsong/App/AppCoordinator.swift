@@ -1,10 +1,12 @@
 import UIKit
+import UserNotifications
 
 /// Chooses the root screen: pairing until a link works, then the session list.
 @MainActor
 final class AppCoordinator {
     private let window: UIWindow
     private let store = PairingStore()
+    private let push = PushRegistration()
     /// One per pairing: voice is global, so every screen's mic shares it.
     private var voice: VoiceController?
 
@@ -13,7 +15,24 @@ final class AppCoordinator {
     }
 
     func start() {
+        push.onSession = { [weak self] id in self?.openSession(id) }
         if let config = store.load() { showSessions(config) } else { showPairing(prefill: nil) }
+    }
+
+    /// A tapped turn alert. Ignored until the phone is paired.
+    func openNotification(_ notification: UNNotification) {
+        push.open(notification)
+    }
+
+    private func openSession(_ id: String) {
+        guard store.load() != nil, let list = sessionList() else { return }
+        list.dismiss(animated: false)
+        list.reveal(sessionId: id)
+    }
+
+    private func sessionList() -> SessionListViewController? {
+        let navigation = window.rootViewController as? UINavigationController
+        return navigation?.viewControllers.first as? SessionListViewController
     }
 
     /// A tapped `birdsong://` link fills in the pairing form; the user still confirms it.
@@ -27,7 +46,9 @@ final class AppCoordinator {
         voice?.stop()
         let voice = VoiceController(client: VoiceClient(config: config))
         self.voice = voice
-        let list = SessionListViewController(client: BirdsongClient(config: config), voice: voice) { [weak self] in
+        let client = BirdsongClient(config: config)
+        push.start(client: client)
+        let list = SessionListViewController(client: client, voice: voice) { [weak self] in
             self?.presentPairing(prefill: nil)
         }
         window.rootViewController = UINavigationController(rootViewController: list)

@@ -58,6 +58,11 @@ export function remoteTokenPath(): string {
   return path.join(userDataDir(), "control-token.json");
 }
 
+/** iPhones registered for a push when a turn finishes. */
+export function pushDevicesPath(): string {
+  return path.join(userDataDir(), "push-devices.json");
+}
+
 export function voiceLogDir(): string {
   return path.join(userDataDir(), "voice");
 }

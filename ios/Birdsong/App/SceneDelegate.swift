@@ -17,6 +17,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         coordinator.start()
         window.makeKeyAndVisible()
         if let url = connectionOptions.urlContexts.first?.url { coordinator.openPairingLink(url) }
+        if let notification = connectionOptions.notificationResponse?.notification {
+            coordinator.openNotification(notification)
+        }
     }
 
     func scene(_ scene: UIScene, openURLContexts URLContexts: Set<UIOpenURLContext>) {

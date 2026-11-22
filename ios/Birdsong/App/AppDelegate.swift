@@ -11,4 +11,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate {
         configuration.delegateClass = SceneDelegate.self
         return configuration
     }
+
+    func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
+        let token = deviceToken.map { String(format: "%02x", $0) }.joined()
+        Task { @MainActor in PushRegistration.current?.tokenArrived(token) }
+    }
 }

@@ -10,6 +10,7 @@ final class TranscriptViewController: UIViewController {
     private let client: BirdsongClient
     private let voice: VoiceController
     private let session: Session
+    var sessionId: String { session.id }
     private let subscription: EventSubscription
     private let sessionSubscription: EventSubscription
     private var turns: [RemoteTurn] = []

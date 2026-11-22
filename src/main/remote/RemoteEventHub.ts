@@ -50,6 +50,11 @@ export class RemoteEventHub {
     }
   }
 
+  /** The phone is in the foreground and already receives turns over the event stream. */
+  hasListStream(): boolean {
+    return this.listStreams.size > 0;
+  }
+
   closeAll(): void {
     for (const stream of this.listStreams) stream.close();
     for (const streams of this.transcriptStreams.values()) for (const stream of streams) stream.close();
