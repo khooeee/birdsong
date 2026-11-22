@@ -3,23 +3,24 @@ import type * as acp from "@agentclientprotocol/sdk/unstable";
 import type { AgentKind } from "../../shared/agentKind";
 import type { SessionModelConfig, SlashCommand } from "../../shared/session";
 import type { TranscriptTurn } from "../../shared/transcript";
-import { SessionOutput } from "./SessionOutput";
+import type { SessionOutput } from "./SessionOutput";
 import type { SessionCallbacks } from "./SessionCallbacks";
-import { PromptRunner } from "./PromptRunner";
-import { PendingQuestions } from "./PendingQuestions";
+import type { PromptRunner } from "./PromptRunner";
+import type { PendingQuestions } from "./PendingQuestions";
 import { forkAcpSession } from "./forkAcpSession";
 import { resumeAcpSession } from "./resumeAcpSession";
 import type { AirForkPoint } from "./airForkPoint";
 import { sessionRoutes } from "./sessionRoutes";
-import { TurnBuilder } from "./TurnBuilder";
+import type { TurnBuilder } from "./TurnBuilder";
 import { connectAcpAgent } from "./connectAcpAgent";
 import { attachAcpSession } from "./attachAcpSession";
 import { createAcpSession } from "./createAcpSession";
 import { SharedAgentConnection } from "./SharedAgentConnection";
-import { SessionUpdateRouter } from "./SessionUpdateRouter";
-import { SessionConfigOptions } from "./SessionConfigOptions";
+import type { SessionUpdateRouter } from "./SessionUpdateRouter";
+import type { SessionConfigOptions } from "./SessionConfigOptions";
 import { sessionConnectionHandlers } from "./sessionConnectionHandlers";
 import { birdsongMcpServers } from "../mcp/birdsongMcpServers";
+import { sessionPipeline } from "./sessionPipeline";
 
 export class AcpSession extends SharedAgentConnection {
   sessionId: string | null = null;
@@ -49,27 +50,19 @@ export class AcpSession extends SharedAgentConnection {
     modelConfig?: SessionModelConfig,
   ) {
     super();
-    this.questions = new PendingQuestions(
+    const core = sessionPipeline({
       id,
-      (req) => this.cb.onAskQuestion(req),
-      (requestId) => this.cb.onQuestionSettled?.(requestId),
-    );
-    // Lifecycle emits must reach the UI; only gate streamed load/resume replay below.
-    this.turns = new TurnBuilder((turn) => this.cb.onTurn(turn));
-    this.output = new SessionOutput(agent, cwd, (item, replaceId) => {
-      if (!this.mirrorUpdates) return;
-      this.turns.apply(item, replaceId);
-    });
-    this.runner = new PromptRunner({
-      turns: this.turns,
-      output: this.output,
-      questions: this.questions,
-      callbacks: () => this.cb,
+      agent,
+      cwd,
+      modelConfig,
+      owner: this,
+      sessionCallbacks: () => this.cb,
+      callbacks: () => this.callbacks(),
       connection: () => this.connection,
       sessionId: () => this.sessionId,
+      isDisposed: () => this.disposed,
       hasBirdsongTools: () => this.hasBirdsongTools,
       slashCommands: () => this.updates.availableCommands,
-      isDisposed: () => this.disposed,
       showUpdates: () => { this.mirrorUpdates = true; },
       renewSession: async () => {
         this.clearSessionId();
@@ -77,31 +70,15 @@ export class AcpSession extends SharedAgentConnection {
       },
       finishPending: (status) => this.finishPending(status),
       noteSystem: (text, turnId) => this.noteSystem(text, turnId),
-      worksUnprompted: agent === "claude",
-    });
-    this.config = new SessionConfigOptions({
-      connection: () => this.connection,
-      sessionId: () => this.sessionId,
-      onModelConfig: (config) => this.cb.onModelConfig(config),
-    }, modelConfig);
-    this.updates = new SessionUpdateRouter({
-      agent,
-      cwd,
-      turns: this.turns,
-      output: this.output,
-      callbacks: () => this.callbacks(),
       mirroring: () => this.mirrorUpdates,
-      applyThreadStatus: (status) => this.runner.applyThreadStatus(status),
-      startAutonomousTurn: (id) => this.runner.startAutonomousTurn(id),
-      endAutonomousTurn: (id, state, summary) => this.runner.endAutonomousTurn(id, state, summary),
-      endReplay: () => {
-        if (this.mirrorUpdates) return;
-        this.output.reset();
-        this.mirrorUpdates = true;
-      },
-      onConfigOptions: (options) => this.config.note(options),
-      owner: this,
+      setMirrorUpdates: (value) => { this.mirrorUpdates = value; },
     });
+    this.questions = core.questions;
+    this.output = core.output;
+    this.turns = core.turns;
+    this.runner = core.runner;
+    this.config = core.config;
+    this.updates = core.updates;
   }
 
   /** Current slash commands, plus later `available_commands_update`s. Replays immediately. */
