@@ -6,6 +6,7 @@ import { addReminder } from "../reminders/addReminder";
 import { cancelReminder } from "../reminders/cancelReminder";
 import { listReminders } from "../reminders/listReminders";
 import { localIsoTime } from "../reminders/localIsoTime";
+import { iosInstallJobs } from "../ios/iosInstallJobs";
 import { reminderSummary } from "./reminderSummary";
 import { sessionSummary } from "./sessionSummary";
 import { waitForSessions } from "./waitForSessions";
@@ -20,6 +21,11 @@ function text(args: Args, key: string): string {
   const value = args[key];
   if (typeof value !== "string" || !value.trim()) throw new Error(`${key} is required`);
   return value;
+}
+
+function optionalText(args: Args, key: string): string | undefined {
+  const value = args[key];
+  return typeof value === "string" && value.trim() ? value : undefined;
 }
 
 function optionalNumber(args: Args, key: string): number | undefined {
@@ -124,6 +130,19 @@ async function run(sessions: SessionManager, callerId: string, name: string, arg
       if (!cancelled) throw new Error("Reminder not found");
       return { cancelled: reminderSummary(cancelled, callerId) };
     }
+    case "start_ios_install_build": {
+      const session = sessions.getSession(callerId);
+      return iosInstallJobs.start({
+        projectRoot: optionalText(args, "projectRoot"),
+        buildHint: optionalText(args, "buildHint"),
+        cwd: session?.cwd ?? "",
+        folders: (session?.workingFolders ?? []).map((folder) => folder.path),
+      });
+    }
+    case "ios_install_status":
+      return iosInstallJobs.status(text(args, "jobId"));
+    case "stop_ios_install":
+      return iosInstallJobs.stop(optionalText(args, "jobId"));
     default:
       throw new Error(`Unknown tool: ${name}`);
   }

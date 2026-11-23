@@ -77,4 +77,23 @@ export const BIRDSONG_TOOLS = [
   ),
   tool("list_reminders", "List pending reminders from every session, soonest first, and the current local time."),
   tool("cancel_reminder", "Cancel a pending reminder by id.", { id: { type: "string" } }, ["id"]),
+  tool(
+    "start_ios_install_build",
+    "Find the IPA build script in the project, run it in the background, and serve the IPA for over-the-air install. Use when the user asks to install the iOS app on their phone. Returns a jobId; poll ios_install_status until done, then give the user the itms-services install link. macOS with Xcode required.",
+    {
+      projectRoot: { type: "string", description: "Absolute project path. Defaults to this session's working folder." },
+      buildHint: { type: "string", description: "Optional make target (e.g. `make ipa`) or script path. Auto-detects otherwise." },
+    },
+  ),
+  tool(
+    "ios_install_status",
+    "Poll an iOS OTA install build. Returns its state and log tail; when done, the manifest URL and itms-services install link to give the user.",
+    { jobId: { type: "string" } },
+    ["jobId"],
+  ),
+  tool(
+    "stop_ios_install",
+    "Stop serving an iOS OTA install link, e.g. when the user says they installed it. The IPA file stays on disk. Without a jobId it stops the latest job.",
+    { jobId: { type: "string" } },
+  ),
 ];
