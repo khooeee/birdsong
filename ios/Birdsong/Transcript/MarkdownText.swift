@@ -39,7 +39,26 @@ enum MarkdownText {
             guard let raw = (value as? NSNumber)?.uintValue else { return }
             string.addAttribute(.font, value: font(for: InlinePresentationIntent(rawValue: raw)), range: range)
         }
+        string.enumerateAttribute(.link, in: whole) { value, range, _ in
+            guard let value, !isOpenableLink(value as? URL) else { return }
+            string.removeAttribute(.link, range: range)
+        }
         return string
+    }
+
+    private static func isOpenableLink(_ url: URL?) -> Bool {
+        guard let url, let scheme = url.scheme?.lowercased() else { return false }
+        switch scheme {
+        case "http", "https", "mailto": return true
+        case "itms-services":
+            let items = URLComponents(url: url, resolvingAgainstBaseURL: false)?.queryItems
+            guard items?.first(where: { $0.name == "action" })?.value == "download-manifest",
+                  let manifest = items?.first(where: { $0.name == "url" })?.value,
+                  let manifestURL = URL(string: manifest)
+            else { return false }
+            return manifestURL.scheme?.lowercased() == "https" && manifestURL.host != nil
+        default: return false
+        }
     }
 
     private static func font(for intent: InlinePresentationIntent) -> UIFont {
