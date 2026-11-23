@@ -18,7 +18,8 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "upgrade": "npx npm-check-updates -u && npm install",
-    "ios": "xcodegen generate --spec ios/project.yml"
+    "ios": "xcodegen generate --spec ios/project.yml",
+    "ios:ipa": "scripts/build-ios-ipa.sh"
   },
   "keywords": [],
   "author": {
