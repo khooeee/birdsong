@@ -1,5 +1,6 @@
 import type { FileChange } from "../../shared/fileChange";
 import type { Session } from "../../shared/session";
+import type { SessionConfigPickers } from "../../shared/sessionConfigPickers";
 import type { TranscriptItem, TranscriptTurn } from "../../shared/transcript";
 
 /**
@@ -25,11 +26,24 @@ export const controlResponseTypes = {
     supportsForkAtMessage: "optional boolean",
     slashCommands: "optional { name, description, hint? }[]",
     usage: "optional { used, size, cost?: { amount, currency } } — context window tokens",
-    modelConfig: "optional { model?, effort? } — display names of the agent's current model and reasoning effort",
+    modelConfig: "optional { model?, effort?, modelValue?, effortValue? } — the agent's current model and reasoning effort: display names and choice values",
     cron: "optional boolean — started by a cron run",
     autoTitle: "optional boolean — title follows the agent's generated title until renamed",
     resumeAt: "optional number — epoch ms when a turn stopped by its usage limit continues by itself; a prompt or cancel clears it",
   } satisfies Record<keyof Session, string>,
+  ConfigPickers: {
+    options: "ConfigOption[] — selects in category model, thought_level (effort) or model_config (per-model setting)",
+    modelConfig: "{ model?, effort?, modelValue?, effortValue? } | null — current model and effort",
+  } satisfies Record<keyof SessionConfigPickers, string>,
+  ConfigOption: {
+    id: "string — configId for POST /sessions/:id/config",
+    name: "string",
+    description: "optional string | null",
+    category: "model | thought_level | model_config",
+    type: "select",
+    currentValue: "string — value of the selected choice",
+    options: "{ value, name, description? }[] or { group, name, options: { value, name, description? }[] }[]",
+  },
   TranscriptTurn: {
     id: "string — the turnId returned by POST /sessions/:id/prompt",
     at: "number — epoch ms of the user message",

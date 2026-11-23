@@ -39,7 +39,7 @@ export async function handleControlRequest(
     }
 
     const sessionMatch =
-      /^\/sessions\/([^/]+)(?:\/(prompt|cancel|close|transcript|rename|pin|unpin))?$/.exec(pathname);
+      /^\/sessions\/([^/]+)(?:\/(prompt|cancel|close|transcript|rename|pin|unpin|config))?$/.exec(pathname);
     if (!sessionMatch) return sendJson(res, 404, { error: "Not found" });
     const sessionId = decodeURIComponent(sessionMatch[1]!);
     const action = sessionMatch[2];
@@ -67,6 +67,19 @@ export async function handleControlRequest(
       if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });
       sessions.renameSession(sessionId, title);
       return sendJson(res, 200, { sessionId, title, ok: true });
+    }
+    if (method === "GET" && action === "config") {
+      if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });
+      return sendJson(res, 200, await sessions.getConfigPickers(sessionId));
+    }
+    if (method === "POST" && action === "config") {
+      const body = await readJson(req);
+      const { configId, value } = body;
+      if (typeof configId !== "string" || typeof value !== "string") {
+        return sendJson(res, 400, { error: "configId and value are required" });
+      }
+      if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });
+      return sendJson(res, 200, await sessions.setConfigOption(sessionId, configId, value));
     }
     if (method === "POST" && action === "pin") {
       if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });

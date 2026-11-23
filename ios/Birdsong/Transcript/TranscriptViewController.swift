@@ -18,6 +18,7 @@ final class TranscriptViewController: UIViewController {
     /// Follow new output until the user scrolls up; scrolling back to the end resumes it.
     private var followsEnd = true
     private let composer = ComposerView()
+    private let modelConfigBar: ModelConfigBar
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: Self.layout())
     private lazy var dataSource = makeDataSource()
 
@@ -27,6 +28,7 @@ final class TranscriptViewController: UIViewController {
         self.session = session
         subscription = EventSubscription(client: client, path: ["sessions", session.id, "events"])
         sessionSubscription = EventSubscription(client: client, path: ["events"])
+        modelConfigBar = ModelConfigBar(client: client, sessionId: session.id)
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -47,6 +49,9 @@ final class TranscriptViewController: UIViewController {
         composer.onSend = { [weak self] text in self?.send(text) }
         composer.onStop = { [weak self] in self?.stop() }
         composer.resumeNotice = session.continuationNotice
+        modelConfigBar.modelConfig = session.modelConfig
+        modelConfigBar.onError = { [weak self] message in self?.showError(message, title: "Couldn't change the setting") }
+        composer.addAccessory(modelConfigBar)
         for subview in [collectionView, composer] {
             subview.translatesAutoresizingMaskIntoConstraints = false
             view.addSubview(subview)
@@ -117,6 +122,7 @@ final class TranscriptViewController: UIViewController {
         case .sessions(let list):
             let current = (list.pinned + list.unpinned).first { $0.id == session.id }
             composer.resumeNotice = current?.continuationNotice
+            if let current { modelConfigBar.modelConfig = current.modelConfig }
         }
     }
 
@@ -157,7 +163,11 @@ final class TranscriptViewController: UIViewController {
     }
 
     private func showError(_ error: any Error) {
-        let alert = UIAlertController(title: "Couldn't reach Birdsong", message: error.localizedDescription, preferredStyle: .alert)
+        showError(error.localizedDescription)
+    }
+
+    private func showError(_ message: String, title: String = "Couldn't reach Birdsong") {
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
     }

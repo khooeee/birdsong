@@ -8,6 +8,11 @@ final class BirdsongClient: Sendable {
         let pin: Bool
     }
 
+    private struct ConfigBody: Encodable {
+        let configId: String
+        let value: String
+    }
+
     private struct DeviceBody: Encodable {
         let token: String
         let sandbox: Bool
@@ -55,6 +60,19 @@ final class BirdsongClient: Sendable {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         request.httpBody = try JSONEncoder().encode(["text": text])
         _ = try await send(request)
+    }
+
+    /// The model, effort and per-model choices; the Mac connects the session's agent first if needed.
+    func configPickers(sessionId: String) async throws -> ConfigPickers {
+        try JSONDecoder().decode(ConfigPickers.self, from: await send(request(["sessions", sessionId, "config"])))
+    }
+
+    /// Picks a model, effort or per-model setting and returns the updated choices.
+    func setConfigOption(configId: String, value: String, sessionId: String) async throws -> ConfigPickers {
+        var request = request(["sessions", sessionId, "config"], method: "POST")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(ConfigBody(configId: configId, value: value))
+        return try JSONDecoder().decode(ConfigPickers.self, from: await send(request))
     }
 
     /// Registers this phone for an alert when a turn finishes. `sandbox` is true for an Xcode install.
