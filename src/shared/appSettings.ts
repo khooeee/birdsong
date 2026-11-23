@@ -41,6 +41,6 @@ export interface AppSettings {
   apnsKeyId: string;
   /** Apple Developer team id that owns the APNs key. */
   apnsTeamId: string;
-  /** Path to the APNs auth key (.p8). The key stays in that file, not in this JSON. */
+  /** @deprecated Legacy path to the .p8. Migrated into encrypted storage; new saves leave this empty. */
   apnsKeyPath: string;
 }

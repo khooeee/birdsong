@@ -13,6 +13,7 @@ import type { FindInFilesResult } from "./findInFilesResult";
 import type { FindInSessionsHit } from "./findInSessionsHit";
 import type { Reminder } from "./reminder";
 import type { ReminderInput } from "./reminderInput";
+import type { ApnsKeyInfo } from "./apnsKeyInfo";
 import type { RemoteStatus } from "./remoteStatus";
 import type { EditContextMenuOptions } from "./editContextMenuOptions";
 import type { FileContent } from "./fileContent";
@@ -83,8 +84,12 @@ export interface BirdsongApi {
   updateSettings: (patch: Partial<AppSettings>) => Promise<AppSettings>;
   /** iOS remote access: the pairing link and `tailscale serve` setup. */
   getRemoteStatus: () => Promise<RemoteStatus>;
-  /** Pick an APNs auth key (.p8) for iPhone alerts when a turn finishes. */
-  pickApnsKey: () => Promise<string | null>;
+  /** Saved APNs key state (the key itself never leaves main). */
+  getApnsKeyInfo: () => Promise<ApnsKeyInfo>;
+  /** Pick a .p8 and import it into encrypted app storage. */
+  pickApnsKey: () => Promise<ApnsKeyInfo>;
+  /** Delete the saved APNs key. */
+  removeApnsKey: () => Promise<ApnsKeyInfo>;
   /** New token for the iOS app (control.json scripts keep theirs); returns the status with the new link. */
   rotateControlToken: () => Promise<RemoteStatus>;
   /**

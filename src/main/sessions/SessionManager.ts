@@ -10,6 +10,7 @@ import type { SessionConfigPickers } from "../../shared/sessionConfigPickers";
 import type { TranscriptTurn } from "../../shared/transcript";
 import { loadState } from "../storage/persist";
 import { getAppSettings, hydrateAppSettings, patchAppSettings } from "../appSettings";
+import { apnsKeyStore } from "../push/apnsKeyStore";
 import { SessionState } from "./SessionState";
 import { SessionPersistence } from "./SessionPersistence";
 import { SessionHydration } from "./SessionHydration";
@@ -74,6 +75,7 @@ export class SessionManager {
   async init(): Promise<void> {
     const saved = await loadState();
     hydrateAppSettings(saved?.settings);
+    if (await apnsKeyStore.migrateLegacy()) await this.persistence.persistStateFile();
     if (saved) await restoreSavedState(this.deps, saved);
     if (await enforceSessionListMax(this.deps)) await this.persistence.persistStateFile();
     this.agents.ensureWarm(getAppSettings().lastCwd);

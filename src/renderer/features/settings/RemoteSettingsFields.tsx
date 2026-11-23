@@ -16,9 +16,13 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
   const [rotating, setRotating] = useState(false);
   const [linkCopied, copyLink] = useCopiedFlash();
   const [pasteHint, setPasteHint] = useState(false);
+  const [apnsHasKey, setApnsHasKey] = useState(false);
+  const [apnsBusy, setApnsBusy] = useState(false);
+  const [apnsError, setApnsError] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
     void window.birdsong.getRemoteStatus().then(setStatus);
+    void window.birdsong.getApnsKeyInfo().then((info) => setApnsHasKey(info.hasKey));
   }, []);
 
   useEffect(() => {
@@ -135,17 +139,40 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
         <button
           type="button"
           className="btn"
-          disabled={busy}
+          disabled={busy || apnsBusy}
           onClick={() => {
-            void window.birdsong.pickApnsKey().then((path) => {
-              if (path) onChange({ apnsKeyPath: path });
-            });
+            setApnsBusy(true);
+            setApnsError(null);
+            void window.birdsong
+              .pickApnsKey()
+              .then((info) => setApnsHasKey(info.hasKey))
+              .catch((error) => setApnsError(error instanceof Error ? error.message : String(error)))
+              .finally(() => setApnsBusy(false));
           }}
         >
-          {draft.apnsKeyPath ? "Change APNs Key" : "Choose APNs Key"}
+          {apnsBusy ? "Saving…" : apnsHasKey ? "Change APNs Key" : "Choose APNs Key"}
         </button>
-        {draft.apnsKeyPath ? ` ${draft.apnsKeyPath.split("/").pop()}` : ""}
+        {apnsHasKey ? " Saved in this app (encrypted)." : ""}
+        {apnsHasKey && (
+          <button
+            type="button"
+            className="btn"
+            disabled={busy || apnsBusy}
+            onClick={() => {
+              setApnsBusy(true);
+              setApnsError(null);
+              void window.birdsong
+                .removeApnsKey()
+                .then((info) => setApnsHasKey(info.hasKey))
+                .catch((error) => setApnsError(error instanceof Error ? error.message : String(error)))
+                .finally(() => setApnsBusy(false));
+            }}
+          >
+            Remove
+          </button>
+        )}
       </div>
+      {apnsError && <div className="settings-warning">{apnsError}</div>}
       <div className="settings-note">
         Alerts the iPhone when a turn finishes and the app is in the background. Use the .p8 from the Apple developer portal.
       </div>

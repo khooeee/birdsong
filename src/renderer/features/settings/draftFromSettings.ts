@@ -16,6 +16,5 @@ export function draftFromSettings(prefs: AppSettings): SettingsDraft {
     controlPort: String(prefs.controlPort),
     apnsKeyId: prefs.apnsKeyId,
     apnsTeamId: prefs.apnsTeamId,
-    apnsKeyPath: prefs.apnsKeyPath,
   };
 }
