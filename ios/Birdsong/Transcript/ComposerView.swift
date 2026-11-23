@@ -20,6 +20,7 @@ final class ComposerView: UIView, UITextViewDelegate {
     private let textView = UITextView()
     private let placeholder = UILabel()
     private let resumeNoticeView = ResumeNoticeView()
+    private let stack = UIStackView()
     private lazy var textHeight = textView.heightAnchor.constraint(equalToConstant: maxTextHeight)
     private lazy var sendButton = Self.roundButton("arrow.up", style: .filled()) { [weak self] in self?.send() }
     private lazy var stopButton = Self.roundButton("stop.fill", style: .gray()) { [weak self] in self?.onStop?() }
@@ -51,7 +52,7 @@ final class ComposerView: UIView, UITextViewDelegate {
         let row = UIStackView(arrangedSubviews: [textView, stopButton, sendButton])
         row.alignment = .bottom
         row.spacing = 8
-        let stack = UIStackView(arrangedSubviews: [resumeNoticeView, row])
+        for view in [resumeNoticeView, row] { stack.addArrangedSubview(view) }
         stack.axis = .vertical
         stack.spacing = 8
         stack.translatesAutoresizingMaskIntoConstraints = false
@@ -69,6 +70,11 @@ final class ComposerView: UIView, UITextViewDelegate {
 
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
+
+    /// A row between the continuation notice and the prompt field, such as the model and effort pills.
+    func addAccessory(_ view: UIView) {
+        stack.insertArrangedSubview(view, at: stack.arrangedSubviews.count - 1)
+    }
 
     /// Put text back after a failed send.
     func restore(_ text: String) {
