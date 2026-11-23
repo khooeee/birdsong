@@ -14,6 +14,7 @@ import { showEditContextMenu } from "./contextMenus/showEditContextMenu";
 import { showComposerContextMenu } from "./contextMenus/showComposerContextMenu";
 import { showImageContextMenu } from "./contextMenus/showImageContextMenu";
 import { resolveFolderPickerStart } from "./files/resolveFolderPickerStart";
+import { confirmCreateFolder } from "./files/confirmCreateFolder";
 import { saveMarkdownFile } from "./files/saveMarkdownFile";
 import type { SessionManager } from "./sessions/SessionManager";
 import type { ControlServer } from "./control/ControlServer";
@@ -108,6 +109,9 @@ export function registerIpc({
     });
     return result.canceled ? null : result.filePaths[0] ?? null;
   });
+  ipcMain.handle("fs:confirmCreateFolder", (event, path: string) =>
+    confirmCreateFolder(BrowserWindow.fromWebContents(event.sender), path),
+  );
   ipcMain.handle("fs:saveMarkdown", (event, text: string, nameHint?: string) =>
     saveMarkdownFile(BrowserWindow.fromWebContents(event.sender), text, nameHint),
   );

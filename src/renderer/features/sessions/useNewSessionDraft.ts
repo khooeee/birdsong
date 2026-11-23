@@ -12,6 +12,7 @@ type DraftState = {
   options: SessionConfigSelect[] | null;
   commands: SlashCommand[];
   updating: boolean;
+  missingFolder?: boolean;
   error?: string;
 };
 
@@ -42,7 +43,7 @@ export function useNewSessionDraft(agent: AgentKind | undefined, cwd: string) {
     const timer = setTimeout(() => {
       started = true;
       void window.birdsong.startSessionDraft(id, agent, cwd).then(
-        (options) => finish({ options }),
+        (options) => finish(options ? { options } : { missingFolder: true }),
         (error) => finish({ error: errorMessage(error) }),
       );
     }, 250);
@@ -73,8 +74,9 @@ export function useNewSessionDraft(agent: AgentKind | undefined, cwd: string) {
     id: draft?.options ? draft.id : undefined,
     options: draft?.options ?? [],
     commands: draft?.commands ?? [],
-    loading: !!agent && !!cwd.trim() && !draft?.options && !draft?.error,
+    loading: !!agent && !!cwd.trim() && !draft?.options && !draft?.error && !draft?.missingFolder,
     updating: draft?.updating ?? false,
+    missingFolder: draft?.missingFolder ?? false,
     error: draft?.error,
     select,
   };

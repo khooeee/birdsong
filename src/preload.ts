@@ -45,6 +45,7 @@ const api: BirdsongApi = {
   respondAskQuestion: (requestId, outcome) =>
     ipcRenderer.invoke("session:askQuestion", requestId, outcome),
   pickFolder: (startPath?: string) => ipcRenderer.invoke("fs:pickFolder", startPath),
+  confirmCreateFolder: (path: string) => ipcRenderer.invoke("fs:confirmCreateFolder", path),
   saveMarkdown: (text: string, nameHint?: string) =>
     ipcRenderer.invoke("fs:saveMarkdown", text, nameHint),
   openTranscriptsFolder: () => ipcRenderer.invoke("fs:openTranscriptsFolder"),

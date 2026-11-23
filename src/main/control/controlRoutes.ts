@@ -1,9 +1,11 @@
+import * as fs from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { SessionManager } from "../sessions/SessionManager";
 import { controlCatalogJson } from "./controlCatalogJson";
 import { applyTranscriptQuery } from "./transcriptQuery";
 import { parseCreateSession } from "./parseCreateSession";
 import { readJson } from "./readJson";
+import { isMissingFolder } from "../files/isMissingFolder";
 import { sendJson } from "./sendJson";
 import { errorMessage } from "../../shared/errorMessage";
 
@@ -33,6 +35,11 @@ export async function handleControlRequest(
     if (method === "POST" && pathname === "/sessions") {
       const body = await readJson(req);
       const input = parseCreateSession(body);
+      // 409 lets the phone ask before creating the folder, then retry with createFolder.
+      if (await isMissingFolder(input.cwd)) {
+        if (body.createFolder !== true) return sendJson(res, 409, { error: `Folder does not exist: ${input.cwd}` });
+        await fs.mkdir(input.cwd, { recursive: true });
+      }
       // Agents create children in the background; keep the user's current view.
       const session = await sessions.createSession(input, { focus: false });
       return sendJson(res, 200, session);

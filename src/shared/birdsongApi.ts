@@ -39,7 +39,8 @@ export interface SessionListPayload {
 export interface BirdsongApi {
   /** Agents whose CLI and ACP adapter are installed. */
   availableAgents: () => Promise<AgentKind[]>;
-  startSessionDraft: (id: string, agent: AgentKind, cwd: string) => Promise<SessionConfigSelect[]>;
+  /** Null when `cwd` doesn't exist yet, so no agent starts there. */
+  startSessionDraft: (id: string, agent: AgentKind, cwd: string) => Promise<SessionConfigSelect[] | null>;
   selectSessionDraftConfig: (id: string, category: ConfigMenuCategory, value: string) => Promise<SessionConfigSelect[]>;
   discardSessionDraft: (id: string) => Promise<void>;
   /** Slash commands for the new-session draft, including ones that arrive after it starts. */
@@ -68,6 +69,8 @@ export interface BirdsongApi {
       | { outcome: "cancelled" },
   ) => Promise<void>;
   pickFolder: (startPath?: string) => Promise<string | null>;
+  /** Ask to create `path` when it doesn't exist; false when the user declines. */
+  confirmCreateFolder: (path: string) => Promise<boolean>;
   /** Save-as dialog that writes `text` to a `.md` file named from `nameHint` (else `text`); false when cancelled. */
   saveMarkdown: (text: string, nameHint?: string) => Promise<boolean>;
   openTranscriptsFolder: () => Promise<void>;

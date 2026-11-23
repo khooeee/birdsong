@@ -57,12 +57,16 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
       : { title: folderTitle(cwd, title, selectedAgent) };
     setBusy(true);
     setError(null);
-    void patchAppSettings({
-      lastAgent: selectedAgent,
-      lastCwd: cwd,
-      lastPin: pin,
-    });
     try {
+      if (!(await window.birdsong.confirmCreateFolder(cwd))) {
+        setBusy(false);
+        return;
+      }
+      void patchAppSettings({
+        lastAgent: selectedAgent,
+        lastCwd: cwd,
+        lastPin: pin,
+      });
       await onCreate({ agent: selectedAgent, cwd, pin, draftId: draft.id, ...named });
     } catch (err) {
       setError(errorMessage(err));
@@ -119,6 +123,11 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
             onChange={(value) => void draft.select("thought_level", value)}
           />
           {draft.error && <div className="new-session-config-error" role="status">{draft.error}</div>}
+          {draft.missingFolder && (
+            <div className="new-session-config-note" role="status">
+              This folder doesn't exist yet. You'll be asked to create it.
+            </div>
+          )}
         </div>
         <label>
           Session Folder

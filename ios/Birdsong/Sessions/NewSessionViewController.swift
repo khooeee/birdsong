@@ -165,7 +165,7 @@ final class NewSessionViewController: UIViewController {
         UIAccessibility.post(notification: .announcement, argument: message)
     }
 
-    private func create() {
+    private func create(createFolder: Bool = false) {
         let cwd = cwd
         guard !isCreating, !cwd.isEmpty else { return }
         guard cwd.hasPrefix("/") else {
@@ -177,18 +177,38 @@ final class NewSessionViewController: UIViewController {
         setCreating(true)
         Task {
             do {
-                let session = try await client.createSession(agent: agent, cwd: cwd, pin: pinCheckbox.isSelected)
+                let session = try await client.createSession(
+                    agent: agent, cwd: cwd, pin: pinCheckbox.isSelected, createFolder: createFolder
+                )
                 if session.status == .error {
                     setCreating(false)
                     showError(session.error ?? "The session failed to start.")
                     return
                 }
                 dismiss(animated: true) { [onCreated] in onCreated(session) }
+            } catch let error as ServerError where error.status == 409 && !createFolder {
+                setCreating(false)
+                confirmCreateFolder(cwd)
             } catch {
                 setCreating(false)
                 showError(error.localizedDescription)
             }
         }
+    }
+
+    private func confirmCreateFolder(_ cwd: String) {
+        let alert = UIAlertController(
+            title: "This folder doesn't exist. Do you want to create it?",
+            message: cwd,
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        let createAction = UIAlertAction(title: "Create Folder", style: .default) { [weak self] _ in
+            self?.create(createFolder: true)
+        }
+        alert.addAction(createAction)
+        alert.preferredAction = createAction
+        present(alert, animated: true)
     }
 
     private func setCreating(_ creating: Bool) {
