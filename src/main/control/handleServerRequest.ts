@@ -5,6 +5,7 @@ import type { VoiceAgent } from "../voice/VoiceAgent";
 import type { PushDevices } from "../push/PushDevices";
 import { handleMcpRequest } from "../mcp/handleMcpRequest";
 import { handleDeviceRequest } from "../push/handleDeviceRequest";
+import { handleIosInstallRequest } from "../ios/handleIosInstallRequest";
 import { allowedHost } from "./allowedHost";
 import { bearerAuthorized } from "./bearerAuthorized";
 import { handleControlRequest } from "./controlRoutes";
@@ -49,6 +50,10 @@ export async function handleServerRequest(
   const pathname = url.pathname.replace(/\/$/, "") || "/";
   const mcpMatch = /^\/mcp\/([^/]+)$/.exec(pathname);
   if (mcpMatch) return handleMcpRequest(req, res, decodeURIComponent(mcpMatch[1]!), sessions);
+  // OTA install files: the unguessable per-job token is the auth, so Safari can fetch them.
+  // Funnel refusal and the remoteEnabled gate above still apply.
+  const iosMatch = req.method === "GET" ? /^\/ios\/([^/]+)\/([^/]+)$/.exec(pathname) : null;
+  if (iosMatch) return handleIosInstallRequest(req, res, iosMatch[1]!, iosMatch[2]!);
   if (pathname === "/devices") {
     if (!bearerAuthorized(req.headers.authorization, remoteToken)) return sendJson(res, 401, { error: "Unauthorized" });
     return handleDeviceRequest(req, res, devices);
