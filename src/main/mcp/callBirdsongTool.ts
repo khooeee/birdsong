@@ -130,7 +130,9 @@ async function run(sessions: SessionManager, callerId: string, name: string, arg
       if (!cancelled) throw new Error("Reminder not found");
       return { cancelled: reminderSummary(cancelled, callerId) };
     }
-    case "start_ios_install_build": {
+    // Existing MCP clients may still have the original OTA tool names cached.
+    case "start_ios_install_build":
+    case "start_ios_ota_install": {
       const session = sessions.getSession(callerId);
       return iosInstallJobs.start({
         projectRoot: optionalText(args, "projectRoot"),
@@ -140,8 +142,10 @@ async function run(sessions: SessionManager, callerId: string, name: string, arg
       });
     }
     case "ios_install_status":
+    case "get_ios_ota_install_status":
       return iosInstallJobs.status(text(args, "jobId"));
     case "stop_ios_install":
+    case "stop_ios_ota_install":
       return iosInstallJobs.stop(optionalText(args, "jobId"));
     default:
       throw new Error(`Unknown tool: ${name}`);
