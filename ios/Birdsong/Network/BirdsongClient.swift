@@ -14,11 +14,6 @@ final class BirdsongClient: Sendable {
         let value: String
     }
 
-    private struct ConfigBody: Encodable {
-        let configId: String
-        let value: String
-    }
-
     private struct DeviceBody: Encodable {
         let token: String
         let sandbox: Bool
