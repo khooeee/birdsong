@@ -195,12 +195,15 @@ final class TranscriptViewController: UIViewController {
             guard let turn = self?.turn(row.turnId) else { return }
             TurnCellConfigurator.configurePrompt(cell, with: turn)
         }
-        let reply = UICollectionView.CellRegistration<UICollectionViewListCell, Row> { [weak self] cell, _, row in
+        let reply = UICollectionView.CellRegistration<TranscriptReplyCell, Row> { [weak self] cell, _, row in
             guard let turn = self?.turn(row.turnId) else { return }
-            TurnCellConfigurator.configureReply(cell, with: turn)
+            cell.configure(with: turn)
         }
         return UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, row in
-            collectionView.dequeueConfiguredReusableCell(using: row.isReply ? reply : prompt, for: indexPath, item: row)
+            if row.isReply {
+                return collectionView.dequeueConfiguredReusableCell(using: reply, for: indexPath, item: row)
+            }
+            return collectionView.dequeueConfiguredReusableCell(using: prompt, for: indexPath, item: row)
         }
     }
 
