@@ -71,9 +71,9 @@ final class ComposerView: UIView, UITextViewDelegate {
     @available(*, unavailable)
     required init?(coder: NSCoder) { fatalError("init(coder:) is not supported") }
 
-    /// A row between the continuation notice and the prompt field, such as the model and effort pills.
+    /// A row below the prompt field, such as the model and effort pills.
     func addAccessory(_ view: UIView) {
-        stack.insertArrangedSubview(view, at: stack.arrangedSubviews.count - 1)
+        stack.addArrangedSubview(view)
     }
 
     /// Put text back after a failed send.
