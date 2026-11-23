@@ -14,6 +14,7 @@ struct Session: Decodable, Sendable, Hashable, Identifiable {
     let error: String?
     let createdAt: Double
     let resumeAt: Double?
+    let modelConfig: SessionModelConfig?
 
     var continuationNotice: String? {
         guard let resumeAt else { return nil }

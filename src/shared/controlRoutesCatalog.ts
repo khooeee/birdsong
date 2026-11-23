@@ -86,6 +86,25 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
         `-d '{"title":"My session"}' ${b}/sessions/<id>/rename`,
     },
     {
+      method: "GET",
+      path: "/sessions/:id/config",
+      auth: true,
+      summary: "Model, effort and per-model setting choices (connects the session's agent if needed)",
+      response: "ConfigPickers",
+      example: `curl -s -H "Authorization: Bearer $TOKEN" ${b}/sessions/<id>/config`,
+    },
+    {
+      method: "POST",
+      path: "/sessions/:id/config",
+      auth: true,
+      summary: "Pick a model, effort or per-model setting; a new model can change the efforts on offer",
+      body: { configId: "ConfigOption.id", value: "one of that option's choice values" },
+      response: "ConfigPickers — the updated choices",
+      example:
+        `curl -s -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" ` +
+        `-d '{"configId":"model","value":"<value>"}' ${b}/sessions/<id>/config`,
+    },
+    {
       method: "POST",
       path: "/sessions/:id/pin",
       auth: true,

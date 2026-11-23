@@ -6,6 +6,7 @@ import type { AppSettings } from "../../shared/appSettings";
 import type { ConfigMenuCategory } from "../../shared/configMenuCategory";
 import type { CreateSessionInput } from "../../shared/createSessionInput";
 import type { Session } from "../../shared/session";
+import type { SessionConfigPickers } from "../../shared/sessionConfigPickers";
 import type { TranscriptTurn } from "../../shared/transcript";
 import { loadState } from "../storage/persist";
 import { getAppSettings, hydrateAppSettings, patchAppSettings } from "../appSettings";
@@ -29,6 +30,8 @@ import { navigateToSession } from "./navigateToSession";
 import { noteReminder } from "./noteReminder";
 import { promptSession } from "./promptSession";
 import { showSessionConfigMenu } from "./showSessionConfigMenu";
+import { getSessionConfigPickers } from "./getSessionConfigPickers";
+import { setSessionConfigOption } from "./setSessionConfigOption";
 
 /** Main-process API for sessions, tabs and prompts; delegates to collaborators. */
 export class SessionManager {
@@ -192,6 +195,16 @@ export class SessionManager {
   /** Model or effort picker; choosing a value sets it on the agent. */
   showConfigMenu(win: BrowserWindow | null, sessionId: string, category: ConfigMenuCategory): Promise<void> {
     return showSessionConfigMenu(this.deps, win, sessionId, category);
+  }
+
+  /** Model, effort and per-model choices for a remote picker; connects the agent if needed. */
+  getConfigPickers(sessionId: string): Promise<SessionConfigPickers> {
+    return getSessionConfigPickers(this.deps, sessionId);
+  }
+
+  /** Pick a model, effort or per-model setting; returns the updated choices. */
+  setConfigOption(sessionId: string, configId: string, value: string): Promise<SessionConfigPickers> {
+    return setSessionConfigOption(this.deps, sessionId, configId, value);
   }
 
   respondAskQuestion(requestId: string, outcome: unknown): void {
