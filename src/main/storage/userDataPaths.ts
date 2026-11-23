@@ -58,6 +58,11 @@ export function remoteTokenPath(): string {
   return path.join(userDataDir(), "control-token.json");
 }
 
+/** APNs auth key (.p8), imported into app data and encrypted with safeStorage. */
+export function apnsKeyEncPath(): string {
+  return path.join(userDataDir(), "apns-key.enc");
+}
+
 /** iPhones registered for a push when a turn finishes. */
 export function pushDevicesPath(): string {
   return path.join(userDataDir(), "push-devices.json");

@@ -17,5 +17,4 @@ export type SettingsDraft = {
   controlPort: string;
   apnsKeyId: string;
   apnsTeamId: string;
-  apnsKeyPath: string;
 };

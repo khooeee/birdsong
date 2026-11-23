@@ -126,7 +126,7 @@ A finished turn alerts the phone when the app is in the background or the screen
 
 1. In the [Apple developer portal](https://developer.apple.com/account/resources/identifiers/list), register the bundle id you sign (the default, or the one in `Local.xcconfig`) and enable **Push Notifications**. The key below has to belong to that same Apple team.
 2. Under [Keys](https://developer.apple.com/account/resources/authkeys/list), create a key with **Apple Push Notifications service (APNs)**. Download the `.p8` (Apple allows this once) and note the **Key ID**. The **Team ID** is the same value as `DEVELOPMENT_TEAM`.
-3. In Birdsong, open **Settings**, fill in **APNs key ID** and **APNs team ID**, choose the `.p8`, and click **Save**.
+3. In Birdsong, open **Settings**, fill in **APNs key ID** and **APNs team ID**, click **Choose APNs Key** to import the `.p8` (stored encrypted in app data; the original can be deleted), and click **Save**.
 4. Run the app on a device from Xcode and allow notifications. The phone tells the Mac its bundle id, so the alert is sent to that app.
 
 Xcode installs use Apple's sandbox gateway, and this key works for that.

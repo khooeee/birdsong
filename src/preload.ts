@@ -57,7 +57,9 @@ const api: BirdsongApi = {
   getSettings: () => ipcRenderer.invoke("settings:get"),
   updateSettings: (patch: Partial<AppSettings>) => ipcRenderer.invoke("settings:update", patch),
   getRemoteStatus: () => ipcRenderer.invoke("remote:status"),
+  getApnsKeyInfo: () => ipcRenderer.invoke("apns:keyInfo"),
   pickApnsKey: () => ipcRenderer.invoke("apns:pickKey"),
+  removeApnsKey: () => ipcRenderer.invoke("apns:removeKey"),
   rotateControlToken: () => ipcRenderer.invoke("control:rotateToken"),
   savePastedImage: (sessionId, image) =>
     ipcRenderer.invoke("images:savePaste", sessionId, image.mimeType, image.bytes),

@@ -28,6 +28,5 @@ export function patchFromDraft(draft: SettingsDraft, prefs: AppSettings): Partia
     controlPort: port(draft.controlPort, prefs.controlPort),
     apnsKeyId: draft.apnsKeyId.trim(),
     apnsTeamId: draft.apnsTeamId.trim(),
-    apnsKeyPath: draft.apnsKeyPath.trim(),
   };
 }

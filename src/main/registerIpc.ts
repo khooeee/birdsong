@@ -23,6 +23,7 @@ import type { AgentKind } from "../shared/agentKind";
 import type { ConfigMenuCategory } from "../shared/configMenuCategory";
 import type { CreateSessionInput } from "../shared/createSessionInput";
 import type { EditContextMenuOptions } from "../shared/editContextMenuOptions";
+import { apnsKeyStore } from "./push/apnsKeyStore";
 import { pickApnsKey } from "./push/pickApnsKey";
 import type { VoiceAgent } from "./voice/VoiceAgent";
 
@@ -133,7 +134,16 @@ export function registerIpc({
     return next;
   });
   ipcMain.handle("remote:status", () => control.status());
-  ipcMain.handle("apns:pickKey", () => pickApnsKey(getMainWindow()));
+  ipcMain.handle("apns:keyInfo", () => apnsKeyStore.info());
+  ipcMain.handle("apns:pickKey", async () => {
+    const picked = await pickApnsKey(getMainWindow());
+    if (picked) await apnsKeyStore.importFromPath(picked);
+    return apnsKeyStore.info();
+  });
+  ipcMain.handle("apns:removeKey", async () => {
+    await apnsKeyStore.remove();
+    return apnsKeyStore.info();
+  });
   ipcMain.handle("control:rotateToken", async () => {
     await control.rotateToken();
     return control.status();
