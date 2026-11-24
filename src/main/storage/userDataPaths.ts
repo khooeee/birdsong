@@ -19,6 +19,11 @@ export function remindersPath(): string {
   return path.join(userDataDir(), "reminders.json");
 }
 
+/** User's own MCP servers for every agent session; also editable by hand. */
+export function mcpPath(): string {
+  return path.join(userDataDir(), "mcp.json");
+}
+
 export function sessionsDir(): string {
   return path.join(userDataDir(), "sessions");
 }
