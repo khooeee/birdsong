@@ -1,5 +1,6 @@
 import { BrowserWindow, dialog, ipcMain } from "electron";
 import { openTranscriptsFolder } from "./files/openTranscriptsFolder";
+import { openMcpFile } from "./files/openMcpFile";
 import { CronsStore } from "./crons/CronsStore";
 import { cronsPath } from "./storage/userDataPaths";
 import type { CronInput } from "../shared/cronInput";
@@ -117,6 +118,7 @@ export function registerIpc({
     saveMarkdownFile(BrowserWindow.fromWebContents(event.sender), text, nameHint),
   );
   ipcMain.handle("fs:openTranscriptsFolder", () => openTranscriptsFolder());
+  ipcMain.handle("fs:openMcpFile", () => openMcpFile());
   ipcMain.handle("crons:get", () => crons.read());
   ipcMain.handle("crons:save", (_e, entries: CronInput[], revision: string) => crons.save(entries, revision));
   ipcMain.handle("reminders:list", () => listReminders());

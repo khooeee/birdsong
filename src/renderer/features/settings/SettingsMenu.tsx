@@ -99,6 +99,14 @@ export function SettingsMenu() {
               type="button"
               role="menuitem"
               className="settings-item"
+              onClick={closeThen(window.birdsong.openMcpFile)}
+            >
+              Open mcp.json
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="settings-item"
               onClick={closeThen(async () => setRemindersOpen(true))}
             >
               Open Reminders

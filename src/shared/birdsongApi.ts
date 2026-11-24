@@ -75,6 +75,7 @@ export interface BirdsongApi {
   /** Save-as dialog that writes `text` to a `.md` file named from `nameHint` (else `text`); false when cancelled. */
   saveMarkdown: (text: string, nameHint?: string) => Promise<boolean>;
   openTranscriptsFolder: () => Promise<void>;
+  openMcpFile: () => Promise<void>;
   getCrons: () => Promise<CronsSnapshot>;
   saveCrons: (crons: CronInput[], revision: string) => Promise<CronsSnapshot>;
   listReminders: () => Promise<{ reminders: Reminder[]; errors: string[] }>;

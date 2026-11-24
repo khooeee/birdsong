@@ -49,6 +49,7 @@ const api: BirdsongApi = {
   saveMarkdown: (text: string, nameHint?: string) =>
     ipcRenderer.invoke("fs:saveMarkdown", text, nameHint),
   openTranscriptsFolder: () => ipcRenderer.invoke("fs:openTranscriptsFolder"),
+  openMcpFile: () => ipcRenderer.invoke("fs:openMcpFile"),
   getCrons: () => ipcRenderer.invoke("crons:get"),
   saveCrons: (crons, revision) => ipcRenderer.invoke("crons:save", crons, revision),
   listReminders: () => ipcRenderer.invoke("reminders:list"),
