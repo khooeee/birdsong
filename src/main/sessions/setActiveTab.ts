@@ -8,7 +8,7 @@ export async function setActiveTab(
   if (!state.sessions.has(tabId)) return;
   if (!(await hydration.ensure(tabId))) return;
   state.pushTranscript(tabId);
-  state.activeTabId = tabId;
+  state.setActiveTabId(tabId);
   state.emitSessions();
   void persistence.persist();
   agents.refreshCommandsIfNeeded(tabId);

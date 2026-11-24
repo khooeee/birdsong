@@ -34,6 +34,7 @@ const api: BirdsongApi = {
     ipcRenderer.invoke("sessions:rename", sessionId, title),
   pinSession: (sessionId: string) => ipcRenderer.invoke("sessions:pin", sessionId),
   unpinSession: (sessionId: string) => ipcRenderer.invoke("sessions:unpin", sessionId),
+  setSessionUnread: (sessionId: string, unread: boolean) => ipcRenderer.invoke("sessions:setUnread", sessionId, unread),
   setActiveTab: (tabId: string) => ipcRenderer.invoke("sessions:setActive", tabId),
   openSessionLink: (link) => ipcRenderer.invoke("sessions:openLink", link),
   sessionLinksReady: () => ipcRenderer.invoke("sessions:linksReady"),

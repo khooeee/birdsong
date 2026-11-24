@@ -7,7 +7,6 @@ const jiti = createJiti(import.meta.url);
 const { paletteCommands } = await jiti.import("../src/renderer/features/commandPalette/paletteCommands.ts");
 const { rankCommands } = await jiti.import("../src/renderer/features/commandPalette/rankCommands.ts");
 const { nextCommandId } = await jiti.import("../src/renderer/features/commandPalette/nextCommandId.ts");
-const { sessionUnreadStore } = await jiti.import("../src/renderer/features/sessions/sessionUnreadStore.ts");
 
 const context = {
   mode: "sessions", hasSessions: true, hasSession: true, supportsFork: true,
@@ -129,23 +128,4 @@ test("keyboard selection skips disabled results, wraps, and handles zero executa
   assert.equal(nextCommandId(results, "two", 1), "one");
   assert.equal(nextCommandId(results.slice(0, 1), null, 1), null);
   assert.equal(nextCommandId([], null, -1), null);
-});
-
-test("unread subscriptions share state and preserve snapshot identity for unchanged updates", () => {
-  let calls = 0;
-  const off = sessionUnreadStore.subscribe(() => calls++);
-  const before = sessionUnreadStore.getSnapshot();
-  sessionUnreadStore.markRead("palette-test");
-  assert.equal(sessionUnreadStore.getSnapshot(), before);
-  sessionUnreadStore.markUnread("palette-test");
-  const marked = sessionUnreadStore.getSnapshot();
-  assert.notEqual(marked, before);
-  assert.equal(marked.has("palette-test"), true);
-  sessionUnreadStore.markUnread("palette-test");
-  assert.equal(sessionUnreadStore.getSnapshot(), marked);
-  sessionUnreadStore.toggle("palette-test");
-  assert.equal(sessionUnreadStore.getSnapshot().has("palette-test"), false);
-  assert.equal(marked.has("palette-test"), true);
-  assert.equal(calls, 2);
-  off();
 });

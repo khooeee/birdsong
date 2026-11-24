@@ -1,6 +1,6 @@
 import UIKit
 
-/// A rail row with activity, pending continuation, or error details.
+/// A rail row with activity, unread, pending continuation, or error details.
 @MainActor
 enum SessionCellConfigurator {
     static func configure(_ cell: UICollectionViewListCell, with session: Session) {
@@ -17,7 +17,15 @@ enum SessionCellConfigurator {
             content.secondaryTextProperties.numberOfLines = 2
         }
         cell.contentConfiguration = content
-        cell.accessories = [statusAccessory(session.status), .disclosureIndicator()].compactMap(\.self)
+        let accessories = [unreadAccessory(session), statusAccessory(session.status), .disclosureIndicator()]
+        cell.accessories = accessories.compactMap(\.self)
+        cell.accessibilityValue = session.unread == true ? "Unread" : nil
+    }
+
+    /// The spinner takes the dot's place while the agent works.
+    private static func unreadAccessory(_ session: Session) -> UICellAccessory? {
+        guard session.unread == true, session.status != .running, session.status != .connecting else { return nil }
+        return .customView(configuration: .init(customView: UnreadDotView(), placement: .trailing()))
     }
 
     private static func statusAccessory(_ status: Session.Status) -> UICellAccessory? {

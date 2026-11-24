@@ -46,7 +46,7 @@ export async function handleControlRequest(
     }
 
     const sessionMatch =
-      /^\/sessions\/([^/]+)(?:\/(prompt|cancel|close|transcript|rename|pin|unpin|config))?$/.exec(pathname);
+      /^\/sessions\/([^/]+)(?:\/(prompt|cancel|close|transcript|rename|pin|unpin|read|config))?$/.exec(pathname);
     if (!sessionMatch) return sendJson(res, 404, { error: "Not found" });
     const sessionId = decodeURIComponent(sessionMatch[1]!);
     const action = sessionMatch[2];
@@ -97,6 +97,11 @@ export async function handleControlRequest(
       if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });
       sessions.unpinSession(sessionId);
       return sendJson(res, 200, { sessionId, pinned: false, ok: true });
+    }
+    if (method === "POST" && action === "read") {
+      if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });
+      sessions.setSessionUnread(sessionId, false);
+      return sendJson(res, 200, { sessionId, unread: false, ok: true });
     }
     if (method === "POST" && action === "cancel") {
       await sessions.cancelPrompt(sessionId);

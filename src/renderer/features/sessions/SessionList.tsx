@@ -10,7 +10,6 @@ import { SessionRailMenu } from "./SessionRailMenu";
 import { SessionRailRow } from "./SessionRailRow";
 import { useScrollActiveRailSession } from "./useScrollActiveRailSession";
 import { useSessionRailMenus } from "./useSessionRailMenus";
-import { useSessionUnreadDots } from "./useSessionUnreadDots";
 
 export interface SessionListProps {
   pinned: Session[];
@@ -54,15 +53,12 @@ export function SessionList({
     () => unpinned.filter((session) => sessionMatchesFilter(session, filter)),
     [unpinned, filter],
   );
-  const { unread: unreadDots, toggleUnread } = useSessionUnreadDots(activeTabId);
   const filterActive = filter.trim().length > 0;
   const noMatches = filterActive && filteredPinned.length === 0 && filteredUnpinned.length === 0;
 
-  const { menu, setMenu, rename, setRename, menuRef } = useSessionRailMenus(
-    activeTabId,
-    allSessions,
-    toggleUnread,
-  );
+  const { menu, setMenu, rename, setRename, menuRef } = useSessionRailMenus(activeTabId, allSessions);
+  // The rail's live copy, so Mark as Unread follows a turn that finishes while the menu is open.
+  const menuSession = menu && (allSessions.find((session) => session.id === menu.session.id) ?? menu.session);
   useScrollActiveRailSession(scrollRef, activeTabId);
 
   const openSessionMenu = useCallback((e: ReactMouseEvent, s: Session, p: boolean) => {
@@ -74,7 +70,6 @@ export function SessionList({
     session,
     isPinned,
     active: activeTabId === session.id,
-    unread: unreadDots.has(session.id),
     renaming: rename?.id === session.id,
     setRename,
     onSelect,
@@ -106,20 +101,18 @@ export function SessionList({
         </div>
         <div className="rail-fade" aria-hidden="true" />
       </div>
-      {menu &&
+      {menu && menuSession &&
         createPortal(
           <SessionRailMenu
             menuRef={menuRef}
-            session={menu.session}
+            session={menuSession}
             pinned={menu.pinned}
-            unread={unreadDots.has(menu.session.id)}
             x={menu.x}
             y={menu.y}
             onRename={setRename}
             onFork={onFork}
             onPin={onPin}
             onUnpin={onUnpin}
-            onToggleUnread={toggleUnread}
             onStop={onStop}
             onClose={onCloseSession}
             onDismiss={() => setMenu(null)}

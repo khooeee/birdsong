@@ -80,6 +80,9 @@ export function registerIpc({
   ipcMain.handle("sessions:unpin", (_e, sessionId: string) => {
     sessions.unpinSession(sessionId);
   });
+  ipcMain.handle("sessions:setUnread", (_e, sessionId: string, unread: boolean) => {
+    sessions.setSessionUnread(sessionId, unread);
+  });
   ipcMain.handle("sessions:setActive", (_e, tabId: string) =>
     sessions.setActiveTab(tabId),
   );

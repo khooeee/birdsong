@@ -15,6 +15,8 @@ struct Session: Decodable, Sendable, Hashable, Identifiable {
     let createdAt: Double
     let resumeAt: Double?
     let modelConfig: SessionModelConfig?
+    /// A turn finished while the session was off screen; absent from an older Mac app.
+    var unread: Bool?
 
     var continuationNotice: String? {
         guard let resumeAt else { return nil }

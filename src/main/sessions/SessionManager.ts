@@ -33,6 +33,7 @@ import { promptSession } from "./promptSession";
 import { showSessionConfigMenu } from "./showSessionConfigMenu";
 import { getSessionConfigPickers } from "./getSessionConfigPickers";
 import { setSessionConfigOption } from "./setSessionConfigOption";
+import { setSessionUnread } from "./setSessionUnread";
 
 /** Main-process API for sessions, tabs and prompts; delegates to collaborators. */
 export class SessionManager {
@@ -140,6 +141,10 @@ export class SessionManager {
 
   renameSession(sessionId: string, title: string): void {
     this.rail.rename(sessionId, title);
+  }
+
+  setSessionUnread(sessionId: string, unread: boolean): void {
+    setSessionUnread(this.state, sessionId, unread);
   }
 
   getSession(sessionId: string): Session | undefined {

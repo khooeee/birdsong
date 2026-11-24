@@ -10,7 +10,6 @@ type Props = {
   session: Session;
   isPinned: boolean;
   active: boolean;
-  unread: boolean;
   renaming: boolean;
   setRename: (session: Session | null) => void;
   onSelect: (id: string) => void;
@@ -25,7 +24,6 @@ export const SessionRailRow = memo(function SessionRailRow({
   session,
   isPinned,
   active,
-  unread,
   renaming,
   setRename,
   onSelect,
@@ -75,7 +73,7 @@ export const SessionRailRow = memo(function SessionRailRow({
       <span className="rail-session-end">
         {session.status === "running" ? (
           <span className="rail-spinner" role="status" aria-label="Agent thinking" />
-        ) : unread ? (
+        ) : session.unread ? (
           <span className="rail-unread" role="status" aria-label="Unread" />
         ) : null}
         <SessionRailPinButton

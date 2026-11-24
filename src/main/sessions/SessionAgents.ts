@@ -13,6 +13,7 @@ import { recordTurn } from "./recordTurn";
 import { recordSubagentTurn } from "./recordSubagentTurn";
 import { removeTurn } from "./removeTurn";
 import { setSessionStatus } from "./setSessionStatus";
+import { setSessionUnread } from "./setSessionUnread";
 import { warmCallbacks } from "./warmCallbacks";
 import { NewSessionDraft } from "./NewSessionDraft";
 
@@ -104,6 +105,9 @@ export class SessionAgents {
         recordSubagentTurn(state, sessionId, subagentId, turn),
       removeTurn: (sessionId, turnId) => removeTurn(state, sessionId, turnId),
       setStatus: (sessionId, status, error) => setSessionStatus(state, sessionId, status, error),
+      noteUnread: (sessionId) => {
+        if (sessionId !== state.activeTabId) setSessionUnread(state, sessionId, true);
+      },
       emitSessions: () => state.emitSessions(),
       noteForkSupport: (agent, supported) => this.noteForkSupport(agent, supported),
       queuePersist: () => persistence.queuePersist(),
