@@ -97,6 +97,11 @@ export class SessionManager {
     return next;
   }
 
+  /** New sessions use the saved MCP servers; open ones keep theirs until they reconnect. */
+  mcpServersChanged(): void {
+    this.agents.restartWarm();
+  }
+
   list() {
     return this.state.sessionListPayload();
   }

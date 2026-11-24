@@ -23,6 +23,9 @@ import type { AgentKind } from "../shared/agentKind";
 import type { ConfigMenuCategory } from "../shared/configMenuCategory";
 import type { CreateSessionInput } from "../shared/createSessionInput";
 import type { EditContextMenuOptions } from "../shared/editContextMenuOptions";
+import { checkMcpServers } from "./mcp/custom/checkMcpServers";
+import { readMcpServersFile } from "./mcp/custom/readMcpServersFile";
+import { saveMcpServersFile } from "./mcp/custom/saveMcpServersFile";
 import { apnsKeyStore } from "./push/apnsKeyStore";
 import { pickApnsKey } from "./push/pickApnsKey";
 import type { VoiceAgent } from "./voice/VoiceAgent";
@@ -135,6 +138,12 @@ export function registerIpc({
     if (patch.railMode !== undefined || patch.editorWordWrap !== undefined) refreshMenus();
     await control.apply(next);
     return next;
+  });
+  ipcMain.handle("mcp:get", () => readMcpServersFile());
+  ipcMain.handle("mcp:check", (_e, text: string) => checkMcpServers(text));
+  ipcMain.handle("mcp:save", async (_e, text: string) => {
+    await saveMcpServersFile(text);
+    sessions.mcpServersChanged();
   });
   ipcMain.handle("remote:status", () => control.status());
   ipcMain.handle("apns:keyInfo", () => apnsKeyStore.info());

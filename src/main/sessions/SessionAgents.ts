@@ -20,6 +20,7 @@ import { NewSessionDraft } from "./NewSessionDraft";
 /** Starts, attaches and pre-warms ACP agent connections for sessions. */
 export class SessionAgents {
   readonly draft: NewSessionDraft;
+  private warmCwd = "";
 
   constructor(
     private readonly state: SessionState,
@@ -73,11 +74,18 @@ export class SessionAgents {
 
   /** Keep a started session ready for every installed agent in `cwd`. */
   ensureWarm(cwd: string): void {
+    this.warmCwd = cwd;
     void availableAgents().then((agents) => {
       const openers = new Map<string, () => AcpSession>();
       for (const agent of agents) openers.set(agent, () => this.openWarm(agent, cwd));
       this.state.warm.ensure(cwd, openers);
     });
+  }
+
+  /** Replace warm sessions, which connected with the previous MCP servers. */
+  restartWarm(): void {
+    this.state.warm.clear();
+    this.ensureWarm(this.warmCwd);
   }
 
   /** A claimed warm session keeps this id, which its MCP server URL names. */

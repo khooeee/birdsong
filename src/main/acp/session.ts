@@ -19,7 +19,8 @@ import { SharedAgentConnection } from "./SharedAgentConnection";
 import type { SessionUpdateRouter } from "./SessionUpdateRouter";
 import type { SessionConfigOptions } from "./SessionConfigOptions";
 import { sessionConnectionHandlers } from "./sessionConnectionHandlers";
-import { birdsongMcpServers } from "../mcp/birdsongMcpServers";
+import { includesBirdsongServer } from "../mcp/includesBirdsongServer";
+import { sessionMcpServers } from "../mcp/sessionMcpServers";
 import { sessionPipeline } from "./sessionPipeline";
 
 export class AcpSession extends SharedAgentConnection {
@@ -104,7 +105,7 @@ export class AcpSession extends SharedAgentConnection {
 
   start(options?: { quiet?: boolean }): Promise<void> {
     return this.startOnce(async () => {
-      await this.connectAgent(await birdsongMcpServers(this.id), options);
+      await this.connectAgent(await sessionMcpServers(this.id, this.agent), options);
       await this.createAgentSession();
     });
   }
@@ -124,12 +125,12 @@ export class AcpSession extends SharedAgentConnection {
 
   /** Allocate a new agent session on the current connection. */
   private async createAgentSession(config = this.config.snapshot()): Promise<void> {
-    const mcpServers = await birdsongMcpServers(this.id);
+    const mcpServers = await sessionMcpServers(this.id, this.agent);
     if (this.disposed || !this.connection) throw new Error("Session closed");
     this.runner.markIdle();
     const session = await createAcpSession(this.connection, this.cwd, mcpServers);
     if (this.disposed) throw new Error("Session closed");
-    this.hasBirdsongTools = mcpServers.length > 0;
+    this.hasBirdsongTools = includesBirdsongServer(mcpServers);
     this.setSessionId(session.sessionId);
     this.config.note(session.configOptions);
     await this.config.restore(config);
@@ -138,7 +139,7 @@ export class AcpSession extends SharedAgentConnection {
 
   private async attachSession(sessionId: string, options?: { quiet?: boolean }): Promise<void> {
     const config = this.config.snapshot();
-    const mcpServers = await birdsongMcpServers(this.id);
+    const mcpServers = await sessionMcpServers(this.id, this.agent);
     await this.connectAgent(mcpServers, options);
     await attachAcpSession({
       connection: this.connection,
@@ -165,12 +166,12 @@ export class AcpSession extends SharedAgentConnection {
   /** Fork on this connection and return a sibling session sharing the agent process. */
   async forkSibling(id: string, cb: SessionCallbacks, forkPoint?: AirForkPoint, turns?: TranscriptTurn[]): Promise<AcpSession> {
     // The fork's own MCP servers: they name its new Birdsong session id.
-    const mcpServers = await birdsongMcpServers(id);
+    const mcpServers = await sessionMcpServers(id, this.agent);
     if (!this.connection || !this.sessionId || this.disposed) throw new Error("Session not ready to fork");
     const forked = await forkAcpSession(this.connection, this.sessionId, this.cwd, forkPoint, mcpServers);
     const child = new AcpSession(id, this.agent, this.cwd, cb);
     if (turns) child.restoreTurns(turns);
-    child.hasBirdsongTools = mcpServers.length > 0;
+    child.hasBirdsongTools = includesBirdsongServer(mcpServers);
     child.updates.availableCommands = this.updates.availableCommands;
     child.cb.onAvailableCommands([...child.updates.availableCommands]);
     this.shareConnectionWith(child);
@@ -246,7 +247,7 @@ export class AcpSession extends SharedAgentConnection {
       }),
     });
     if (this.disposed) throw new Error("Session closed");
-    this.hasBirdsongTools = mcpServers.length > 0;
+    this.hasBirdsongTools = includesBirdsongServer(mcpServers);
     this.canLoad = result.canLoad;
     this.canResume = result.canResume;
     this.initializationMeta = result.initializationMeta;

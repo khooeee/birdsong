@@ -83,6 +83,12 @@ export interface BirdsongApi {
   cancelReminder: (id: string) => Promise<Reminder | undefined>;
   getSettings: () => Promise<AppSettings>;
   updateSettings: (patch: Partial<AppSettings>) => Promise<AppSettings>;
+  /** Custom MCP servers as mcp.json text; empty when there are none. */
+  getMcpServers: () => Promise<string>;
+  /** Problems with `text`: errors that block saving it, and servers sessions would leave out. */
+  checkMcpServers: (text: string) => Promise<string[]>;
+  /** Rejects invalid text. New sessions use the saved servers. */
+  saveMcpServers: (text: string) => Promise<void>;
   /** iOS remote access: the pairing link and `tailscale serve` setup. */
   getRemoteStatus: () => Promise<RemoteStatus>;
   /** Saved APNs key state (the key itself never leaves main). */

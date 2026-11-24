@@ -1,0 +1,9 @@
+.modal textarea.mcp-servers-json {
+  resize: vertical;
+  min-height: 80px;
+  overflow: auto;
+  white-space: pre;
+  font-family: var(--font-mono);
+  font-weight: var(--font-mono-weight);
+  font-size: var(--font-mono-size);
+}

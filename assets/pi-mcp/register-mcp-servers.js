@@ -10,6 +10,13 @@ export default function registerMcpServers(pi) {
     const transport = "url" in server
       ? { url: server.url, headers: toRecord(server.headers) }
       : { command: server.command, args: server.args ?? [], env: toRecord(server.env) };
-    pi.registerMcpServer(server.name, { ...transport, exposure: "direct" });
+    // Birdsong's few tools go straight to the model. Custom servers keep Pi's default, so long tool lists stay out of context.
+    const exposure = server.name === "birdsong" ? { exposure: "direct" } : {};
+    try {
+      pi.registerMcpServer(server.name, { ...transport, ...exposure });
+    } catch (error) {
+      // One bad server must not cost the session the others.
+      console.error(`Could not register MCP server ${server.name}:`, error);
+    }
   }
 }

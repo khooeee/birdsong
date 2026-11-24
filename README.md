@@ -80,6 +80,34 @@ Click the Settings button on the bottom and select **Open Crons** to add, edit, 
 - `title` is optional; `YYYY-MM-DD`, `HH:MM` and `H:MM` in it become the run's local date and 24-hour time.
 - Crons only run while Birdsong is open. Runs missed while the app was closed or the computer was asleep are skipped.
 
+## MCP servers
+
+Every session gets the MCP servers you list in **Settings** → **MCP**, whichever agent it runs:
+
+```json
+{
+  "mcpServers": {
+    "playwright": { "command": "npx", "args": ["-y", "@playwright/mcp"] },
+    "tracker": {
+      "url": "https://example.com/mcp",
+      "headers": { "Authorization": "Bearer ${TRACKER_TOKEN}" },
+      "enabled": true
+    }
+  }
+}
+```
+
+- A server has either `command` (with optional `args` and `env`) or `url` (streamable HTTP, with optional `headers`). SSE is not supported.
+- Names use letters, digits, `_` and `-`. `birdsong` is taken by Birdsong's own server.
+- `enabled: false` keeps an entry without connecting it.
+- `${VAR}` and `${VAR:-default}` read your terminal's environment. Use them for secrets: Claude Code's servers go on its command line, where other users of the computer could read a plain value. A server whose variable is not set is skipped; Settings says which.
+- Saving applies to new sessions. Open sessions get the change when they reconnect, e.g. after restarting Birdsong.
+- If Codex or Pi has a server with the same name in its own config, that one is used.
+- Servers that need OAuth don't work in every agent. Use a token header, or a stdio bridge such as `npx -y mcp-remote <url>`.
+- A server that hangs while starting delays new Cursor sessions by up to a minute.
+
+The list is saved in `mcp.json`, readable only by you. You can also edit the file directly; restart Birdsong to apply it.
+
 ## Reminders
 
 Ask any session to remind you of something ("remind me to check the deploy in 20 minutes"). Agents set reminders with the `set_reminder` tool from Birdsong's MCP server, and can list and cancel them too. The voice agent can as well; its reminders link to the session you name, else the one you're talking about or the one on screen. With no session open, it starts one and has it set the reminder. When one is due, Birdsong shows a desktop notification and plays a short chime (unless sounds are off in settings); clicking it opens the session that set it. If voice is on, it reads the reminder out instead of chiming. The reminder also appears in that session's transcript as a "Reminder" row, so you can see it when you return to the session. Reminders are for you: they never send a prompt to a session, and the agent never sees the row.
