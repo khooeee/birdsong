@@ -1,5 +1,6 @@
 import { useState, type MouseEvent } from "react";
 import { ImageViewerBar } from "./ImageViewerBar";
+import { imageViewer } from "./imageViewerStore";
 import { transcriptImageUrl } from "./transcriptImageUrl";
 import { useImagePan } from "./useImagePan";
 import { useImageViewerKeys } from "./useImageViewerKeys";
@@ -14,6 +15,8 @@ export function ImageViewer({ name }: { name: string }) {
   usePinchZoom(zoom.viewerRef, zoom.naturalRef, zoom.scaleRef, zoom.zoomTo);
   useImageViewerKeys(zoom.naturalRef, zoom.zoomFromCenter, zoom.actualSize);
   const [missing, setMissing] = useState(false);
+  const names = imageViewer.getNames();
+  const index = names.indexOf(name);
 
   const onContextMenu = (event: MouseEvent) => {
     event.preventDefault();
@@ -22,7 +25,7 @@ export function ImageViewer({ name }: { name: string }) {
   };
 
   return (
-    <div ref={zoom.viewerRef} className="image-viewer" role="dialog" aria-modal="true" aria-label="Image" onContextMenu={onContextMenu}>
+    <div ref={zoom.viewerRef} className="image-viewer" role="dialog" aria-modal="true" aria-label={names.length > 1 ? `Image ${index + 1} of ${names.length}` : "Image"} onContextMenu={onContextMenu}>
       <div
         ref={zoom.stageRef}
         className={pan.dragging ? "image-viewer-stage dragging" : "image-viewer-stage"}
@@ -54,6 +57,10 @@ export function ImageViewer({ name }: { name: string }) {
       <ImageViewerBar
         ready={zoom.ready}
         scale={zoom.scale}
+        index={index}
+        total={names.length}
+        onPrev={imageViewer.prev}
+        onNext={imageViewer.next}
         onZoomOut={() => zoom.zoomFromCenter(-1)}
         onActualSize={zoom.actualSize}
         onZoomIn={() => zoom.zoomFromCenter(1)}

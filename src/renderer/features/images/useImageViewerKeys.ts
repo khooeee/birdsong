@@ -2,7 +2,7 @@ import { useEffect, type RefObject } from "react";
 import { imageViewer } from "./imageViewerStore";
 import type { ImageSize } from "./useImageZoom";
 
-/** Escape closes. +/− zoom from the center. 0 is actual size. */
+/** Escape closes. Arrow keys step between images. +/− zoom from the center. 0 is actual size. */
 export function useImageViewerKeys(
   naturalRef: RefObject<ImageSize | null>,
   zoomFromCenter: (direction: 1 | -1) => void,
@@ -17,7 +17,20 @@ export function useImageViewerKeys(
         imageViewer.close();
         return;
       }
-      if (event.metaKey || event.ctrlKey || event.altKey || !naturalRef.current) return;
+      if (event.metaKey || event.ctrlKey || event.altKey) return;
+      if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        event.stopPropagation();
+        imageViewer.prev();
+        return;
+      }
+      if (event.key === "ArrowRight") {
+        event.preventDefault();
+        event.stopPropagation();
+        imageViewer.next();
+        return;
+      }
+      if (!naturalRef.current) return;
       if (event.key === "+" || event.key === "=") {
         event.preventDefault();
         event.stopPropagation();

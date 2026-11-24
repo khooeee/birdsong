@@ -8,14 +8,14 @@ export const TranscriptImages = memo(function TranscriptImages({ names }: { name
   if (!names?.length) return null;
   return (
     <div className="transcript-images">
-      {names.map((name) => <TranscriptImage key={name} name={name} />)}
+      {names.map((name, index) => <TranscriptImage key={name} name={name} index={index} siblings={names} />)}
     </div>
   );
 });
 
-const TranscriptImage = memo(function TranscriptImage({ name }: { name: string }) {
+const TranscriptImage = memo(function TranscriptImage({ name, index, siblings }: { name: string; index: number; siblings: string[] }) {
   const [missing, setMissing] = useState(false);
-  const open = useCallback(() => imageViewer.open(name), [name]);
+  const open = useCallback(() => imageViewer.open(name, siblings), [name, siblings]);
   const markMissing = useCallback(() => setMissing(true), []);
   const openMenu = useCallback((event: MouseEvent) => {
     event.preventDefault();
@@ -28,7 +28,7 @@ const TranscriptImage = memo(function TranscriptImage({ name }: { name: string }
       className="transcript-image"
       onClick={open}
       onContextMenu={openMenu}
-      aria-label="View image"
+      aria-label={`View image ${index + 1} of ${siblings.length}`}
     >
       <img src={transcriptImageUrl(name)} alt="" loading="lazy" onError={markMissing} />
     </button>
