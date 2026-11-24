@@ -12,6 +12,7 @@ type CallbackDeps = {
   handleSubagentTurn: (sessionId: string, subagentId: string, turn: TranscriptTurn) => void;
   removeTurn: (sessionId: string, turnId: string) => void;
   setStatus: (sessionId: string, status: SessionStatus, error: string | null) => void;
+  noteUnread: (sessionId: string) => void;
   emitSessions: () => void;
   noteForkSupport: (agent: AgentKind, supported: boolean) => void;
   queuePersist: () => void;
@@ -25,6 +26,7 @@ export function buildSessionCallbacks(deps: CallbackDeps): SessionCallbacks {
   const { session } = deps;
   return {
     onPromptComplete: () => {
+      deps.noteUnread(session.id);
       const announced = deps.observer()?.promptComplete(session.id) ?? false;
       deps.send("prompt:complete", { sessionId: session.id, announced });
     },

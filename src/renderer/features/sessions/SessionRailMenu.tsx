@@ -9,19 +9,18 @@ import { modLabel } from "../shortcuts/modLabel";
 import { pinShortcut } from "./pinShortcut";
 import { SessionRailMenuItem } from "./SessionRailMenuItem";
 import { saveSessionMarkdown } from "./saveSessionMarkdown";
+import { toggleSessionUnread } from "./toggleSessionUnread";
 
 export function SessionRailMenu({
   menuRef,
   session,
   pinned,
-  unread,
   x,
   y,
   onRename,
   onFork,
   onPin,
   onUnpin,
-  onToggleUnread,
   onStop,
   onClose,
   onDismiss,
@@ -29,14 +28,12 @@ export function SessionRailMenu({
   menuRef: RefObject<HTMLDivElement | null>;
   session: Session;
   pinned: boolean;
-  unread: boolean;
   x: number;
   y: number;
   onRename: (session: Session) => void;
   onFork: (id: string) => void;
   onPin: (id: string) => void;
   onUnpin: (id: string) => void;
-  onToggleUnread: (id: string) => void;
   onStop: (id: string) => void;
   onClose: (id: string) => void;
   onDismiss: () => void;
@@ -62,8 +59,8 @@ export function SessionRailMenu({
         onDismiss={onDismiss}
       />
       <SessionRailMenuItem
-        label={unread ? "Mark as Read" : "Mark as Unread"}
-        onSelect={() => onToggleUnread(session.id)}
+        label={session.unread ? "Mark as Read" : "Mark as Unread"}
+        onSelect={() => toggleSessionUnread(session)}
         onDismiss={onDismiss}
       />
       <SessionRailMenuItem

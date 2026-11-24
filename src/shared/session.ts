@@ -52,4 +52,6 @@ export interface Session {
   autoTitle?: boolean;
   /** When to continue a turn its usage limit stopped (epoch ms, persisted); the next prompt or a stop clears it. */
   resumeAt?: number;
+  /** A turn finished while the session was off screen; opening it on the Mac or the phone clears this (not persisted). */
+  unread?: boolean;
 }

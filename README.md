@@ -122,7 +122,7 @@ Birdsong desktop app
 
 ### Alerts when a turn finishes
 
-A finished turn alerts the phone when the app is in the background or the screen is locked. With the app open, the session list updates and there is no banner. Tapping the banner opens that session. The simulator cannot receive these.
+A finished turn alerts the phone when the app is in the background or the screen is locked. With the app open, the session list updates and there is no banner. The green unread dot is the desktop's: reading a session on either one clears it on both. Tapping the banner opens that session. The simulator cannot receive these.
 
 1. In the [Apple developer portal](https://developer.apple.com/account/resources/identifiers/list), register the bundle id you sign (the default, or the one in `Local.xcconfig`) and enable **Push Notifications**. The key below has to belong to that same Apple team.
 2. Under [Keys](https://developer.apple.com/account/resources/authkeys/list), create a key with **Apple Push Notifications service (APNs)**. Download the `.p8` (Apple allows this once) and note the **Key ID**. The **Team ID** is the same value as `DEVELOPMENT_TEAM`.

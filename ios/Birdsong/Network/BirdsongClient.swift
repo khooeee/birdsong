@@ -49,6 +49,11 @@ final class BirdsongClient: Sendable {
         _ = try await send(request(["sessions", sessionId, pinned ? "pin" : "unpin"], method: "POST"))
     }
 
+    /// Clears the unread dot, here and on the Mac.
+    func markRead(sessionId: String) async throws {
+        _ = try await send(request(["sessions", sessionId, "read"], method: "POST"))
+    }
+
     /// Replaces the title; the agent stops naming the session.
     func rename(sessionId: String, title: String) async throws {
         var request = request(["sessions", sessionId, "rename"], method: "POST")

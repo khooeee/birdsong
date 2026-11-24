@@ -123,7 +123,15 @@ final class TranscriptViewController: UIViewController {
             let current = (list.pinned + list.unpinned).first { $0.id == session.id }
             composer.resumeNotice = current?.continuationNotice
             if let current { modelConfigBar.modelConfig = current.modelConfig }
+            if current?.unread == true { markRead() }
         }
+    }
+
+    /// Voice keeps the app running with the screen locked, where nobody is reading. A failed call is retried
+    /// by the next rail update.
+    private func markRead() {
+        guard UIApplication.shared.applicationState != .background else { return }
+        Task { try? await client.markRead(sessionId: session.id) }
     }
 
     private func apply(changed: [String]) {

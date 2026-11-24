@@ -13,7 +13,7 @@ export async function openSession(
   } else if (!(await hydration.ensure(sessionId))) {
     return false;
   }
-  state.activeTabId = sessionId;
+  state.setActiveTabId(sessionId);
   state.emitSessions();
   state.pushTranscript(sessionId);
   void persistence.persist();

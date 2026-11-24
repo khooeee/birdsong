@@ -1,6 +1,6 @@
 import UIKit
 
-/// The desktop rail, live: pinned then recent, with a spinner on running sessions.
+/// The desktop rail, live: pinned then recent, with a spinner on running sessions and a dot on unread ones.
 final class SessionListViewController: UIViewController {
     private enum Section: Hashable {
         case pinned, recent
@@ -104,7 +104,15 @@ final class SessionListViewController: UIViewController {
     }
 
     private func openSession(_ session: Session) {
+        clearUnread(session.id)
         navigationController?.pushViewController(TranscriptViewController(client: client, voice: voice, session: session), animated: true)
+    }
+
+    /// The transcript tells the Mac; this keeps the dot from showing until the rail reconnects on the way back.
+    private func clearUnread(_ id: String) {
+        guard sessionsById[id]?.unread == true else { return }
+        sessionsById[id]?.unread = false
+        applySnapshot(changed: [id])
     }
 
     override func updateContentUnavailableConfiguration(using state: UIContentUnavailableConfigurationState) {

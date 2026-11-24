@@ -30,6 +30,7 @@ export const controlResponseTypes = {
     cron: "optional boolean — started by a cron run",
     autoTitle: "optional boolean — title follows the agent's generated title until renamed",
     resumeAt: "optional number — epoch ms when a turn stopped by its usage limit continues by itself; a prompt or cancel clears it",
+    unread: "optional boolean — a turn finished while the session was off screen",
   } satisfies Record<keyof Session, string>,
   ConfigPickers: {
     options: "ConfigOption[] — selects in category model, thought_level (effort) or model_config (per-model setting)",

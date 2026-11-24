@@ -2,13 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import type { ActiveTabId } from "../../../shared/activeTabId";
 import type { Session } from "../../../shared/session";
 import type { MenuState } from "./railMenuState";
+import { toggleSessionUnread } from "./toggleSessionUnread";
 
 /** Context menus, rename target, and window-event wiring for the session rail. */
-export function useSessionRailMenus(
-  activeTabId: ActiveTabId,
-  sessions: Session[],
-  toggleUnread: (sessionId: string) => void,
-) {
+export function useSessionRailMenus(activeTabId: ActiveTabId, sessions: Session[]) {
   const [menu, setMenu] = useState<MenuState | null>(null);
   const [rename, setRename] = useState<Session | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -43,11 +40,12 @@ export function useSessionRailMenus(
 
   useEffect(() => {
     const onToggleUnread = () => {
-      if (activeTabId) toggleUnread(activeTabId);
+      const session = sessions.find((item) => item.id === activeTabId);
+      if (session) toggleSessionUnread(session);
     };
     window.addEventListener("birdsong:mark-unread", onToggleUnread);
     return () => window.removeEventListener("birdsong:mark-unread", onToggleUnread);
-  }, [activeTabId, toggleUnread]);
+  }, [activeTabId, sessions]);
 
   return { menu, setMenu, rename, setRename, menuRef };
 }

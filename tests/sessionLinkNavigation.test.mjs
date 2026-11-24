@@ -11,6 +11,7 @@ function fixture({ open = true, found = true } = {}) {
   const state = {
     sessions: new Map(open ? [["target", {}]] : []),
     activeTabId: "previous",
+    setActiveTabId: (id) => { state.activeTabId = id; },
     emitSessions: () => calls.push(["sessions", state.activeTabId]),
     pushTranscript: (id) => calls.push(["transcript", id]),
     send: (channel, payload) => calls.push([channel, payload]),

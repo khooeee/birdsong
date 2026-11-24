@@ -29,8 +29,11 @@ export class SessionState {
   /** Main-process taps on every renderer event (remote clients). */
   listeners = new Set<SessionEventListener>();
 
+  /** Put a session in the main panel, which reads it. */
   setActiveTabId(id: ActiveTabId): void {
     this.activeTabId = id;
+    const session = this.activeSession();
+    if (session?.unread) session.unread = false;
   }
 
   setRailLists(lists: SessionRailLists): void {

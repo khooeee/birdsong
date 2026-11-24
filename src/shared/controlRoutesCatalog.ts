@@ -122,6 +122,14 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
     },
     {
       method: "POST",
+      path: "/sessions/:id/read",
+      auth: true,
+      summary: "Clear a session's unread dot, as opening it does",
+      response: { sessionId: "string", unread: "false", ok: "true" },
+      example: `curl -s -X POST -H "Authorization: Bearer $TOKEN" ${b}/sessions/<id>/read`,
+    },
+    {
+      method: "POST",
       path: "/sessions/:id/cancel",
       auth: true,
       summary: "Cancel the running prompt",
