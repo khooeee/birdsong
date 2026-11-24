@@ -12,6 +12,8 @@ final class SessionListViewController: UIViewController {
     private let subscription: EventSubscription
     private var list: SessionList?
     private var sessionsById: [String: Session] = [:]
+    /// Sessions whose latest turn finished while their chat was not on screen.
+    private var unreadIds = Set<String>()
     private lazy var swipeActions = SessionSwipeActions(client: client, presenter: self)
     private var filter = ""
     /// A notification tap that arrived before the rail did.
@@ -71,7 +73,10 @@ final class SessionListViewController: UIViewController {
 
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        subscription.stop()
+        // A pushed transcript still wants the rail to notice completions in other sessions.
+        if isMovingFromParent || isBeingDismissed {
+            subscription.stop()
+        }
     }
 
     private func showNewSession() {
@@ -104,6 +109,10 @@ final class SessionListViewController: UIViewController {
     }
 
     private func openSession(_ session: Session) {
+        // Opening a chat reads it: drop its unread dot before pushing.
+        if unreadIds.remove(session.id) != nil {
+            applySnapshot(changed: [session.id])
+        }
         navigationController?.pushViewController(TranscriptViewController(client: client, voice: voice, session: session), animated: true)
     }
 
@@ -131,7 +140,19 @@ final class SessionListViewController: UIViewController {
         let previous = sessionsById
         list = next
         sessionsById = Dictionary((next.pinned + next.unpinned).map { ($0.id, $0) }, uniquingKeysWith: { a, _ in a })
-        applySnapshot(changed: sessionsById.keys.filter { previous[$0] != nil && previous[$0] != sessionsById[$0] })
+        // A turn that finished while its chat was not on screen earns the rail's unread dot.
+        unreadIds.formIntersection(sessionsById.keys)
+        let openId = (navigationController?.topViewController as? TranscriptViewController)?.sessionId
+        let fresh = sessionsById.keys.filter { id in
+            guard id != openId,
+                  let oldStatus = previous[id]?.status,
+                  let newStatus = sessionsById[id]?.status
+            else { return false }
+            return oldStatus.isRunning && newStatus.isComplete
+        }
+        unreadIds.formUnion(fresh)
+        let changed = sessionsById.keys.filter { previous[$0] != nil && previous[$0] != sessionsById[$0] }
+        applySnapshot(changed: Array(Set(changed).union(fresh)))
         setNeedsUpdateContentUnavailableConfiguration()
         if let id = pendingSessionId {
             pendingSessionId = nil
@@ -177,7 +198,7 @@ final class SessionListViewController: UIViewController {
     private func makeDataSource() -> UICollectionViewDiffableDataSource<Section, String> {
         let cell = UICollectionView.CellRegistration<UICollectionViewListCell, String> { [weak self] cell, _, id in
             guard let session = self?.sessionsById[id] else { return }
-            SessionCellConfigurator.configure(cell, with: session)
+            SessionCellConfigurator.configure(cell, with: session, unread: self?.unreadIds.contains(session.id) ?? false)
         }
         let header = UICollectionView.SupplementaryRegistration<UICollectionViewListCell>(
             elementKind: UICollectionView.elementKindSectionHeader
