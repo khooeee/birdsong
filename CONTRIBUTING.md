@@ -3,7 +3,6 @@
 ## Checks
 
 Run `npm run typecheck` to check types and unused locals and parameters.
-Run `npm test` for working-folder mutations, MCP calls, path migration, file operations, and live watchers.
 
 ## Releasing
 
