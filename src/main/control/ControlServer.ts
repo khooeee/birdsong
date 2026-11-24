@@ -6,6 +6,8 @@ import type { RemoteStatus } from "../../shared/remoteStatus";
 import type { SessionManager } from "../sessions/SessionManager";
 import type { VoiceAgent } from "../voice/VoiceAgent";
 import { RemoteEventHub } from "../remote/RemoteEventHub";
+import { BadgePush } from "../push/BadgePush";
+import { PushSender } from "../push/PushSender";
 import { TurnPush } from "../push/TurnPush";
 import { tailscaleDnsName } from "../remote/tailscaleDnsName";
 import { tailscaleServeFor } from "../remote/tailscaleServeFor";
@@ -25,7 +27,7 @@ type ControlSettings = Pick<AppSettings, "remoteEnabled" | "controlPort">;
  */
 export class ControlServer {
   private hub: RemoteEventHub;
-  private push: TurnPush;
+  private push: PushSender;
   private server: Server | null = null;
   /** Local scripts' token is `endpoint.token`; this one is the iOS app's. */
   private remoteToken = "";
@@ -40,7 +42,9 @@ export class ControlServer {
     private voice: VoiceAgent,
   ) {
     this.hub = new RemoteEventHub(sessions);
-    this.push = new TurnPush(sessions, this.hub);
+    this.push = new PushSender(sessions);
+    new TurnPush(sessions, this.hub, this.push);
+    new BadgePush(sessions, this.push);
   }
 
   /** Start, or move to a new port, to match settings; calls apply in order. */

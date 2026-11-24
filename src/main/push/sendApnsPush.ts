@@ -1,18 +1,18 @@
 import { connect } from "node:http2";
+import type { PushContent } from "./PushContent";
 
-type ApnsAlert = {
+type ApnsPush = PushContent & {
   token: string;
   sandbox: boolean;
   /** The phone's bundle id. The APNs key's team must be the team that signed that app. */
   topic: string;
   jwt: string;
-  title: string;
-  body: string;
-  sessionId: string;
+  /** The app icon's count; 0 clears it, absent leaves it. */
+  badge?: number;
 };
 
-/** One alert to one device. Returns the APNs status (410 means the token is dead). */
-export function sendApnsAlert(input: ApnsAlert): Promise<number> {
+/** One push to one device. Returns the APNs status (410 means the token is dead). */
+export function sendApnsPush(input: ApnsPush): Promise<number> {
   const host = input.sandbox ? "https://api.sandbox.push.apple.com" : "https://api.push.apple.com";
   const client = connect(host);
   return new Promise((resolve, reject) => {
@@ -45,11 +45,7 @@ export function sendApnsAlert(input: ApnsAlert): Promise<number> {
         finish({ status });
       });
     });
-    req.end(
-      JSON.stringify({
-        aps: { alert: { title: input.title, body: input.body }, sound: "default" },
-        sessionId: input.sessionId,
-      }),
-    );
+    const { alert, badge, sessionId } = input;
+    req.end(JSON.stringify({ aps: { badge, ...(alert && { alert, sound: "default" }) }, sessionId }));
   });
 }

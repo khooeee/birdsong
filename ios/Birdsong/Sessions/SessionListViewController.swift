@@ -11,7 +11,9 @@ final class SessionListViewController: UIViewController {
     private let onPairTapped: () -> Void
     private let subscription: EventSubscription
     private var list: SessionList?
-    private var sessionsById: [String: Session] = [:]
+    private var sessionsById: [String: Session] = [:] {
+        didSet { AppBadge.show(sessionsById.values) }
+    }
     private lazy var swipeActions = SessionSwipeActions(client: client, presenter: self)
     private var filter = ""
     /// A notification tap that arrived before the rail did.

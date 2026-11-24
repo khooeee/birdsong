@@ -1,7 +1,7 @@
 import UIKit
 import UserNotifications
 
-/// Asks for alerts, registers this phone with the desktop, and opens the session a tap names.
+/// Asks for alerts and the badge, registers this phone with the desktop, and opens the session a tap names.
 @MainActor
 final class PushRegistration: NSObject, UNUserNotificationCenterDelegate {
     static weak var current: PushRegistration?
@@ -45,13 +45,13 @@ final class PushRegistration: NSObject, UNUserNotificationCenterDelegate {
         onSession?(id)
     }
 
-    /// The event stream is already updating the screen, so a foreground push stays quiet.
+    /// The event stream is already updating the screen, so a foreground push only sets the badge.
     nonisolated func userNotificationCenter(
         _ center: UNUserNotificationCenter,
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
-        completionHandler([])
+        completionHandler([.badge])
     }
 
     nonisolated func userNotificationCenter(
@@ -66,15 +66,11 @@ final class PushRegistration: NSObject, UNUserNotificationCenterDelegate {
         completionHandler()
     }
 
+    /// Asks every launch, which prompts only once: an install that allowed alerts before badges existed gains the badge.
     private func request() async {
         let center = UNUserNotificationCenter.current()
-        var settings = await center.notificationSettings()
-        if settings.authorizationStatus == .notDetermined {
-            let granted = (try? await center.requestAuthorization(options: [.alert, .sound])) ?? false
-            guard granted else { return }
-            settings = await center.notificationSettings()
-        }
-        guard settings.authorizationStatus == .authorized || settings.authorizationStatus == .provisional else { return }
+        let granted = (try? await center.requestAuthorization(options: [.alert, .sound, .badge])) ?? false
+        guard granted else { return }
         UIApplication.shared.registerForRemoteNotifications()
     }
 }
