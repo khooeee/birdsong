@@ -15,4 +15,4 @@ New sessions pick the file up when they start. Bad entries are skipped with a `[
 }
 ```
 
-`${VAR}` expands from the environment. Only `stdio` (supported by every agent) and `http` are accepted.
+`${VAR}` expands from the environment. Only `stdio` (supported by every agent) and `http` are accepted. Either kind takes an optional `"enabled": false` to keep the entry without loading it.

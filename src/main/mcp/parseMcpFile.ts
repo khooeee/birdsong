@@ -24,6 +24,9 @@ function pairs(entry: unknown, key: string): { name: string; value: string }[] {
 function parseEntry(entry: unknown): acp.McpServer {
   if (!entry || typeof entry !== "object") throw new Error("expected an object");
   const raw = entry as Record<string, unknown>;
+  if (raw.enabled !== undefined && typeof raw.enabled !== "boolean") {
+    throw new Error("expected enabled to be a boolean");
+  }
   if (typeof raw.name !== "string" || !raw.name) throw new Error("name is required");
   if (raw.type === "stdio") {
     if (typeof raw.command !== "string" || !raw.command) throw new Error("command is required");
@@ -55,6 +58,8 @@ export function parseMcpFile(parsed: unknown): { servers: acp.McpServer[]; error
   const seen = new Set<string>();
   list.forEach((entry, index) => {
     try {
+      // Disabled entries are skipped silently; they are intentional, not errors.
+      if (entry && typeof entry === "object" && (entry as Record<string, unknown>).enabled === false) return;
       const server = parseEntry(entry);
       if (server.name === "birdsong") throw new Error('name "birdsong" is reserved');
       if (seen.has(server.name)) throw new Error(`duplicate name ${JSON.stringify(server.name)}`);

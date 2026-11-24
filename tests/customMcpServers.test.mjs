@@ -45,6 +45,17 @@ test("skips bad entries but keeps the good ones", () => {
   assert.equal(errors.length, 6);
 });
 
+test("skips disabled servers silently", () => {
+  const { servers, errors } = parseMcpFile({ mcpServers: [
+    { type: "stdio", name: "off", command: "x", enabled: false },
+    { type: "stdio", name: "on", command: "x", enabled: true },
+    { type: "stdio", name: "default", command: "x" },
+    { type: "stdio", name: "bad-flag", command: "x", enabled: "no" },
+  ] });
+  assert.deepEqual(servers.map((s) => s.name), ["on", "default"]);
+  assert.equal(errors.length, 1);
+});
+
 test("rejects a missing mcpServers list", () => {
   const { servers, errors } = parseMcpFile({});
   assert.deepEqual(servers, []);
