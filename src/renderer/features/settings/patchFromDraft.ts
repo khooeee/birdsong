@@ -13,7 +13,7 @@ function port(text: string, fallback: number): number {
   return value >= 1 && value <= 65535 ? value : fallback;
 }
 
-/** Settings to save from the form; blank or invalid fields keep `prefs`. The key saves separately. */
+/** Settings to save from the form; blank or invalid fields keep `prefs`. The key and MCP servers save separately. */
 export function patchFromDraft(draft: SettingsDraft, prefs: AppSettings): Partial<AppSettings> {
   return {
     theme: draft.theme,

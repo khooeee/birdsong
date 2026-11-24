@@ -1,6 +1,6 @@
 # Pi and ACP `mcpServers`
 
-Every Birdsong session gets Birdsong's own MCP server (`POST /mcp/:sessionId` on the control server) through ACP's `mcpServers`. Claude, Codex and Cursor honour it. Pi needs a workaround, because `pi-acp` drops the servers.
+Every Birdsong session gets Birdsong's own MCP server (`POST /mcp/:sessionId` on the control server), plus the user's custom servers from `mcp.json`, through ACP's `mcpServers`. Claude, Codex and Cursor honour it. Pi needs a workaround, because `pi-acp` drops the servers.
 
 ## The gap
 
@@ -20,9 +20,9 @@ Birdsong runs one `pi-acp` process per session, so environment variables are per
    - `BIRDSONG_PI_COMMAND`: the real Pi command (the user's own `PI_ACP_PI_COMMAND`, else `pi`).
    - `PI_ACP_MCP_SERVERS`: the session's ACP `mcpServers` as JSON.
 2. `pi-acp` runs the wrapper in place of Pi. The wrapper `exec`s the real Pi with `-e register-mcp-servers.js`, passing `pi-acp`'s arguments through.
-3. The extension reads `PI_ACP_MCP_SERVERS` and deletes it, so Pi's shell commands never see the session's MCP key. It turns ACP's `{name, value}` lists into records and calls `pi.registerMcpServer(name, {url, headers} | {command, args, env}, exposure: "direct")` for each server. Pi then lists them as ordinary tools, such as `mcp__birdsong__list_sessions`.
+3. The extension reads `PI_ACP_MCP_SERVERS` and deletes it, so Pi's shell commands never see the session's MCP key. It turns ACP's `{name, value}` lists into records and calls `pi.registerMcpServer(name, {url, headers} | {command, args, env})` for each server. Birdsong's own gets `exposure: "direct"`, so Pi lists its tools as ordinary ones, such as `mcp__birdsong__list_sessions`. Custom servers keep Pi's default exposure, so long tool lists stay out of the context. A server Pi rejects is logged and skipped.
 
-With no servers (the control server is off), `piMcpEnv` returns `{}` and `pi-acp` runs plain Pi. Pi cannot fork, so forks never need this.
+With no servers (the control server is off and there are no custom ones), `piMcpEnv` returns `{}` and `pi-acp` runs plain Pi. Pi cannot fork, so forks never need this.
 
 ## Files
 

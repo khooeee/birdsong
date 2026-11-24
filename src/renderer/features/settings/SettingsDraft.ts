@@ -6,6 +6,8 @@ export type SettingsDraft = {
   theme: Theme;
   soundEnabled: boolean;
   sessionListMax: string;
+  /** mcp.json text; null until edited, so an untouched box keeps the file. */
+  mcpServers: string | null;
   /** null until edited, so an untouched field keeps the saved key. */
   voiceKey: string | null;
   voiceModel: string;

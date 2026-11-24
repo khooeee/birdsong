@@ -45,6 +45,11 @@ export class WarmSessionPool<T extends WarmAcp = WarmAcp> {
     return { acp: slot.acp, started };
   }
 
+  /** Drop every warm session, e.g. once they are out of date. */
+  clear(): void {
+    for (const key of [...this.slots.keys()]) this.drop(key);
+  }
+
   async dispose(): Promise<void> {
     const slots = [...this.slots.values()];
     this.slots.clear();
