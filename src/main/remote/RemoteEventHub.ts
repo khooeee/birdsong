@@ -4,6 +4,7 @@ import type { SessionManager } from "../sessions/SessionManager";
 import { remoteSessionList } from "./remoteSessionList";
 import { toRemoteTurn } from "./toRemoteTurn";
 import { SseStream } from "./SseStream";
+import { TurnDetailHub } from "./TurnDetailHub";
 
 /** Rail updates come in bursts (status, usage, bumps); one per window is plenty for a phone. */
 const LIST_THROTTLE_MS = 300;
@@ -14,6 +15,7 @@ const RESET_TURNS = 50;
 
 /** Fans session list and transcript updates out to iOS event streams, slimmed and throttled. */
 export class RemoteEventHub {
+  readonly turnDetails: TurnDetailHub;
   private listStreams = new Set<SseStream>();
   private transcriptStreams = new Map<string, Set<SseStream>>();
   private pendingTurns = new Map<string, Map<string, TranscriptTurn>>();
@@ -21,6 +23,7 @@ export class RemoteEventHub {
   private turnTimers = new Map<string, NodeJS.Timeout>();
 
   constructor(private sessions: SessionManager) {
+    this.turnDetails = new TurnDetailHub(sessions);
     sessions.subscribe((channel, payload) => this.onEvent(channel, payload));
   }
 
@@ -58,6 +61,7 @@ export class RemoteEventHub {
   closeAll(): void {
     for (const stream of this.listStreams) stream.close();
     for (const streams of this.transcriptStreams.values()) for (const stream of streams) stream.close();
+    this.turnDetails.closeAll();
   }
 
   private onEvent(channel: string, payload: unknown): void {

@@ -1,34 +1,27 @@
 import UIKit
 
+/// A turn's reply (or what the agent is doing), with a button for the turn's details.
 final class TranscriptReplyCell: UICollectionViewListCell {
-    private let replyView = UITextView()
+    var onDetails: (() -> Void)?
+
+    private let replyView = SelectableTextView()
     private let statusLabel = UILabel()
+    private lazy var detailsButton = TurnDetailsButton(showsTitle: true) { [weak self] in self?.onDetails?() }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundConfiguration = .clear()
 
-        replyView.backgroundColor = .clear
-        replyView.isEditable = false
-        replyView.isSelectable = true
-        replyView.isScrollEnabled = false
-        replyView.textContainerInset = .zero
-        replyView.textContainer.lineFragmentPadding = 0
-        replyView.linkTextAttributes = [
-            .foregroundColor: UIColor.link,
-            .underlineStyle: NSUnderlineStyle.single.rawValue,
-        ]
-
         statusLabel.numberOfLines = 0
         statusLabel.textColor = .secondaryLabel
         statusLabel.adjustsFontForContentSizeCategory = true
 
-        let stack = UIStackView(arrangedSubviews: [replyView, statusLabel])
+        let stack = UIStackView(arrangedSubviews: [replyView, statusLabel, detailsButton])
         stack.axis = .vertical
         stack.spacing = 3
         stack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(stack)
-        contentView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 24, bottom: 16, trailing: 24)
+        contentView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 24, bottom: 8, trailing: 24)
         let margins = contentView.layoutMarginsGuide
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: margins.topAnchor),

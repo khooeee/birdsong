@@ -148,6 +148,10 @@ Birdsong desktop app
 6. Run the provided command which should look similar to `tailscale serve --bg <port>`.
 7. Click **Copy iOS Link** & paste the link into the iOS app.
 
+### Turn details
+
+Tap the info button on a prompt, or **Turn Details** under a reply, to see that turn's thoughts, tool calls, steers and subagents, live while it runs. File diffs, images and subagent transcripts are on the Mac only.
+
 ### Alerts when a turn finishes
 
 A finished turn alerts the phone when the app is in the background or the screen is locked. With the app open, the session list updates and there is no banner. The green unread dot is the desktop's: reading a session on either one clears it on both. Tapping the banner opens that session. The simulator cannot receive these.

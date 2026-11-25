@@ -1,15 +1,20 @@
 import UIKit
 
-/// Each turn is two rows: the prompt in a rounded box, then the reply (or what the agent is doing).
+/// Each turn is two rows: the prompt in a rounded box, then the reply (see `TranscriptReplyCell`).
 @MainActor
 enum TurnCellConfigurator {
-    static func configurePrompt(_ cell: UICollectionViewListCell, with turn: RemoteTurn) {
+    static func configurePrompt(_ cell: UICollectionViewListCell, with turn: RemoteTurn, onDetails: @escaping () -> Void) {
         var content = UIListContentConfiguration.cell()
         content.text = turn.user
         content.secondaryText = turn.queued == true ? "Queued" : nil
         content.secondaryTextProperties.color = .secondaryLabel
         content.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 16, leading: 24, bottom: 16, trailing: 24)
         cell.contentConfiguration = content
+        // Not the system detail accessory: VoiceOver reads that as the row's text rather than a button.
+        let button = TurnDetailsButton(showsTitle: false, onTap: onDetails)
+        cell.accessories = [
+            .customView(configuration: .init(customView: button, placement: .trailing(), reservedLayoutWidth: .actual)),
+        ]
 
         var background = UIBackgroundConfiguration.listCell()
         background.backgroundColor = UIColor(resource: .userMessage)
