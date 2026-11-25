@@ -84,9 +84,7 @@ export class ControlServer {
   private async reconcile({ remoteEnabled, controlPort }: ControlSettings): Promise<void> {
     this.remoteEnabled = remoteEnabled;
     if (process.env.BIRDSONG_CONTROL === "0") return liveControlEndpoint.set(null);
-    // The phone can't reach a sleeping Mac.
-    this.keepAwake.set(remoteEnabled);
-    if (this.server && controlPort === this.wantedPort) return;
+    if (this.server && controlPort === this.wantedPort) return this.updateKeepAwake();
     await this.close();
     this.wantedPort = controlPort;
     this.error = null;
@@ -104,8 +102,14 @@ export class ControlServer {
       this.error = `Could not start the control server: ${errorMessage(error)}`;
       console.warn(`[control] ${this.error}`);
     }
+    this.updateKeepAwake();
     // Sessions starting meanwhile wait for this to build their MCP server URL.
     liveControlEndpoint.set(this.endpoint);
+  }
+
+  /** Only while the phone can connect: `tailscale serve` points at the wanted port, not a random fallback. */
+  private updateKeepAwake(): void {
+    this.keepAwake.set(this.remoteEnabled && this.endpoint?.port === this.wantedPort);
   }
 
   /** One failed task must not wedge the ones after it. */
