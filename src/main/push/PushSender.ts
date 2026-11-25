@@ -18,6 +18,8 @@ export class PushSender {
   /** The newest badge pushed; null until the first, so a launch replaces the one the last run left. */
   lastBadge: number | null = null;
   private retry: NodeJS.Timeout | undefined;
+  /** The newest push that carried a badge; an older one that fails late must not replace its retry. */
+  private newestBadgePush = 0;
 
   constructor(private sessions: SessionManager) {}
 
@@ -36,8 +38,10 @@ export class PushSender {
       // iOS drops the app's delivered alerts when a push takes the badge to 0, so an alert never carries it.
       const badge = content.alert && unread === 0 ? undefined : unread;
       const jwt = apnsJwt(pem, apnsKeyId, apnsTeamId);
+      let badgePush: number | undefined;
       if (badge !== undefined) {
         this.lastBadge = badge;
+        badgePush = ++this.newestBadgePush;
         // This push carries the current count, so an older one's retry has nothing left to fix.
         clearTimeout(this.retry);
       }
@@ -53,7 +57,7 @@ export class PushSender {
           }
         }),
       );
-      if (badge !== undefined && settled.includes(false)) this.retryBadge(attempt);
+      if (badgePush === this.newestBadgePush && settled.includes(false)) this.retryBadge(attempt);
     } catch (error) {
       console.warn(`[push] ${errorMessage(error)}`);
     }
@@ -63,7 +67,6 @@ export class PushSender {
   private retryBadge(attempt: number): void {
     const wait = RETRY_MS[attempt];
     if (wait === undefined) return;
-    clearTimeout(this.retry);
     this.retry = setTimeout(() => void this.send(async () => ({}), attempt + 1), wait);
   }
 }
