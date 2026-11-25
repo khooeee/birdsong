@@ -5,6 +5,7 @@ import { errorMessage } from "../../shared/errorMessage";
 import type { RemoteStatus } from "../../shared/remoteStatus";
 import type { SessionManager } from "../sessions/SessionManager";
 import type { VoiceAgent } from "../voice/VoiceAgent";
+import { KeepAwake } from "../remote/KeepAwake";
 import { RemoteEventHub } from "../remote/RemoteEventHub";
 import { BadgePush } from "../push/BadgePush";
 import { PushSender } from "../push/PushSender";
@@ -28,6 +29,7 @@ type ControlSettings = Pick<AppSettings, "remoteEnabled" | "controlPort">;
 export class ControlServer {
   private hub: RemoteEventHub;
   private push: PushSender;
+  private keepAwake = new KeepAwake();
   private server: Server | null = null;
   /** Local scripts' token is `endpoint.token`; this one is the iOS app's. */
   private remoteToken = "";
@@ -59,6 +61,7 @@ export class ControlServer {
 
   stop(): Promise<void> {
     return this.enqueue(async () => {
+      this.keepAwake.set(false);
       await this.close();
       liveControlEndpoint.set(null);
     });
@@ -85,6 +88,8 @@ export class ControlServer {
   private async reconcile({ remoteEnabled, controlPort }: ControlSettings): Promise<void> {
     this.remoteEnabled = remoteEnabled;
     if (process.env.BIRDSONG_CONTROL === "0") return liveControlEndpoint.set(null);
+    // The phone can't reach a sleeping Mac.
+    this.keepAwake.set(remoteEnabled);
     if (this.server && controlPort === this.wantedPort) return;
     await this.close();
     this.wantedPort = controlPort;
