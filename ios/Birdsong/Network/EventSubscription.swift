@@ -71,6 +71,7 @@ final class EventSubscription {
     }
 
     private func run() async {
+        if Task.isCancelled { return }
         var delay = Duration.seconds(1)
         var timeout = Self.firstEventTimeout
         set(.connecting(again: hasBeenLive))
@@ -78,6 +79,7 @@ final class EventSubscription {
             let connection = client.connection
             self.connection = connection
             var failure = "Disconnected"
+            var connectionFailed = false
             do {
                 for try await event in client.events(path, over: connection, firstWithin: timeout) {
                     delay = .seconds(1)
@@ -87,9 +89,11 @@ final class EventSubscription {
                 }
             } catch {
                 failure = error.localizedDescription
+                // These mean the Mac answered, so other requests can keep using the connection.
+                connectionFailed = !(error is ServerError || error is DecodingError)
             }
             if Task.isCancelled { return }
-            client.retire(connection)
+            if connectionFailed { client.retire(connection) }
             set(.offline(failure))
             try? await Task.sleep(for: delay)
             delay = min(delay * 2, .seconds(15))
