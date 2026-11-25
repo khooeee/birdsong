@@ -6,6 +6,8 @@ enum RemoteEvent: Sendable {
     case reset([RemoteTurn])
     case turn(RemoteTurn)
     case turnDetail(RemoteTurnDetail)
+    /// The turn was removed, so there is nothing to reconnect to.
+    case turnGone
 
     private struct Reset: Decodable { let turns: [RemoteTurn] }
     private struct Turn: Decodable { let turn: RemoteTurn }
@@ -19,6 +21,7 @@ enum RemoteEvent: Sendable {
         case "reset": return .reset(try decoder.decode(Reset.self, from: bytes).turns)
         case "turn": return .turn(try decoder.decode(Turn.self, from: bytes).turn)
         case "turnDetail": return .turnDetail(try decoder.decode(RemoteTurnDetail.self, from: bytes))
+        case "turnGone": return .turnGone
         default: return nil
         }
     }

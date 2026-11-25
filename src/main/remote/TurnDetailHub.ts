@@ -8,6 +8,8 @@ import { TurnDetailStream } from "./TurnDetailStream";
 /** Streams single turns in full to the iOS app's Turn Details; transcripts there carry only prompts and replies. */
 export class TurnDetailHub {
   private streams = new Set<TurnDetailStream>();
+  /** Bumped by `closeAll`, so a request that was still loading then can't open with a replaced token. */
+  private generation = 0;
 
   constructor(private sessions: SessionManager) {
     sessions.subscribe((channel, payload) => this.onEvent(channel, payload));
@@ -15,27 +17,28 @@ export class TurnDetailHub {
 
   /** `GET /sessions/:id/turns/:turnId/events`: the turn's steps now, then the ones that change. */
   async open(sessionId: string, turnId: string, req: IncomingMessage, res: ServerResponse): Promise<void> {
+    const { generation } = this;
     const turns = await this.sessions.getTranscript(sessionId);
+    // The phone hung up while loading; its close event won't fire again to clean up.
+    if (res.destroyed) return;
+    if (generation !== this.generation) return sendJson(res, 401, { error: "Unauthorized" });
     const session = this.sessions.getSession(sessionId);
-    const turn = turns.find((entry) => entry.id === turnId);
-    if (!session || !turn) return sendJson(res, 404, { error: "Turn not found" });
+    if (!session) return sendJson(res, 404, { error: "Session not found" });
     const sse = new SseStream(req, res, () => {
       detail.dispose();
       this.streams.delete(detail);
     });
     const detail = new TurnDetailStream(sse, session, turnId);
+    const turn = turns.find((entry) => entry.id === turnId);
+    if (!turn) return detail.sendGone();
     this.streams.add(detail);
     detail.queue(turn);
   }
 
   closeAll(): void {
-    for (const stream of this.streams) this.close(stream);
-  }
-
-  /** Forget it at once: a write after its response ended would throw. */
-  private close(stream: TurnDetailStream): void {
-    this.streams.delete(stream);
-    stream.close();
+    this.generation++;
+    for (const stream of this.streams) stream.close();
+    this.streams.clear();
   }
 
   private onEvent(channel: string, payload: unknown): void {
@@ -51,9 +54,13 @@ export class TurnDetailHub {
       for (const stream of this.streams) {
         if (stream.sessionId !== sessionId) continue;
         const turn = turns.find((entry) => entry.id === stream.turnId);
-        // A queued prompt that was discarded: reconnecting tells the phone it's gone.
-        if (turn) stream.queue(turn);
-        else this.close(stream);
+        if (turn) {
+          stream.queue(turn);
+        } else {
+          // A queued prompt that was discarded. Forget it at once: a write after its response ended would throw.
+          this.streams.delete(stream);
+          stream.sendGone();
+        }
       }
     }
   }

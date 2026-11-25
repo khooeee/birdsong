@@ -5,6 +5,7 @@ final class TurnDetailsViewController: UIViewController {
     private let subscription: EventSubscription
     private var items: [String: RemoteTurnItem] = [:]
     private var status: RemoteTurn.Status?
+    private var isGone = false
     private var connection: EventSubscription.State?
     /// A running turn opens at its newest step and follows it until the user scrolls up; a finished one opens at its start.
     private var followsEnd = false
@@ -34,7 +35,11 @@ final class TurnDetailsViewController: UIViewController {
         view.addSubview(collectionView)
 
         subscription.onEvent = { [weak self] event in
-            if case .turnDetail(let detail) = event { self?.apply(detail) }
+            switch event {
+            case .turnDetail(let detail): self?.apply(detail)
+            case .turnGone: self?.showGone()
+            default: break
+            }
         }
         subscription.onState = { [weak self] state in
             self?.connection = state
@@ -59,7 +64,11 @@ final class TurnDetailsViewController: UIViewController {
     }
 
     override func updateContentUnavailableConfiguration(using state: UIContentUnavailableConfigurationState) {
-        if status != nil {
+        if isGone {
+            var config = UIContentUnavailableConfiguration.empty()
+            config.text = "This turn was removed"
+            contentUnavailableConfiguration = config
+        } else if status != nil {
             contentUnavailableConfiguration = nil
         } else if case .offline(let message) = connection {
             var config = UIContentUnavailableConfiguration.empty()
@@ -90,8 +99,17 @@ final class TurnDetailsViewController: UIViewController {
         setNeedsUpdateContentUnavailableConfiguration()
     }
 
+    /// A queued prompt that was discarded.
+    private func showGone() {
+        subscription.stop()
+        isGone = true
+        dataSource.apply(NSDiffableDataSourceSnapshot<Int, String>(), animatingDifferences: false)
+        navigationItem.subtitle = nil
+        setNeedsUpdateContentUnavailableConfiguration()
+    }
+
     private func updateSubtitle() {
-        guard let status else { return }
+        guard let status, !isGone else { return }
         navigationItem.subtitle = if case .offline = connection {
             "Reconnecting…"
         } else {

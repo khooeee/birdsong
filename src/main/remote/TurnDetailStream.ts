@@ -30,6 +30,12 @@ export class TurnDetailStream {
     this.timer ??= setTimeout(() => this.flush(), THROTTLE_MS);
   }
 
+  /** The turn no longer exists; a 404 would read as a Mac that is still starting, and be retried. */
+  sendGone(): void {
+    this.stream.send("turnGone", { turnId: this.turnId });
+    this.close();
+  }
+
   close(): void {
     this.dispose();
     this.stream.close();

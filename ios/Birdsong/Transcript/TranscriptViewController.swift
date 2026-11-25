@@ -125,7 +125,7 @@ final class TranscriptViewController: UIViewController {
             composer.resumeNotice = current?.continuationNotice
             if let current { modelConfigBar.modelConfig = current.modelConfig }
             if current?.unread == true { markRead() }
-        case .turnDetail:
+        case .turnDetail, .turnGone:
             break
         }
     }
