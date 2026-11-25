@@ -143,10 +143,9 @@ Initial setup
 Birdsong desktop app
 3. If using a MacBook, plug it in.
 4. Keep lid open (unless an external display is connected).
-5. Run `caffeinate -ims` to keep it awake.
-6. In Birdsong desktop app, open **Settings** and tick **Allow the iOS app over Tailscale**.
-7. Run the provided command which should look similar to `tailscale serve --bg <port>`.
-8. Click **Copy iOS Link** & paste the link into the iOS app.
+5. In Birdsong desktop app, open **Settings** and tick **Allow the iOS app over Tailscale**. While it is ticked and the computer is plugged in, Birdsong stops it from sleeping when idle; the display still sleeps.
+6. Run the provided command which should look similar to `tailscale serve --bg <port>`.
+7. Click **Copy iOS Link** & paste the link into the iOS app.
 
 ### Alerts when a turn finishes
 
