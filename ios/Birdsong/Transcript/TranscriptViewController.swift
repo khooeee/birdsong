@@ -70,7 +70,7 @@ final class TranscriptViewController: UIViewController {
         sessionSubscription.onEvent = { [weak self] event in self?.handle(event) }
         subscription.onState = { [weak self] state in
             guard let self else { return }
-            navigationItem.subtitle = state == .live ? session.agent : "Reconnecting…"
+            navigationItem.subtitle = state.notice ?? session.agent
         }
     }
 

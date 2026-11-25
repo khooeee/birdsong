@@ -18,7 +18,7 @@ final class SessionListViewController: UIViewController {
     private var filter = ""
     /// A notification tap that arrived before the rail did.
     private var pendingSessionId: String?
-    private var connection: EventSubscription.State = .connecting
+    private var connection: EventSubscription.State = .connecting(again: false)
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: makeLayout())
     private lazy var dataSource = makeDataSource()
 
