@@ -5,6 +5,7 @@ import { getAppSettings } from "../appSettings";
 import type { SessionManager } from "../sessions/SessionManager";
 import { apnsJwt } from "./apnsJwt";
 import { apnsKeyStore } from "./apnsKeyStore";
+import { isDeadToken } from "./isDeadToken";
 import type { PushContent } from "./PushContent";
 import { PushDevices } from "./PushDevices";
 import { sendApnsPush } from "./sendApnsPush";
@@ -48,9 +49,9 @@ export class PushSender {
       const settled = await Promise.all(
         devices.map(async (device) => {
           try {
-            const status = await sendApnsPush({ ...device, ...content, badge, jwt });
-            if (status === 410) await this.devices.remove(device.token);
-            return status !== 429 && status < 500;
+            const result = await sendApnsPush({ ...device, ...content, badge, jwt });
+            if (isDeadToken(result)) await this.devices.remove(device.token);
+            return result.status !== 429 && result.status < 500;
           } catch (error) {
             console.warn(`[push] ${errorMessage(error)}`);
             return false;
