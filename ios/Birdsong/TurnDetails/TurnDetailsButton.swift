@@ -1,6 +1,6 @@
 import UIKit
 
-/// Opens Turn Details: a chevron, as on the desktop, beside a prompt and at the bottom right of a reply.
+/// Opens Turn Details: a chevron at the bottom right of a prompt and of a reply, as on the desktop.
 final class TurnDetailsButton: UIButton {
     init(onTap: @escaping () -> Void) {
         super.init(frame: .zero)

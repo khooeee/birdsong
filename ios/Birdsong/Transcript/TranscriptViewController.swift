@@ -208,11 +208,10 @@ final class TranscriptViewController: UIViewController {
     }
 
     private func makeDataSource() -> UICollectionViewDiffableDataSource<Int, Row> {
-        let prompt = UICollectionView.CellRegistration<UICollectionViewListCell, Row> { [weak self] cell, _, row in
+        let prompt = UICollectionView.CellRegistration<TranscriptPromptCell, Row> { [weak self] cell, _, row in
             guard let turn = self?.turn(row.turnId) else { return }
-            TurnCellConfigurator.configurePrompt(cell, with: turn) { [weak self] in
-                self?.showDetails(row.turnId, openAtEnd: false)
-            }
+            cell.configure(with: turn)
+            cell.onDetails = { [weak self] in self?.showDetails(row.turnId, openAtEnd: false) }
         }
         let reply = UICollectionView.CellRegistration<TranscriptReplyCell, Row> { [weak self] cell, _, row in
             guard let turn = self?.turn(row.turnId) else { return }
