@@ -5,7 +5,7 @@ import type { Session } from "../../../shared/session";
 import { resumeElsewhere } from "./resumeElsewhere";
 import { useAvailableAgents } from "./useAvailableAgents";
 
-/** Continue with, and a flyout of the installed coding agents. */
+/** Continue with, and an alphabetical flyout of the installed coding agents. */
 export function ResumeElsewhereItem({
   session,
   pinned,
@@ -16,7 +16,9 @@ export function ResumeElsewhereItem({
   onDismiss: () => void;
 }) {
   const available = useAvailableAgents();
-  const agents = available ?? [];
+  const agents = [...(available ?? [])].sort((a, b) =>
+    AGENT_LABELS[a].localeCompare(AGENT_LABELS[b]),
+  );
   const disabled = !session.cwd.trim() || agents.length === 0;
   const rowRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
