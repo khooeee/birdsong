@@ -66,6 +66,7 @@ export function ComposerPrompt({
       <textarea
         ref={promptRef}
         className={className}
+        data-history-when-empty="true"
         value={draft}
         placeholder={placeholder}
         spellCheck={false}
