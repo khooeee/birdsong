@@ -2,13 +2,15 @@ import type { Session } from "../../shared/session";
 import { forkSessionAtEvent } from "./forkSessionAtEvent";
 import type { SessionDeps } from "./SessionDeps";
 
-/** Fork a session (optionally at an event) into a new unpinned rail entry. */
+/** Fork a session (optionally at an event) into a new rail entry that keeps the source's pin. */
 export async function forkSession(
   { state, persistence, hydration, agents }: SessionDeps,
   sessionId: string,
   eventId?: string,
 ): Promise<Session> {
   if (!(await hydration.ensure(sessionId))) throw new Error("Session not found");
+  // A fork of a pinned session is pinned too; an unpinned source forks unpinned.
+  const pin = state.railLists.pinnedIds.includes(sessionId);
   return forkSessionAtEvent({
     getSession: (id) => state.sessions.get(id),
     getTranscript: (id) => state.transcripts.get(id) ?? [],
@@ -18,7 +20,7 @@ export async function forkSession(
     callbacksFor: (session) => agents.callbacksFor(session),
     setSession: (id, session) => { state.agents.set(id, session); },
     addSession: (session, transcript) => {
-      state.prependSession(session);
+      state.prependSession(session, pin);
       state.transcripts.set(session.id, transcript);
       state.hydrated.add(session.id);
       void state.subagentTranscripts.copySession(sessionId, session.id).catch(() => undefined);
