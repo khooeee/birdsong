@@ -104,8 +104,9 @@ final class BirdsongClient: Sendable {
         _ = try await send(request(["sessions", sessionId, "cancel"], method: "POST"))
     }
 
-    /// `path` is `["events"]` for the rail or `["sessions", id, "events"]` for one transcript. Fails unless an
-    /// event arrives within `timeout`; the desktop always sends one on opening.
+    /// `path` is `["events"]` for the rail, `["sessions", id, "events"]` for one transcript, or
+    /// `["sessions", id, "turns", turnId, "events"]` for one turn in full. Fails unless an event arrives within
+    /// `timeout`; the desktop always sends one on opening.
     func events(
         _ path: [String],
         over connection: HTTPConnection,
