@@ -16,7 +16,7 @@ const TEXT_INPUT_TYPES = new Set([
 /**
  * True when the focused element takes typed text, so caret keys like Cmd+Left must keep
  * their text meaning. CodeMirror's contenteditable editor counts as text entry too.
- * A textarea marked `data-history-when-empty` stops counting while it is blank, so history
+ * A textarea marked `data-history-when-empty` stops counting while it is empty, so history
  * shortcuts still work from an empty composer and the caret keys come back once it has text.
  */
 export function isTextEntry(target: EventTarget | null): boolean {
@@ -27,5 +27,5 @@ export function isTextEntry(target: EventTarget | null): boolean {
 }
 
 function isBlankHistoryField(field: HTMLTextAreaElement): boolean {
-  return field.dataset.historyWhenEmpty !== undefined && field.value.trim() === "";
+  return field.dataset.historyWhenEmpty !== undefined && field.value === "";
 }

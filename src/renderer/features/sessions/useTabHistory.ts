@@ -45,7 +45,7 @@ export function useTabHistory(
     const onKey = (event: KeyboardEvent) => {
       if (disabled || event.defaultPrevented || event.isComposing || dialogOpen()) return;
       const delta = historyKeyStep(event);
-      if (!delta || isTextEntry(event.target)) return;
+      if (!delta || (isMac && isTextEntry(event.target))) return;
       event.preventDefault();
       event.stopPropagation();
       go(delta);
