@@ -129,7 +129,8 @@ export async function connectAcpAgent(handlers: ConnectHandlers): Promise<Connec
   const canLoad = caps?.loadSession === true;
   const canResume = caps?.sessionCapabilities?.resume != null;
   handlers.onForkSupport(caps?.sessionCapabilities?.fork != null);
-  const initializationMeta = initialized._meta;
+  // Steering support: the Claude and Codex adapters report it in `_meta`, Devin in `agentCapabilities._meta`.
+  const initializationMeta = { ...caps?._meta, ...initialized._meta };
   handlers.configureDelivery(initializationMeta);
 
   if (preset.authMethodId) {

@@ -1,6 +1,6 @@
 # Pi and ACP `mcpServers`
 
-Every Birdsong session gets Birdsong's own MCP server (`POST /mcp/:sessionId` on the control server), plus the user's custom servers from `mcp.json`, through ACP's `mcpServers`. Claude, Codex, Cursor and Antigravity honour it. Pi needs a workaround, because `pi-acp` drops the servers.
+Every Birdsong session gets Birdsong's own MCP server (`POST /mcp/:sessionId` on the control server), plus the user's custom servers from `mcp.json`, through ACP's `mcpServers`. Claude, Codex, Cursor, Antigravity and Devin honour it. Pi needs a workaround, because `pi-acp` drops the servers.
 
 ## The gap
 
