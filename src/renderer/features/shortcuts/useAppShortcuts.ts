@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import type { ActiveTabId } from "../../../shared/activeTabId";
-import type { RailMode } from "../../../shared/railMode";
 import type { Session } from "../../../shared/session";
 import { isComposerDraftEmpty } from "../chat/isComposerDraftEmpty";
 import { forkSession } from "../sessions/forkSession";
@@ -70,7 +69,9 @@ export function useAppShortcuts({
   unpinnedRef.current = unpinned;
   const selectTabRef = useRef(selectTab);
   selectTabRef.current = selectTab;
-  const homeReturn = useRef<{ tab: ActiveTabId; mode: RailMode } | null>(null);
+  // The session ⌘1 returns to. Updated whenever the open session is not Home, including clicks.
+  const otherSession = useRef<string | null>(null);
+  if (activeTabId && !activeSession?.home) otherSession.current = activeTabId;
 
   const mode = useRailMode();
   const filesMode = mode === "files";
@@ -91,26 +92,17 @@ export function useAppShortcuts({
       if (!id || blockedRef.current || sessionIsHome(id)) return;
       void closeSessionSafely(id);
     };
-    const openHome = () => {
+    const toggleHome = () => {
       if (blockedRef.current) return;
-      const home = [...pinnedRef.current, ...unpinnedRef.current].find((session) => session.home);
-      const onHome = !!home && activeId.current === home.id && railModeStore.getSnapshot() === "sessions";
-      if (onHome) {
-        const back = homeReturn.current;
-        homeReturn.current = null;
-        if (!back) return;
-        if (back.tab && back.tab !== home?.id) selectTabRef.current(back.tab);
-        railModeStore.set(back.mode);
+      const sessions = [...pinnedRef.current, ...unpinnedRef.current];
+      const home = sessions.find((session) => session.home);
+      // Switch the session and leave Sessions, Files, or Diff as they are.
+      if (home && activeId.current === home.id) {
+        const back = otherSession.current;
+        if (back && sessions.some((session) => session.id === back)) selectTabRef.current(back);
         return;
       }
-      homeReturn.current = { tab: activeId.current, mode: railModeStore.getSnapshot() };
-      railModeStore.set("sessions");
-      void window.birdsong.openHome().then((opened) => {
-        if (opened) return;
-        const back = homeReturn.current;
-        homeReturn.current = null;
-        if (back) railModeStore.set(back.mode);
-      });
+      void window.birdsong.openHome();
     };
     const forkActive = () => {
       const id = forkableId.current;
@@ -142,7 +134,7 @@ export function useAppShortcuts({
       if (modKey(event, "1")) {
         event.preventDefault();
         if (event.repeat) return;
-        openHome();
+        toggleHome();
         return;
       }
 
@@ -215,7 +207,7 @@ export function useAppShortcuts({
       ["birdsong:close-session", () => {
         if (!inFilesMode()) closeActive();
       }],
-      ["birdsong:open-home", openHome],
+      ["birdsong:open-home", toggleHome],
     ];
     for (const [name, handler] of menuCommands) window.addEventListener(name, handler);
     window.addEventListener("keydown", onKey);

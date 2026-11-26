@@ -52,7 +52,7 @@ export function HomeSettingsFields({ draft, busy, onChange }: SettingsFieldsProp
         </div>
       </label>
       <div className="settings-note">
-        A session pinned above the others. {modLabel("1")} opens it from anywhere, and again goes back.
+        A session pinned above the others. {modLabel("1")} switches between Home and the session you were on, in whatever view you're in.
         Leave the folder blank to turn Home off. Birdsong does not create the folder.
       </div>
     </>
