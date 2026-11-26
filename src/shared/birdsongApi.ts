@@ -50,6 +50,8 @@ export interface BirdsongApi {
   onSessionDraftCommands: (cb: (payload: { id: string; commands: SlashCommand[] }) => void) => () => void;
   createSession: (input: CreateSessionInput) => Promise<Session>;
   forkSession: (sessionId: string, eventId?: string) => Promise<Session>;
+  /** A new session with `agent` in this one's folders, prompted to take over its work. */
+  continueSession: (sessionId: string, agent: AgentKind, pin: boolean) => Promise<Session>;
   closeSession: (sessionId: string) => Promise<void>;
   renameSession: (sessionId: string, title: string) => Promise<void>;
   pinSession: (sessionId: string) => Promise<void>;

@@ -10,6 +10,11 @@ final class BirdsongClient: Sendable {
         let createFolder: Bool
     }
 
+    private struct ContinueBody: Encodable {
+        let agent: String
+        let pin: Bool
+    }
+
     private struct ConfigBody: Encodable {
         let configId: String
         let value: String
@@ -51,6 +56,20 @@ final class BirdsongClient: Sendable {
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let body = CreateSessionBody(agent: agent.rawValue, cwd: cwd, pin: pin, createFolder: createFolder)
         request.httpBody = try JSONEncoder().encode(body)
+        return try JSONDecoder().decode(Session.self, from: await send(request))
+    }
+
+    /// Agents installed on the Mac; ones this build doesn't know are dropped.
+    func availableAgents() async throws -> [SessionAgent] {
+        let kinds = try JSONDecoder().decode([String].self, from: await send(request(["agents"])))
+        return kinds.compactMap(SessionAgent.init(rawValue:))
+    }
+
+    /// A new session with `agent` in this one's folders, prompted to read its transcript and carry on.
+    func continueSession(_ sessionId: String, with agent: SessionAgent, pin: Bool) async throws -> Session {
+        var request = request(["sessions", sessionId, "continue"], method: "POST")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONEncoder().encode(ContinueBody(agent: agent.rawValue, pin: pin))
         return try JSONDecoder().decode(Session.self, from: await send(request))
     }
 

@@ -37,6 +37,14 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
       example: `curl -s -H "Authorization: Bearer $TOKEN" ${b}/sessions`,
     },
     {
+      method: "GET",
+      path: "/agents",
+      auth: true,
+      summary: "Agents installed on this Mac, which POST /sessions and /sessions/:id/continue can start",
+      response: `string[] — some of ${AGENT_KINDS.join(" | ")}`,
+      example: `curl -s -H "Authorization: Bearer $TOKEN" ${b}/agents`,
+    },
+    {
       method: "POST",
       path: "/sessions",
       auth: true,
@@ -75,6 +83,20 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
       example:
         `curl -s -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" ` +
         `-d '{"text":"hello"}' ${b}/sessions/<id>/prompt`,
+    },
+    {
+      method: "POST",
+      path: "/sessions/:id/continue",
+      auth: true,
+      summary: "Hand the session's work to another agent: a new session in its folders, prompted to read its transcript and carry on",
+      body: {
+        agent: AGENT_KINDS.join(" | "),
+        pin: "optional boolean — pin the new session at the top of the rail",
+      },
+      response: "Session — the new session",
+      example:
+        `curl -s -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" ` +
+        `-d '{"agent":"codex"}' ${b}/sessions/<id>/continue`,
     },
     {
       method: "POST",

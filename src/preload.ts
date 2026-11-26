@@ -29,6 +29,7 @@ const api: BirdsongApi = {
   createSession: (input: CreateSessionInput) => ipcRenderer.invoke("sessions:create", input),
   forkSession: (sessionId, eventId) =>
     ipcRenderer.invoke("sessions:fork", sessionId, eventId),
+  continueSession: (sessionId, agent, pin) => ipcRenderer.invoke("sessions:continue", sessionId, agent, pin),
   closeSession: (sessionId: string) => ipcRenderer.invoke("sessions:close", sessionId),
   renameSession: (sessionId: string, title: string) =>
     ipcRenderer.invoke("sessions:rename", sessionId, title),

@@ -8,6 +8,10 @@ import { readJson } from "./readJson";
 import { isMissingFolder } from "../files/isMissingFolder";
 import { sendJson } from "./sendJson";
 import { errorMessage } from "../../shared/errorMessage";
+import { AGENT_KINDS, isAgentKind } from "../../shared/agentKind";
+import { orList } from "../../shared/orList";
+import { availableAgents } from "../acp/availableAgents";
+import { continueSession } from "../sessions/continueSession";
 
 /** Route one control API HTTP request to SessionManager; `authorized` says its bearer token was accepted. */
 export async function handleControlRequest(
@@ -32,6 +36,10 @@ export async function handleControlRequest(
       return sendJson(res, 200, sessions.list());
     }
 
+    if (method === "GET" && pathname === "/agents") {
+      return sendJson(res, 200, await availableAgents());
+    }
+
     if (method === "POST" && pathname === "/sessions") {
       const body = await readJson(req);
       const input = parseCreateSession(body);
@@ -46,7 +54,7 @@ export async function handleControlRequest(
     }
 
     const sessionMatch =
-      /^\/sessions\/([^/]+)(?:\/(prompt|cancel|close|transcript|rename|pin|unpin|read|config))?$/.exec(pathname);
+      /^\/sessions\/([^/]+)(?:\/(prompt|cancel|close|transcript|rename|pin|unpin|read|config|continue))?$/.exec(pathname);
     if (!sessionMatch) return sendJson(res, 404, { error: "Not found" });
     const sessionId = decodeURIComponent(sessionMatch[1]!);
     const action = sessionMatch[2];
@@ -87,6 +95,13 @@ export async function handleControlRequest(
       }
       if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });
       return sendJson(res, 200, await sessions.setConfigOption(sessionId, configId, value));
+    }
+    if (method === "POST" && action === "continue") {
+      const body = await readJson(req);
+      if (!isAgentKind(body.agent)) return sendJson(res, 400, { error: `agent must be ${orList(AGENT_KINDS)}` });
+      // Like POST /sessions, keep the user's current view on the Mac.
+      const session = await continueSession(sessions, sessionId, body.agent, { pin: body.pin === true, focus: false });
+      return sendJson(res, 200, session);
     }
     if (method === "POST" && action === "pin") {
       if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });

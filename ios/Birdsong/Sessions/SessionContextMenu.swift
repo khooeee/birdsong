@@ -1,19 +1,27 @@
 import UIKit
 
-/// A rail row's long-press menu: Pin or Unpin, and Rename.
+/// A rail row's long-press menu: Pin or Unpin, Rename, and Continue with.
 @MainActor
 final class SessionContextMenu {
     private let client: BirdsongClient
     private weak var presenter: UIViewController?
     private var pendingPinUpdates = Set<String>()
+    private lazy var continueWith = ContinueWithMenu(
+        client: client,
+        onStarted: onContinued,
+        onFailed: { [weak self] title, message in self?.showError(title: title, message: message) }
+    )
+    private let onContinued: (Session) -> Void
 
-    init(client: BirdsongClient, presenter: UIViewController) {
+    /// `onContinued` gets the session Continue with started.
+    init(client: BirdsongClient, presenter: UIViewController, onContinued: @escaping (Session) -> Void) {
         self.client = client
         self.presenter = presenter
+        self.onContinued = onContinued
     }
 
     func configuration(for session: Session, pinned: Bool) -> UIContextMenuConfiguration {
-        var actions = [renameAction(session)]
+        var actions: [UIMenuElement] = [renameAction(session), continueWith.element(for: session, pinned: pinned)]
         if session.home != true, !pendingPinUpdates.contains(session.id) {
             actions.insert(pinAction(session.id, pin: !pinned), at: 0)
         }
@@ -28,7 +36,10 @@ final class SessionContextMenu {
                 do {
                     try await self.client.setPinned(pin, sessionId: id)
                 } catch {
-                    self.showPinError(error, pin: pin)
+                    self.showError(
+                        title: pin ? "Couldn't pin session" : "Couldn't unpin session",
+                        message: error.localizedDescription
+                    )
                 }
             }
         }
@@ -42,13 +53,9 @@ final class SessionContextMenu {
         }
     }
 
-    private func showPinError(_ error: any Error, pin: Bool) {
+    private func showError(title: String, message: String) {
         guard let presenter = availablePresenter() else { return }
-        let alert = UIAlertController(
-            title: pin ? "Couldn't pin session" : "Couldn't unpin session",
-            message: error.localizedDescription,
-            preferredStyle: .alert
-        )
+        let alert = UIAlertController(title: title, message: message, preferredStyle: .alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         presenter.present(alert, animated: true)
     }
