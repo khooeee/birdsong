@@ -64,9 +64,6 @@ export interface BirdsongApi {
   startFreshHome: () => Promise<void>;
   /** Validate a Home folder and agent before saving them, asking first if that would stop a running Home turn. */
   checkHomeChange: (cwd: string, agent: AgentKind) => Promise<HomeChangeCheck>;
-  openSessionLink: (link: string) => Promise<void>;
-  sessionLinksReady: () => Promise<void>;
-  onNavigateToSession: (cb: (payload: { sessionId: string }) => void) => () => void;
   listSessions: () => Promise<SessionListPayload>;
   sendPrompt: (sessionId: string, text: string) => Promise<void>;
   cancelPrompt: (sessionId: string) => Promise<void>;
