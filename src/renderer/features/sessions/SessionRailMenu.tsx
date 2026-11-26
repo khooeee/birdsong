@@ -87,7 +87,7 @@ export function SessionRailMenu({
           onDismiss={onDismiss}
         />
       )}
-      <ResumeElsewhereItem session={session} onDismiss={onDismiss} />
+      <ResumeElsewhereItem session={session} pinned={pinned} onDismiss={onDismiss} />
       <SessionRailMenuItem
         label={`${SAVE_MARKDOWN_VIEW_LABELS.session}...`}
         onSelect={() => void saveSessionMarkdown(session).catch(console.error)}

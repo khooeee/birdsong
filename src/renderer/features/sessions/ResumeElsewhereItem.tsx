@@ -8,9 +8,11 @@ import { useAvailableAgents } from "./useAvailableAgents";
 /** Continue with, and a flyout of the installed coding agents. */
 export function ResumeElsewhereItem({
   session,
+  pinned,
   onDismiss,
 }: {
   session: Session;
+  pinned: boolean;
   onDismiss: () => void;
 }) {
   const available = useAvailableAgents();
@@ -32,7 +34,7 @@ export function ResumeElsewhereItem({
   };
 
   const choose = (agent: AgentKind) => {
-    resumeElsewhere(session, agent);
+    resumeElsewhere(session, agent, pinned);
     onDismiss();
   };
 
