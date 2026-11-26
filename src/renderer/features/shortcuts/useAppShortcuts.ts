@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { ActiveTabId } from "../../../shared/activeTabId";
+import type { RailMode } from "../../../shared/railMode";
 import type { Session } from "../../../shared/session";
 import { isComposerDraftEmpty } from "../chat/isComposerDraftEmpty";
 import { forkSession } from "../sessions/forkSession";
@@ -69,7 +70,7 @@ export function useAppShortcuts({
   unpinnedRef.current = unpinned;
   const selectTabRef = useRef(selectTab);
   selectTabRef.current = selectTab;
-  // The session ⌘1 returns to. Updated whenever the open session is not Home, including clicks.
+  // The session ⌘1 and ⌘2 return to. Updated whenever the open session is not Home, including clicks.
   const otherSession = useRef<string | null>(null);
   if (activeTabId && !activeSession?.home) otherSession.current = activeTabId;
 
@@ -92,35 +93,22 @@ export function useAppShortcuts({
       if (!id || blockedRef.current || sessionIsHome(id)) return;
       void closeSessionSafely(id);
     };
-    const toggleHome = () => {
+    // ⌘1 shows Home in Sessions mode, ⌘2 in Files mode. Pressed again there, it returns to the previous session in that mode.
+    const toggleHomeIn = (target: RailMode) => {
       if (blockedRef.current) return;
       const sessions = [...pinnedRef.current, ...unpinnedRef.current];
       const home = sessions.find((session) => session.home);
-      // Switch the session and leave Sessions, Files, or Diff as they are.
-      if (home && activeId.current === home.id) {
+      if (home && activeId.current === home.id && railModeStore.getSnapshot() === target) {
         const back = otherSession.current;
         if (back && sessions.some((session) => session.id === back)) selectTabRef.current(back);
         return;
       }
-      void window.birdsong.openHome();
-    };
-    const toggleHomeFiles = () => {
-      if (blockedRef.current) return;
-      const sessions = [...pinnedRef.current, ...unpinnedRef.current];
-      const home = sessions.find((session) => session.home);
-      const onHomeFiles = !!home && activeId.current === home.id && railModeStore.getSnapshot() === "files";
-      if (onHomeFiles) {
-        const back = otherSession.current;
-        if (back && sessions.some((session) => session.id === back)) {
-          selectTabRef.current(back);
-          railModeStore.set("files");
-        }
-        return;
-      }
       void window.birdsong.openHome().then((opened) => {
-        if (opened) railModeStore.set("files");
+        if (opened) railModeStore.set(target);
       });
     };
+    const toggleHome = () => toggleHomeIn("sessions");
+    const toggleHomeFiles = () => toggleHomeIn("files");
     const forkActive = () => {
       const id = forkableId.current;
       if (!id || blockedRef.current) return;
