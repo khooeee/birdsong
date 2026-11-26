@@ -5,8 +5,10 @@ import { formatAgentError } from "../../shared/formatAgentError";
 import type { PromptHost } from "./PromptHost";
 import { PromptCompletion } from "./PromptCompletion";
 import { PromptQueue } from "./PromptQueue";
-import { PromptDelivery } from "./PromptDelivery";
+import type { PromptDelivery } from "./PromptDelivery";
+import { MidTurnPrompts } from "./MidTurnPrompts";
 import { agentPrompt } from "./agentPrompt";
+import { createPromptDelivery } from "./createPromptDelivery";
 import { usageLimitResetAt } from "./usageLimitResetAt";
 
 /** Sends prompts (or steers), tracks whether a turn is running, and cancels it. */
@@ -19,6 +21,7 @@ export class PromptRunner {
   private completion: PromptCompletion;
   private prompts: PromptQueue;
   private delivery: PromptDelivery;
+  private midTurn = new MidTurnPrompts();
 
   constructor(private host: PromptHost) {
     const { turns } = host;
@@ -37,21 +40,7 @@ export class PromptRunner {
         },
       },
     );
-    this.delivery = new PromptDelivery({
-      isRunning: () => this.turnRunning,
-      prompt: (text, id) => this.prompts.send(text, id),
-      steer: (text) => {
-        const connection = host.connection();
-        const sessionId = host.sessionId();
-        if (!connection || !sessionId || host.isDisposed()) throw new Error("Session closed");
-        return connection.agent.request("_session/steering", {
-          sessionId,
-          prompt: agentPrompt(text, host.hasBirdsongTools(), host.slashCommands()),
-          _meta: { steering: { idleBehavior: "promptRequired" } },
-        });
-      },
-      onSupport: (supported) => host.callbacks().onSteeringSupport(supported),
-    });
+    this.delivery = createPromptDelivery(host, this.prompts, this.midTurn, () => this.turnRunning);
   }
 
   get stopRequested(): boolean {
@@ -264,10 +253,11 @@ export class PromptRunner {
       sessionId,
       prompt: agentPrompt(text, host.hasBirdsongTools(), host.slashCommands()),
     });
+    const stopReason = (await this.midTurn.settled()) ?? response.stopReason;
     if (!this.autonomousTurnId && this.remoteTurnActive !== true) {
-      host.finishPending(response.stopReason === "end_turn" ? "status unavailable" : "interrupted");
+      host.finishPending(stopReason === "end_turn" ? "status unavailable" : "interrupted");
     }
-    this.completion.finish(response.stopReason);
+    this.completion.finish(stopReason);
     this.markSettled("ready");
   }
 

@@ -7,21 +7,33 @@ interface Options {
   isRunning: () => boolean;
   prompt: (text: string, id: string) => Promise<void>;
   steer: (text: string) => Promise<unknown>;
+  /** Send a prompt into the running turn without waiting for it (Devin's mid-turn prompts). */
+  injectPrompt: (text: string) => void;
   onSupport: (supported: boolean) => void;
 }
 
+/** How a busy agent takes steering: a `_session/steering` request, or another `session/prompt`. */
+type SteeringStyle = "steeringRequest" | "midTurnPrompt" | null;
+
+function steeringStyle(metadata: unknown): SteeringStyle {
+  if (!metadata || typeof metadata !== "object") return null;
+  const steering = "steering" in metadata ? metadata.steering : null;
+  if (steering && typeof steering === "object" && "supported" in steering && steering.supported === true) {
+    return "steeringRequest";
+  }
+  return "cognition.ai/midTurnPrompts" in metadata && metadata["cognition.ai/midTurnPrompts"] === true
+    ? "midTurnPrompt" : null;
+}
+
 export class PromptDelivery {
-  private supported = false;
+  private style: SteeringStyle = null;
   private dispatch = Promise.resolve();
 
   constructor(private options: Options) {}
 
   configure(metadata: unknown): void {
-    const steering = metadata && typeof metadata === "object" && "steering" in metadata
-      ? metadata.steering : null;
-    this.supported = !!steering && typeof steering === "object" &&
-      "supported" in steering && steering.supported === true;
-    this.options.onSupport(this.supported);
+    this.style = steeringStyle(metadata);
+    this.options.onSupport(this.style !== null);
   }
 
   send(text: string, id: string): Promise<void> {
@@ -47,7 +59,11 @@ export class PromptDelivery {
   }
 
   private async deliver(text: string): Promise<DeliveryDecision> {
-    if (this.supported && this.options.isRunning()) {
+    if (this.style === "midTurnPrompt" && this.options.isRunning()) {
+      this.options.injectPrompt(text);
+      return { mode: "injected", completion: Promise.resolve() };
+    }
+    if (this.style === "steeringRequest" && this.options.isRunning()) {
       let response: unknown;
       try {
         response = await this.options.steer(text);
@@ -56,7 +72,7 @@ export class PromptDelivery {
           throw error;
         }
         // A stale capability flag must not prevent the message from being sent.
-        this.supported = false;
+        this.style = null;
         this.options.onSupport(false);
         return { mode: "prompt" };
       }
