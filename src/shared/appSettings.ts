@@ -41,6 +41,8 @@ export interface AppSettings {
   remoteEnabled: boolean;
   /** Fixed localhost port of the control API, so `tailscale serve` can point at it. */
   controlPort: number;
+  /** HTTPS port advertised by `tailscale serve`. */
+  tailscaleServePort: number;
   /** APNs auth key id. Empty disables iPhone turn alerts. */
   apnsKeyId: string;
   /** Apple Developer team id that owns the APNs key. */

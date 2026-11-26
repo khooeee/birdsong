@@ -17,6 +17,7 @@ export function draftFromSettings(prefs: AppSettings): SettingsDraft {
     voiceIdleMinutes: String(prefs.voiceIdleMinutes),
     remoteEnabled: prefs.remoteEnabled,
     controlPort: String(prefs.controlPort),
+    tailscaleServePort: String(prefs.tailscaleServePort),
     apnsKeyId: prefs.apnsKeyId,
     apnsTeamId: prefs.apnsTeamId,
   };

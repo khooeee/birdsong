@@ -20,6 +20,7 @@ export type SettingsDraft = {
   voiceIdleMinutes: string;
   remoteEnabled: boolean;
   controlPort: string;
+  tailscaleServePort: string;
   apnsKeyId: string;
   apnsTeamId: string;
 };

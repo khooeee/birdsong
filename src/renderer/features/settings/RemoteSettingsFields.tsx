@@ -7,8 +7,7 @@ import type { SettingsFieldsProps } from "./SettingsFieldsProps";
 
 /**
  * iOS access: the checkbox applies at once (unlike the rest of the modal) so pairing needs no reopen;
- * the port (shared with every session's MCP server) applies on Save. Status refreshes on window focus,
- * e.g. after running `tailscale serve`.
+ * the ports apply on Save. Status refreshes on window focus, e.g. after running `tailscale serve`.
  */
 export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsProps) {
   const [status, setStatus] = useState<RemoteStatus | null>(null);
@@ -86,7 +85,7 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
         </div>
       )}
       <label>
-        Control API port
+        Local API port
         <input
           type="number"
           min={1}
@@ -94,6 +93,17 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
           value={draft.controlPort}
           disabled={busy}
           onChange={(e) => onChange({ controlPort: e.target.value })}
+        />
+      </label>
+      <label>
+        Tailscale HTTPS port
+        <input
+          type="number"
+          min={1}
+          max={65535}
+          value={draft.tailscaleServePort}
+          disabled={busy}
+          onChange={(e) => onChange({ tailscaleServePort: e.target.value })}
         />
       </label>
       <label>

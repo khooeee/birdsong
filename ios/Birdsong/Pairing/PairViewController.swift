@@ -62,7 +62,7 @@ final class PairViewController: UIViewController {
 
     private func connect() {
         guard let config = ServerConfig(link: linkField.text ?? "") else {
-            errorLabel.text = "That isn't a Birdsong link. Copy it from Birdsong's Settings: birdsong://<mac>.ts.net?token=…"
+            errorLabel.text = "That isn't a Birdsong link. Copy it from Birdsong's Settings: birdsong://<mac>.ts.net[:port]?token=…"
             return
         }
         errorLabel.text = nil

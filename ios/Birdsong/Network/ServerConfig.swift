@@ -1,6 +1,6 @@
 import Foundation
 
-/// Where the desktop app is and the token it pairs with, from `birdsong://<mac>.ts.net?token=…`.
+/// Where the desktop app is and the token it pairs with, from `birdsong://<mac>.ts.net[:port]?token=…`.
 struct ServerConfig: Sendable, Equatable {
     let link: String
     let baseURL: URL
