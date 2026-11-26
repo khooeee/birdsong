@@ -1,6 +1,6 @@
 .settings-menu,
-.context-menu {
-  position: fixed;
+.context-menu,
+.context-flyout {
   z-index: 40;
   min-width: 168px;
   background: var(--bg-1);
@@ -8,6 +8,31 @@
   border-radius: 10px;
   padding: 4px;
   box-shadow: 0 12px 32px var(--shadow);
+}
+
+.settings-menu,
+.context-menu {
+  position: fixed;
+}
+
+.context-submenu {
+  position: relative;
+}
+
+.context-flyout {
+  position: absolute;
+  top: 0;
+  left: calc(100% - 4px);
+}
+
+.context-flyout.align-left {
+  left: auto;
+  right: calc(100% - 4px);
+}
+
+.context-flyout.align-up {
+  top: auto;
+  bottom: 0;
 }
 
 .settings-item,

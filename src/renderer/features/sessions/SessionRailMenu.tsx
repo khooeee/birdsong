@@ -7,6 +7,7 @@ import "../settings/settingsShortcuts.css";
 import { openSessionInEditor } from "../explorer/openSessionInEditor";
 import { modLabel } from "../shortcuts/modLabel";
 import { pinShortcut } from "./pinShortcut";
+import { ResumeElsewhereItem } from "./ResumeElsewhereItem";
 import { SessionRailMenuItem } from "./SessionRailMenuItem";
 import { saveSessionMarkdown } from "./saveSessionMarkdown";
 import { toggleSessionUnread } from "./toggleSessionUnread";
@@ -71,6 +72,7 @@ export function SessionRailMenu({
         onSelect={() => onFork(session.id)}
         onDismiss={onDismiss}
       />
+      <ResumeElsewhereItem session={session} onDismiss={onDismiss} />
       {session.home ? (
         <SessionRailMenuItem
           label="Start Fresh"
