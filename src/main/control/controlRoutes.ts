@@ -54,7 +54,7 @@ export async function handleControlRequest(
     }
 
     const sessionMatch =
-      /^\/sessions\/([^/]+)(?:\/(prompt|cancel|close|transcript|rename|pin|unpin|read|config|continue))?$/.exec(pathname);
+      /^\/sessions\/([^/]+)(?:\/(prompt|cancel|close|transcript|rename|pin|unpin|read|unread|fork|config|continue))?$/.exec(pathname);
     if (!sessionMatch) return sendJson(res, 404, { error: "Not found" });
     const sessionId = decodeURIComponent(sessionMatch[1]!);
     const action = sessionMatch[2];
@@ -113,10 +113,15 @@ export async function handleControlRequest(
       sessions.unpinSession(sessionId);
       return sendJson(res, 200, { sessionId, pinned: false, ok: true });
     }
-    if (method === "POST" && action === "read") {
+    if (method === "POST" && (action === "read" || action === "unread")) {
       if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });
-      sessions.setSessionUnread(sessionId, false);
-      return sendJson(res, 200, { sessionId, unread: false, ok: true });
+      const unread = action === "unread";
+      sessions.setSessionUnread(sessionId, unread);
+      return sendJson(res, 200, { sessionId, unread, ok: true });
+    }
+    if (method === "POST" && action === "fork") {
+      // Like POST /sessions, keep the user's current view on the Mac.
+      return sendJson(res, 200, await sessions.forkSession(sessionId, undefined, { focus: false }));
     }
     if (method === "POST" && action === "cancel") {
       await sessions.cancelPrompt(sessionId);

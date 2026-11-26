@@ -133,8 +133,13 @@ export class SessionManager {
     return session;
   }
 
-  async forkSession(sessionId: string, eventId?: string): Promise<Session> {
-    const session = await forkSession(this.deps, sessionId, eventId);
+  /** `focus: false` adds the fork to the rail without switching to it (control API). */
+  async forkSession(
+    sessionId: string,
+    eventId?: string,
+    { focus = true }: { focus?: boolean } = {},
+  ): Promise<Session> {
+    const session = await forkSession(this.deps, sessionId, eventId, focus);
     await this.trimRail(session.id);
     return session;
   }

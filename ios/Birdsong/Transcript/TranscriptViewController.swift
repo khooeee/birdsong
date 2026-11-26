@@ -134,7 +134,7 @@ final class TranscriptViewController: UIViewController {
     /// by the next rail update.
     private func markRead() {
         guard UIApplication.shared.applicationState != .background else { return }
-        Task { try? await client.markRead(sessionId: session.id) }
+        Task { try? await client.setUnread(false, sessionId: session.id) }
     }
 
     private func apply(changed: [String]) {

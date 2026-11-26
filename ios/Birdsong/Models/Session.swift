@@ -19,6 +19,8 @@ struct Session: Decodable, Sendable, Hashable, Identifiable {
     var unread: Bool?
     /// The Home session, pinned above the others. Absent from an older Mac app.
     let home: Bool?
+    /// False when the agent can't fork; absent until one of its kind connects, or from an older Mac app.
+    let supportsFork: Bool?
 
     var continuationNotice: String? {
         guard let resumeAt else { return nil }
