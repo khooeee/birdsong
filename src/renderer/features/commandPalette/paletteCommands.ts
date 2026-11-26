@@ -45,6 +45,8 @@ export function paletteCommands(context: PaletteContext): PaletteCommand[] {
     command("rename-session", "Rename Session…", "birdsong:rename-session", modLabel("R"), sessionRequired),
     command("open-home", "Go to Home", "birdsong:open-home", modLabel("1"),
       context.homeOn ? undefined : "Set a Home folder in Settings.", "todos notes personal"),
+    command("home-files", "Home Files", "birdsong:home-files", modLabel("2"),
+      context.homeOn ? undefined : "Set a Home folder in Settings.", "explorer files folder"),
     command("pin-session", `${context.pinned ? "Unpin" : "Pin"} Session`, "birdsong:toggle-pin",
       pinShortcut.label, context.home ? "Home stays pinned." : sessionRequired, "toggle pin favorite"),
     command("unread-session", `Mark Session as ${context.unread ? "Read" : "Unread"}`, "birdsong:mark-unread",

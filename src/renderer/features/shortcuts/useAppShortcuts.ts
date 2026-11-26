@@ -104,6 +104,23 @@ export function useAppShortcuts({
       }
       void window.birdsong.openHome();
     };
+    const toggleHomeFiles = () => {
+      if (blockedRef.current) return;
+      const sessions = [...pinnedRef.current, ...unpinnedRef.current];
+      const home = sessions.find((session) => session.home);
+      const onHomeFiles = !!home && activeId.current === home.id && railModeStore.getSnapshot() === "files";
+      if (onHomeFiles) {
+        const back = otherSession.current;
+        if (back && sessions.some((session) => session.id === back)) {
+          selectTabRef.current(back);
+          railModeStore.set("files");
+        }
+        return;
+      }
+      void window.birdsong.openHome().then((opened) => {
+        if (opened) railModeStore.set("files");
+      });
+    };
     const forkActive = () => {
       const id = forkableId.current;
       if (!id || blockedRef.current) return;
@@ -135,6 +152,13 @@ export function useAppShortcuts({
         event.preventDefault();
         if (event.repeat) return;
         toggleHome();
+        return;
+      }
+
+      if (modKey(event, "2")) {
+        event.preventDefault();
+        if (event.repeat) return;
+        toggleHomeFiles();
         return;
       }
 
@@ -208,6 +232,7 @@ export function useAppShortcuts({
         if (!inFilesMode()) closeActive();
       }],
       ["birdsong:open-home", toggleHome],
+      ["birdsong:home-files", toggleHomeFiles],
     ];
     for (const [name, handler] of menuCommands) window.addEventListener(name, handler);
     window.addEventListener("keydown", onKey);
