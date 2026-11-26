@@ -1,5 +1,6 @@
 import * as acp from "@agentclientprotocol/sdk/unstable";
 import { formatAgentError } from "../../shared/formatAgentError";
+import { isAuthRequired } from "./isAuthRequired";
 
 type AttachHost = {
   connection: acp.ClientConnection | null;
@@ -65,6 +66,8 @@ export async function attachAcpSession(
     } catch (err) {
       host.clearSessionId();
       host.markIdle();
+      // Signed out: another method or a fresh session would fail the same way.
+      if (isAuthRequired(err)) throw err;
       errors.push(formatAgentError(err));
       continue;
     }

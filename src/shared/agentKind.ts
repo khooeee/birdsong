@@ -1,7 +1,9 @@
-export type AgentKind = "claude" | "codex" | "cursor" | "pi";
+export const AGENT_KINDS = ["claude", "codex", "cursor", "pi", "antigravity"] as const;
 
-const AGENT_KINDS = new Set<AgentKind>(["claude", "codex", "cursor", "pi"]);
+export type AgentKind = (typeof AGENT_KINDS)[number];
+
+const KNOWN = new Set<string>(AGENT_KINDS);
 
 export function isAgentKind(value: unknown): value is AgentKind {
-  return typeof value === "string" && AGENT_KINDS.has(value as AgentKind);
+  return typeof value === "string" && KNOWN.has(value);
 }

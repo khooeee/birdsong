@@ -1,3 +1,6 @@
+import { AGENT_LABELS } from "../../shared/agentLabels";
+import { orList } from "../../shared/orList";
+
 const SESSION = {
   type: "string",
   description:
@@ -28,7 +31,7 @@ export const voiceToolDefs = [
     {
       project: { type: "string", description: "Project folder name as the user said it. Omit to use the current project." },
       prompt: { type: "string", description: "The task, close to what the user said. Omit when the user only asked for a new session." },
-      agent: { type: "string", description: "Claude Code, Codex, Cursor or Pi. Omit for the user's usual agent." },
+      agent: { type: "string", description: `${orList(Object.values(AGENT_LABELS))}. Omit for the user's usual agent.` },
       title: { type: "string", description: "Short session title. Omit to derive one from the prompt." },
     },
   ),

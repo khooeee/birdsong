@@ -1,3 +1,4 @@
+import { AGENT_LABELS } from "../../shared/agentLabels";
 import type { AppSettings } from "../../shared/appSettings";
 import instructions from "./voiceInstructions.md?raw";
 import { voiceToolDefs } from "./voiceToolDefs";
@@ -14,7 +15,9 @@ export function voiceSessionConfig(settings: AppSettings) {
       ...(settings.voiceReasoning !== "DEFAULT" && {
         text_generation_config: { reasoning: { effort: settings.voiceReasoning } },
       }),
-      instructions: `${instructions.replaceAll("{{language}}", settings.voiceLanguage)}\n\nThe current local date and time is ${now}.`,
+      instructions: `${instructions
+        .replaceAll("{{language}}", settings.voiceLanguage)
+        .replaceAll("{{agents}}", Object.values(AGENT_LABELS).join(", "))}\n\nThe current local date and time is ${now}.`,
       output_modalities: ["audio"],
       audio: {
         input: {

@@ -18,6 +18,8 @@ interface AgentPreset {
   env?: Record<string, string>;
   /** `clientCapabilities._meta` sent on initialize to opt into adapter-specific behavior. */
   clientCapabilityMeta?: Record<string, unknown>;
+  /** Shown instead of the agent's "Authentication required" error. */
+  loginHint?: string;
 }
 
 function resolveCursorAgent(): string {
@@ -77,6 +79,15 @@ export const AGENT_PRESETS: Record<AgentKind, AgentPreset> = {
     authMethodId: "cursor_login",
     // Model and effort as separate config options instead of combined model variants.
     clientCapabilityMeta: { parameterizedModelPicker: true },
+  },
+  antigravity: {
+    kind: "antigravity",
+    get command() {
+      return resolvePathCommand("agy");
+    },
+    // Each session in its own worker: agy only connects HTTP MCP servers (Birdsong's own) that way.
+    args: ["acp", "--dangerously-skip-permissions", "--process-per-session"],
+    loginHint: "Antigravity is not signed in. Run `agy acp --login` in a terminal, then try again.",
   },
   pi: {
     kind: "pi",
