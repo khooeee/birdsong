@@ -1,12 +1,11 @@
-import { AGENT_LABELS } from "../../shared/agentLabels";
 import type { AppSettings } from "../../shared/appSettings";
-import instructions from "./voiceInstructions.md?raw";
+import type { Session } from "../../shared/session";
+import { voiceInstructions } from "./voiceInstructions";
 import { voiceToolDefs } from "./voiceToolDefs";
 import { VOICE_TTS_MODEL } from "./voiceTtsModel";
 
-/** `session.update` sent when the data channel opens: model, voice, turn detection, tools. */
-export function voiceSessionConfig(settings: AppSettings) {
-  const now = new Date().toLocaleString(undefined, { dateStyle: "full", timeStyle: "short" });
+/** `session.update` sent when the call is created: model, the session's instructions, voice, turn detection, tools. */
+export function voiceSessionConfig(settings: AppSettings, session: Session) {
   return {
     type: "session.update",
     session: {
@@ -15,9 +14,7 @@ export function voiceSessionConfig(settings: AppSettings) {
       ...(settings.voiceReasoning !== "DEFAULT" && {
         text_generation_config: { reasoning: { effort: settings.voiceReasoning } },
       }),
-      instructions: `${instructions
-        .replaceAll("{{language}}", settings.voiceLanguage)
-        .replaceAll("{{agents}}", Object.values(AGENT_LABELS).join(", "))}\n\nThe current local date and time is ${now}.`,
+      instructions: voiceInstructions(settings, session),
       output_modalities: ["audio"],
       audio: {
         input: {

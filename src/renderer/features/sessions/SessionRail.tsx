@@ -1,5 +1,4 @@
 import { SettingsMenu } from "../settings/SettingsMenu";
-import { VoiceButton } from "../voice/VoiceButton";
 import { VoiceLogButton } from "../voiceLog/VoiceLogButton";
 import { RailModeBar } from "../explorer/RailModeBar";
 import { SessionList, type SessionListProps } from "./SessionList";
@@ -24,7 +23,6 @@ export function SessionRail(props: SessionListProps) {
       <SessionList {...props} />
       <div className="rail-footer">
         <VoiceLogButton />
-        <VoiceButton />
         <SettingsMenu />
       </div>
     </aside>

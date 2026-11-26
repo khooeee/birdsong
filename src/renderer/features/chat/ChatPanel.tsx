@@ -8,6 +8,7 @@ import { AskQuestionBar, type AskQuestionOutcome } from "../permissions/AskQuest
 import { firstLine } from "../sessions/firstLine";
 import { sessionMarkdown } from "../sessions/sessionMarkdown";
 import { OpenSubagentIdContext } from "../subagents/OpenSubagentIdContext";
+import { VoiceButton } from "../voice/VoiceButton";
 import { SessionTranscript } from "./SessionTranscript";
 import { ChatComposer } from "./ChatComposer";
 import { SessionTitle } from "./SessionTitle";
@@ -65,6 +66,7 @@ export function ChatPanel({
             />
           ) : null}
           <SessionDiffStats sessionId={session.id} folders={session.workingFolders} />
+          <VoiceButton sessionId={session.id} />
         </div>
       </div>
 

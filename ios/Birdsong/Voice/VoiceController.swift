@@ -1,8 +1,8 @@
 import AVFAudio
 import UIKit
 
-/// Voice on the phone. Whoever starts voice holds the mic, so starting here takes it over from the Mac, whose agent
-/// still drives the call. This keeps the phone's peer connected: after a drop (network change, dead spot) it resumes
+/// Voice on the phone, on one session at a time. Whoever starts voice holds the mic, so starting here takes it over
+/// from the Mac (or moves it from another session), whose agent still drives the call. This keeps the phone's peer connected: after a drop (network change, dead spot) it resumes
 /// with a new call, keeping the old peer's audio running until the new one opens so the app stays alive in the
 /// background.
 @MainActor
@@ -22,6 +22,8 @@ final class VoiceController {
     }
     /// Why voice last stopped by itself; cleared on the next start.
     private(set) var error: String?
+    /// The session voice is on (kept after it stops, so its mic can show the last error).
+    private(set) var sessionId: String?
 
     private let client: VoiceClient
     private var peer: VoicePeer?
@@ -37,12 +39,21 @@ final class VoiceController {
         self.client = client
     }
 
-    func toggle() {
-        if state == .off { start() } else { stop() }
+    /// A session's mic: stop voice on that session, else start it there.
+    func toggle(sessionId: String) {
+        if isOn(sessionId: sessionId) { stop() } else { start(sessionId: sessionId) }
     }
 
-    func start() {
-        guard state == .off else { return }
+    func isOn(sessionId: String) -> Bool {
+        state != .off && self.sessionId == sessionId
+    }
+
+    /// Start on a session; voice on another one ends here first, and the Mac starts this one fresh.
+    func start(sessionId: String) {
+        guard !isOn(sessionId: sessionId) else { return }
+        // No stop request: it could land after the new start and stop the new session's voice.
+        if state != .off { finish(error: nil) }
+        self.sessionId = sessionId
         error = nil
         opened = false
         failures = 0
@@ -67,11 +78,12 @@ final class VoiceController {
     }
 
     private func attempt(resume: Bool, reason: String?) async {
+        guard let sessionId else { return }
         do {
             if !resume, !(await AVAudioApplication.requestRecordPermission()) {
                 return finish(error: "Microphone access is off. Allow Birdsong in Settings → Privacy & Security → Microphone.")
             }
-            let iceServers = try await client.start(resume: resume, reason: reason)
+            let iceServers = try await client.start(sessionId: sessionId, resume: resume, reason: reason)
             try Task.checkCancellation()
             let peer = try VoicePeer(iceServers: iceServers)
             adopt(peer)
@@ -83,7 +95,7 @@ final class VoiceController {
         } catch is CancellationError {
             // Stopped, or superseded by a newer attempt.
         } catch let error as ServerError where error.status == 409 {
-            // Voice was stopped meanwhile: on the Mac, by its idle timer, or by the agent.
+            // Voice was stopped meanwhile (on the Mac, by its idle timer, or by the agent) or moved to another session.
             finish(error: resume ? nil : error.message)
         } catch {
             if !Task.isCancelled { failed(error.localizedDescription) }

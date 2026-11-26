@@ -1,20 +1,15 @@
 import type { CursorAskQuestionRequest } from "../../../shared/agentRequests";
-import { resolveToolSession } from "../resolveToolSession";
 import { toolArgs } from "../toolArgs";
 import type { VoiceToolContext } from "../VoiceToolContext";
 
 type Question = CursorAskQuestionRequest["questions"][number];
-type Found = { ok: true; request: CursorAskQuestionRequest } | { ok: false; error: string; candidates?: string[] };
+type Found = { ok: true; request: CursorAskQuestionRequest } | { ok: false; error: string };
 
-/** The open question for the named session, else the focused one, else the only one. */
-function findRequest(ctx: VoiceToolContext, sessionRef: string | undefined): Found {
-  const open = [...ctx.questions.values()];
-  if (!open.length) return { ok: false, error: "No agent is waiting for an answer." };
-  if (!sessionRef && open.length === 1) return { ok: true, request: open[0]! };
-  const resolved = resolveToolSession(ctx, sessionRef);
-  if (!resolved.ok) return resolved;
-  const request = open.find((entry) => entry.sessionId === resolved.session.id);
-  return request ? { ok: true, request } : { ok: false, error: "That session has no open question." };
+/** The session's open question. */
+function findRequest(ctx: VoiceToolContext): Found {
+  const sessionId = ctx.sessionId();
+  const request = [...ctx.questions.values()].find((entry) => entry.sessionId === sessionId);
+  return request ? { ok: true, request } : { ok: false, error: "The agent is not waiting for an answer." };
 }
 
 /** Option ids the model chose, matched by id or by label. */
@@ -27,12 +22,11 @@ function chosenIds(question: Question, picks: unknown): string[] {
   return question.allowMultiple ? [...new Set(ids)] : ids.slice(0, 1);
 }
 
-/** Select the asking session and answer (or skip) its Cursor agent's multiple-choice question. */
+/** Answer (or skip) the session's open multiple-choice question. */
 export async function answerQuestionTool(ctx: VoiceToolContext, args: Record<string, unknown>): Promise<unknown> {
-  const found = findRequest(ctx, toolArgs.string(args, "session"));
+  const found = findRequest(ctx);
   if (!found.ok) return found;
   const { request } = found;
-  await ctx.sessions.setActiveTab(request.sessionId);
   if (toolArgs.boolean(args, "skip")) {
     ctx.sessions.respondAskQuestion(request.requestId, { outcome: "skipped", reason: "Skipped by voice" });
     ctx.questions.delete(request.requestId);

@@ -40,7 +40,7 @@ final class TranscriptViewController: UIViewController {
         title = session.title.components(separatedBy: "\n").first
         navigationItem.largeTitleDisplayMode = .never
         navigationItem.subtitle = session.agent
-        navigationItem.rightBarButtonItem = VoiceBarButtonItem(voice: voice, presenter: self)
+        navigationItem.rightBarButtonItem = VoiceBarButtonItem(voice: voice, sessionId: session.id, presenter: self)
         view.backgroundColor = .systemBackground
 
         collectionView.delegate = self

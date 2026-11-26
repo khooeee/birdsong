@@ -12,7 +12,7 @@ const VOICE_LOG_LIMIT = 300;
 
 /** Renderer ↔ main voice channels: controls, key, voice list and samples, SDP exchange and connection state (main has the call's events). */
 export function registerVoiceIpc(voice: VoiceAgent): void {
-  ipcMain.handle("voice:toggle", () => voice.toggle());
+  ipcMain.handle("voice:toggle", (_e, sessionId: unknown) => voice.toggle(typeof sessionId === "string" ? sessionId : ""));
   ipcMain.handle("voice:status", () => voice.getStatus());
   ipcMain.handle("voice:keyInfo", () => voiceKeyStore.info());
   ipcMain.handle("voice:setKey", async (_e, key: unknown) => {

@@ -7,7 +7,7 @@ final class AppCoordinator {
     private let window: UIWindow
     private let store = PairingStore()
     private let push = PushRegistration()
-    /// One per pairing: voice is global, so every screen's mic shares it.
+    /// One per pairing: voice is on one session at a time, so every session's mic shares it.
     private var voice: VoiceController?
 
     init(window: UIWindow) {

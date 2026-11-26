@@ -69,7 +69,7 @@ export const BIRDSONG_TOOLS = [
   ),
   tool(
     "set_reminder",
-    "Remind the user at a time with a desktop notification, spoken too when voice is on; clicking it opens this session. It is for the user only: it never prompts any session, this one included. Give `at` or `inMinutes`. Returns the reminder with its due time in local time.",
+    "Remind the user at a time with a desktop notification, spoken too when voice is on this session; clicking it opens this session. It is for the user only: it never prompts any session, this one included. Give `at` or `inMinutes`. Returns the reminder with its due time in local time.",
     {
       message: { type: "string", description: "What to tell the user" },
       at: { type: "string", description: "ISO 8601 time, e.g. YYYY-MM-DDTHH:MM; without an offset it is the user's local time" },

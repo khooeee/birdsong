@@ -1,20 +1,11 @@
-.rail-voice {
-  position: relative;
-  display: flex;
-}
-
-.rail-voice .rail-session {
-  width: 40px;
-  flex: none;
-  justify-content: center;
-  padding: 0;
-}
-
-/* Solid circle behind the mic while voice is on. */
-.voice-button.voice-listening svg {
-  box-sizing: content-box;
-  padding: 5px;
+/* Session header mic; an event-action button, round so the "on" fill reads as a pill. */
+.voice-button {
   border-radius: 50%;
+}
+
+/* Solid circle while voice is on this session. */
+.voice-button.voice-listening,
+.voice-button.voice-listening:hover:not(:disabled) {
   background: var(--voice-on-bg);
   color: var(--voice-on-fg);
 }
@@ -25,13 +16,13 @@
 }
 
 .voice-button.voice-listening.voice-speaking {
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
 .voice-error-dot {
   position: absolute;
-  top: 6px;
-  right: 6px;
+  top: 1px;
+  right: 1px;
   width: 6px;
   height: 6px;
   border-radius: 50%;

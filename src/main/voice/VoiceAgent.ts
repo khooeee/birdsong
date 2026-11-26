@@ -7,22 +7,19 @@ import type { SessionManager } from "../sessions/SessionManager";
 import type { SessionObserver } from "../sessions/SessionObserver";
 import { answerToolCall } from "./answerToolCall";
 import { appendVoiceLog } from "./appendVoiceLog";
-import { clipText } from "../../shared/clipText";
+import { createVoiceTools } from "./createVoiceTools";
 import { CurrentVoiceCall } from "./CurrentVoiceCall";
 import { prepareVoiceCall } from "./prepareVoiceCall";
-import { runVoiceSearch } from "./runVoiceSearch";
 import { VoiceAnnouncer } from "./VoiceAnnouncer";
+import { VoiceCallMessages } from "./VoiceCallMessages";
 import { VoiceConversation } from "./VoiceConversation";
+import { VoiceSessionBinding } from "./VoiceSessionBinding";
 import { VoiceIdleTimer } from "./VoiceIdleTimer";
-import { voiceLogFeed } from "./voiceLogFeed";
-import { voiceNoticeText } from "./voiceNoticeText";
 import { VoiceNotices } from "./VoiceNotices";
-import { voiceOutputUpdate } from "./voiceOutputUpdate";
 import { VoiceRendererLink } from "./VoiceRendererLink";
 import { VoiceServerEvents } from "./VoiceServerEvents";
 import { voiceSessionConfig } from "./voiceSessionConfig";
 import type { VoiceToolContext } from "./VoiceToolContext";
-import { voiceUserMessage } from "./voiceUserMessage";
 
 type Deps = {
   sessions: SessionManager;
@@ -35,18 +32,20 @@ const MAX_RETRIES = 3;
 const PHONE_WAIT_MINUTES = 1;
 
 /**
- * The global voice agent. A peer (this window's renderer, or the iOS app) owns the WebRTC audio; this owns
- * the key, and drives the call over its sideband: session config, tools, notices and listening state.
- * Whoever starts voice is the peer; the phone starting takes over from the desktop.
+ * The voice agent, on one session at a time. A peer (this window's renderer, or the iOS app) owns the WebRTC
+ * audio; this owns the key, and drives the call over its sideband: session config, tools, notices and listening
+ * state. Whoever starts voice is the peer; the phone starting on the same session takes over from the desktop.
  */
 export class VoiceAgent {
-  private status: VoiceStatus = { state: "off", activity: "idle", error: null, peer: "desktop" };
+  private status: VoiceStatus = { state: "off", activity: "idle", error: null, peer: "desktop", sessionId: null };
   private readonly conversation = new VoiceConversation();
   private readonly link: VoiceRendererLink;
   private readonly notices: VoiceNotices;
   private readonly announcer: VoiceAnnouncer;
   private readonly tools: VoiceToolContext;
   private readonly serverEvents: VoiceServerEvents;
+  private readonly binding: VoiceSessionBinding;
+  private readonly messages: VoiceCallMessages;
   private readonly idle = new VoiceIdleTimer((minutes) => {
     appendVoiceLog("state", { idleMinutes: minutes });
     this.stop();
@@ -67,26 +66,31 @@ export class VoiceAgent {
   private opened = false;
   private retries = 0;
   private reconnecting = false;
+  /** Bumped on every start, so a reconnect waiting out its backoff can tell voice restarted meanwhile. */
+  private run = 0;
 
   constructor(private readonly deps: Deps) {
     this.link = new VoiceRendererLink(deps.getWindow);
-    voiceLogFeed.subscribe((entry) => this.link.logEntry(entry));
+    this.messages = new VoiceCallMessages(this.call, this.conversation, deps.sessions);
     const connected = () => this.channelOpen && this.status.state === "listening";
     this.notices = new VoiceNotices(
       () => this.status.state !== "off",
       (quietMs) => connected() && this.conversation.isQuiet(quietMs),
-      (text) => this.deliverNotice(text),
+      (text) => this.messages.notice(text),
     );
-    this.announcer = new VoiceAnnouncer(deps.sessions, this.notices, () => this.status.state !== "off");
-    this.tools = {
-      sessions: deps.sessions,
-      focus: { sessionId: null, numbered: [] },
+    this.announcer = new VoiceAnnouncer(deps.sessions, this.notices, () => this.voicedId());
+    this.binding = new VoiceSessionBinding(deps.sessions, {
+      onClosed: () => this.stop(),
+      onRenamed: (session) => this.messages.renamed(session),
+    });
+    this.tools = createVoiceTools({
+      ...deps,
       questions: this.announcer.questions,
-      startSearch: (query, depth) => {
-        if (this.key) runVoiceSearch(this.key, deps.sessions.getSettings().voiceModel, query, depth, this.notices);
-      },
+      notices: this.notices,
+      sessionId: () => this.voicedId(),
+      key: () => this.key,
       stopVoice: () => this.stop(),
-    };
+    });
     this.serverEvents = new VoiceServerEvents(this.conversation, {
       setStatus: (patch) => this.setStatus(patch),
       resetIdle: () => this.resetIdle(),
@@ -99,37 +103,40 @@ export class VoiceAgent {
     return this.announcer;
   }
 
-  /** Speak a due reminder; false while voice is off. */
+  /** Speak a due reminder of the session voice is on; false for any other (or while voice is off). */
   announceReminder(message: string, session: Session | undefined): boolean {
-    if (this.status.state === "off") return false;
-    this.notices.push(voiceNoticeText.reminder(message, session));
-    return true;
+    return this.announcer.reminder(message, session);
   }
 
   getStatus(): VoiceStatus {
     return { ...this.status };
   }
 
-  /** Button and menu: start on this Mac when off, otherwise stop (wherever voice is). */
-  async toggle(): Promise<void> {
-    if (this.status.state === "off") return this.start();
-    this.stop();
+  /** A session's mic: stop voice on that session (wherever it is), else start it there on this Mac. */
+  async toggle(sessionId: string): Promise<void> {
+    if (this.voicedId() === sessionId) return this.stop();
+    await this.start(sessionId);
   }
 
-  async start(): Promise<void> {
-    if (this.status.state !== "off") return;
-    this.begin("desktop");
+  /** Start on this Mac; voice on another session stops first, so each session starts fresh. */
+  async start(sessionId: string): Promise<void> {
+    this.binding.require(sessionId);
+    this.stop();
+    this.begin("desktop", sessionId);
     await this.connect();
   }
 
   /**
-   * The phone starts voice (taking it over from the desktop, conversation and all), or resumes after its call
-   * dropped. Returns ICE servers for its peer; null refuses a resume because voice was stopped meanwhile.
+   * The phone starts voice on a session (taking it over from the desktop, conversation and all, when it is the
+   * same session), or resumes after its call dropped. Returns ICE servers for its peer; null refuses a resume
+   * because voice was stopped or moved meanwhile.
    */
-  async startPhone(resume: boolean, reason?: string): Promise<RTCIceServer[] | null> {
-    const phoneOn = this.status.state !== "off" && this.status.peer === "phone";
+  async startPhone(sessionId: string, resume: boolean, reason?: string): Promise<RTCIceServer[] | null> {
+    const phoneOn = this.voicedId() === sessionId && this.status.peer === "phone";
     if (resume && !phoneOn) return null;
-    if (this.status.state === "off") this.begin("phone");
+    this.binding.require(sessionId);
+    if (this.voicedId() !== sessionId) this.stop();
+    if (this.status.state === "off") this.begin("phone", sessionId);
     else if (this.status.peer === "desktop") this.link.command({ type: "disconnect" });
     this.setStatus({ peer: "phone" });
     appendVoiceLog("state", { peer: "phone", ...(resume && { resume: reason ?? true }) });
@@ -159,25 +166,24 @@ export class VoiceAgent {
     this.notices.clear();
     this.setStatus({ state: "off", activity: "idle", error: null });
     appendVoiceLog("state", { state: "off" });
+    this.binding.clear();
   }
 
   /** The peer's SDP offer → Inworld's answer, with main attached to the call (the key never leaves main). */
   async answer(offer: string, peer: VoicePeer): Promise<string> {
     const key = this.key;
     if (!key || this.status.state !== "connecting" || this.status.peer !== peer) throw new Error("Voice is not connecting.");
+    const session = this.binding.require(this.status.sessionId ?? "");
     const answer = await this.call.open(key, offer);
     // Configured before the peer connects, so the first thing the user says reaches the real agent.
     this.serverEvents.listening(this.opened);
-    this.call.send(voiceSessionConfig(this.deps.sessions.getSettings()));
+    this.call.send(voiceSessionConfig(this.deps.sessions.getSettings(), session));
     return answer;
   }
 
   /** Settings changed the speaking voice: switch a live call now (desktop or phone); new calls read settings. */
   voiceChanged(): void {
-    if (this.status.state === "off" || !this.call.current) return;
-    const voice = this.deps.sessions.getSettings().voiceName;
-    this.call.send(voiceOutputUpdate(voice));
-    appendVoiceLog("state", { voice });
+    if (this.status.state !== "off") this.messages.voiceChanged();
   }
 
   /** The peer's media is up. */
@@ -188,9 +194,7 @@ export class VoiceAgent {
     this.opened = true;
     this.retries = 0;
     this.phoneWait.clear();
-    if (reconnected && this.conversation.history.length) {
-      this.call.send(voiceUserMessage(`${VoiceNotices.HEADER} ${voiceNoticeText.reconnected(this.conversation.history)}`));
-    }
+    if (reconnected) this.messages.replayHistory();
     this.setStatus({ state: "listening", activity: "idle", error: null });
     this.resetIdle();
     this.notices.poke();
@@ -205,11 +209,19 @@ export class VoiceAgent {
     void this.reconnect(reason);
   }
 
-  private begin(peer: VoicePeer): void {
+  private begin(peer: VoicePeer, sessionId: string): void {
+    this.binding.set(sessionId);
     this.conversation.reset();
+    this.run += 1;
     this.opened = false;
     this.retries = 0;
-    this.setStatus({ peer });
+    this.reconnecting = false;
+    this.setStatus({ peer, sessionId });
+  }
+
+  /** The session voice is on, or null while it is off. */
+  private voicedId(): string | null {
+    return this.status.state === "off" ? null : this.status.sessionId;
   }
 
   private async connect(): Promise<void> {
@@ -248,10 +260,12 @@ export class VoiceAgent {
     if (!this.opened || this.retries >= MAX_RETRIES) return this.fail(reason);
     this.retries += 1;
     this.reconnecting = true;
+    const run = this.run;
     this.endCall();
     this.link.command({ type: "disconnect" });
     this.setStatus({ state: "connecting", activity: "idle" });
     await new Promise((resolve) => setTimeout(resolve, 1000 * 2 ** (this.retries - 1)));
+    if (run !== this.run) return;
     this.reconnecting = false;
     if (this.status.state !== "connecting" || this.status.peer !== "desktop") return;
     await this.connect();
@@ -263,18 +277,9 @@ export class VoiceAgent {
   }
 
   private fail(error: string): void {
+    appendVoiceLog("error", { error, fatal: true });
     this.stop();
     this.setStatus({ error });
-    appendVoiceLog("error", { error, fatal: true });
-  }
-
-  /** Speak queued notices; the response they trigger may not change sessions (runVoiceTool). */
-  private deliverNotice(text: string): void {
-    this.conversation.trigger = "notice";
-    this.conversation.responseStarted();
-    this.call.send(voiceUserMessage(text));
-    this.call.send({ type: "response.create" });
-    appendVoiceLog("notice", { text: clipText(text, 2000) });
   }
 
   /** Only while listening; connecting and off never time out. */

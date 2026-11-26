@@ -212,8 +212,8 @@ export interface BirdsongApi {
   onPromptComplete: (cb: (payload: { sessionId: string; announced?: boolean }) => void) => () => void;
   /** A reminder is due and the voice agent won't read it out. */
   onReminderChime: (cb: () => void) => () => void;
-  /** Voice button / shortcut: start or stop. */
-  toggleVoice: () => Promise<void>;
+  /** A session's mic: start voice for that session (moving it from any other), or stop it there. */
+  toggleVoice: (sessionId: string) => Promise<void>;
   getVoiceStatus: () => Promise<VoiceStatus>;
   getVoiceKeyInfo: () => Promise<VoiceKeyInfo>;
   /** Save the Inworld API key (encrypted in main); empty removes it. */
