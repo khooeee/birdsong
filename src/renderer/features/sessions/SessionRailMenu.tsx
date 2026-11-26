@@ -7,6 +7,7 @@ import "../settings/settingsShortcuts.css";
 import { openSessionInEditor } from "../explorer/openSessionInEditor";
 import { modLabel } from "../shortcuts/modLabel";
 import { pinShortcut } from "./pinShortcut";
+import { ResumeElsewhereItem } from "./ResumeElsewhereItem";
 import { SessionRailMenuItem } from "./SessionRailMenuItem";
 import { saveSessionMarkdown } from "./saveSessionMarkdown";
 import { toggleSessionUnread } from "./toggleSessionUnread";
@@ -86,6 +87,7 @@ export function SessionRailMenu({
           onDismiss={onDismiss}
         />
       )}
+      <ResumeElsewhereItem session={session} pinned={pinned} onDismiss={onDismiss} />
       <SessionRailMenuItem
         label={`${SAVE_MARKDOWN_VIEW_LABELS.session}...`}
         onSelect={() => void saveSessionMarkdown(session).catch(console.error)}
