@@ -52,6 +52,18 @@
   flex-direction: column;
 }
 
+.rail-home {
+  flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.rail-home-icon {
+  flex-shrink: 0;
+}
+
 .rail-scroll {
   flex: 1;
   min-height: 0;

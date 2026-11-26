@@ -64,12 +64,14 @@ export async function handleServerRequest(
     return handleVoiceRequest(req, res, pathname, voice);
   }
   const authorized = requestAuthorized(req, localToken, remoteToken);
-  const streamMatch = req.method === "GET" ? /^\/(?:sessions\/([^/]+)\/)?events$/.exec(pathname) : null;
+  const streamMatch = req.method === "GET" ? /^\/(?:sessions\/([^/]+)\/(?:turns\/([^/]+)\/)?)?events$/.exec(pathname) : null;
   if (!streamMatch) return handleControlRequest(req, res, authorized, baseUrl, sessions);
 
   if (!authorized) return sendJson(res, 401, { error: "Unauthorized" });
   const sessionId = streamMatch[1] && decodeURIComponent(streamMatch[1]);
   if (!sessionId) return hub.openList(req, res);
   if (!sessions.getSession(sessionId)) return sendJson(res, 404, { error: "Session not found" });
+  const turnId = streamMatch[2] && decodeURIComponent(streamMatch[2]);
+  if (turnId) return hub.turnDetails.open(sessionId, turnId, req, res);
   return hub.openTranscript(sessionId, req, res);
 }

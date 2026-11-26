@@ -7,6 +7,7 @@ import "../settings/settingsShortcuts.css";
 import { openSessionInEditor } from "../explorer/openSessionInEditor";
 import { modLabel } from "../shortcuts/modLabel";
 import { pinShortcut } from "./pinShortcut";
+import { ResumeElsewhereItem } from "./ResumeElsewhereItem";
 import { SessionRailMenuItem } from "./SessionRailMenuItem";
 import { saveSessionMarkdown } from "./saveSessionMarkdown";
 import { toggleSessionUnread } from "./toggleSessionUnread";
@@ -71,13 +72,22 @@ export function SessionRailMenu({
         onSelect={() => onFork(session.id)}
         onDismiss={onDismiss}
       />
-      <SessionRailMenuItem
-        label={pinned ? "Unpin" : "Pin"}
-        shortcut={pinShortcut.label}
-        keys={pinShortcut.keys}
-        onSelect={() => (pinned ? onUnpin(session.id) : onPin(session.id))}
-        onDismiss={onDismiss}
-      />
+      {session.home ? (
+        <SessionRailMenuItem
+          label="Start Fresh"
+          onSelect={() => void window.birdsong.startFreshHome()}
+          onDismiss={onDismiss}
+        />
+      ) : (
+        <SessionRailMenuItem
+          label={pinned ? "Unpin" : "Pin"}
+          shortcut={pinShortcut.label}
+          keys={pinShortcut.keys}
+          onSelect={() => (pinned ? onUnpin(session.id) : onPin(session.id))}
+          onDismiss={onDismiss}
+        />
+      )}
+      <ResumeElsewhereItem session={session} pinned={pinned} onDismiss={onDismiss} />
       <SessionRailMenuItem
         label={`${SAVE_MARKDOWN_VIEW_LABELS.session}...`}
         onSelect={() => void saveSessionMarkdown(session).catch(console.error)}
@@ -92,13 +102,15 @@ export function SessionRailMenu({
         onSelect={() => onStop(session.id)}
         onDismiss={onDismiss}
       />
-      <SessionRailMenuItem
-        label="Close"
-        shortcut={modLabel("W")}
-        keys="Meta+W"
-        onSelect={() => onClose(session.id)}
-        onDismiss={onDismiss}
-      />
+      {session.home ? null : (
+        <SessionRailMenuItem
+          label="Close"
+          shortcut={modLabel("W")}
+          keys="Meta+W"
+          onSelect={() => onClose(session.id)}
+          onDismiss={onDismiss}
+        />
+      )}
     </div>
   );
 }

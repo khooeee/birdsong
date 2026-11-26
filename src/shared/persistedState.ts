@@ -9,4 +9,6 @@ export interface PersistedState {
   pinned: string[];
   /** Unpinned session ids in rail order (below pinned). */
   unpinned: string[];
+  /** The Home session, which is also first in `pinned` so older builds still show it on top. */
+  homeId?: string;
 }

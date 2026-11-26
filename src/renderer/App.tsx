@@ -260,6 +260,7 @@ export function App() {
           hasSessions={pinnedSessions.length + unpinnedSessions.length > 0}
           supportsFork={!!activeSession?.supportsFork}
           pinned={pinnedSessions.some((session) => session.id === activeSession?.id)}
+          home={!!activeSession?.home}
           unread={!!activeSession?.unread}
         />
 

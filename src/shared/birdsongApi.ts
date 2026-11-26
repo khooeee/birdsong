@@ -11,6 +11,7 @@ import type { CronsSnapshot } from "./cronsSnapshot";
 import type { DirListing } from "./dirListing";
 import type { FindInFilesResult } from "./findInFilesResult";
 import type { FindInSessionsHit } from "./findInSessionsHit";
+import type { HomeChangeCheck } from "./homeChangeCheck";
 import type { McpProblem } from "./mcpProblem";
 import type { Reminder } from "./reminder";
 import type { ReminderInput } from "./reminderInput";
@@ -55,6 +56,12 @@ export interface BirdsongApi {
   unpinSession: (sessionId: string) => Promise<void>;
   setSessionUnread: (sessionId: string, unread: boolean) => Promise<void>;
   setActiveTab: (tabId: string) => Promise<void>;
+  /** Show the Home session, starting it if needed; false when Home is off. */
+  openHome: () => Promise<boolean>;
+  /** Replace the Home chat with an empty one, asking first if it's mid-turn. */
+  startFreshHome: () => Promise<void>;
+  /** Validate a Home folder and agent before saving them, asking first if that would stop a running Home turn. */
+  checkHomeChange: (cwd: string, agent: AgentKind) => Promise<HomeChangeCheck>;
   openSessionLink: (link: string) => Promise<void>;
   sessionLinksReady: () => Promise<void>;
   onNavigateToSession: (cb: (payload: { sessionId: string }) => void) => () => void;

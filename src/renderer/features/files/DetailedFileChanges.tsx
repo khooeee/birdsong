@@ -2,7 +2,7 @@ import { useState } from "react";
 import type { FileChange } from "../../../shared/fileChange";
 import { fileChangeLabel } from "../../../shared/fileChangeLabel";
 import { FileDiff } from "./FileDiff";
-import { relativeChangePath } from "./relativeChangePath";
+import { relativeChangePath } from "../../../shared/relativeChangePath";
 
 /** Verbose tool-call file rows used in turn details. */
 export function DetailedFileChanges({

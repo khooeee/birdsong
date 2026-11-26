@@ -4,7 +4,8 @@ An agentic development environment that sparks joy in my everyday coding:
 - The user message & final assistant message are the only messages shown in the main content area.  Most of the time, seeing the tool calls & other events are unnecessary.  You can always open them by right clicking on the message and selecting turn details.
 - Each session on the left sidebar shows the title, nothing else.  Details such as coding agent, directory you're in, date/time, etc. add clutter and are not useful most of the time.  Renaming the title is very easy to do and it can be multiline as well.  If you supply URLs, they will be linked as well so you can stuff things into it like issue/PR URLs, etc.
 - Pinning sessions will put them at the top of the list, and once you're done, unpin and they will eventually float down.  You can find them later on through find in history.
-- Sending new messages while the agent is already in progress should always steer where available, otherwise queue.  Claude Code & Codex steer.  Cursor & Pi queue (due to lack of support for steering in their ACP implementation).  Antigravity queues for now.  But in general, I think the concept of queueing should just go away and every coding agent should always steer.
+- [Home](#home) is one session that stays above the pinned ones, pointed at a folder you choose in Settings. I use it for a personal repo: todos, notes, and the rest of life that isn't a coding project. Command/Control + 1 switches between Home and the session you were on, and stays in Sessions, Files, or Diff. Command/Control + 2 switches between Home's file explorer and that session's files.
+- Sending new messages while the agent is already in progress should always steer where available, otherwise queue.  Claude Code & Codex steer.  Antigravity, Cursor & Pi queue (due to lack of support for steering in their ACP implementation).  But in general, I think the concept of queueing should just go away and every coding agent should always steer.
 - All agents are started in bypass permissions/YOLO mode.
 - You can go back and forward through the sessions you selected.  As an example of how I use this, I do something similar to `/btw` by forking a session, sending a prompt and then going back to the original session to keep on working.
 - Zen mode hides the message type & timestamps.  It's on by default.  You can always turn it off to see those details as needed with Command/Control + /.
@@ -55,6 +56,20 @@ npm start
 ```
 
 On macOS, settings and session data live in `~/Library/Application Support/Birdsong/`; app settings are saved in `birdsong.json`. The local control endpoint is published in `~/.birdsong/control.json`.
+
+## Home
+
+Set the folder and agent in **Settings**. A blank folder turns Home off. Birdsong never creates the folder or writes into it, so whatever you keep there (a git repo or not) is yours to edit.
+
+The row has a house icon and stays at the top while you scroll or filter. On iOS it is the top row, and swipe does not offer Unpin.
+
+- **Cmd/Ctrl+1** switches between Home and the session you were on. It does not change Sessions, Files, or Diff.
+- **Cmd/Ctrl+2** switches between Home's file explorer and that session's files.
+- Both are in the Session menu and the command palette.
+- Home can't be closed or unpinned. Right-click it and choose **Start Fresh** to open a new chat; Find in History still has the old one.
+- Saving a new folder or agent starts a new Home chat right away. If a turn is running, Birdsong asks before it stops the turn.
+- If the folder goes missing, the row stays and shows the error.
+- Voice and other sessions can see which session is Home, so "add milk to my todo" can be sent there. Forks of Home are ordinary sessions.
 
 ## Crons
 
@@ -148,6 +163,10 @@ Birdsong desktop app
 6. Run the provided command which should look similar to `tailscale serve --bg <port>`.
 7. Click **Copy iOS Link** & paste the link into the iOS app.
 
+### Turn details
+
+Tap the chevron at the bottom right of a prompt or a reply, to see that turn's thoughts, tool calls, steers and subagents, live while it runs. File diffs, images and subagent transcripts are on the Mac only.
+
 ### Alerts when a turn finishes
 
 A finished turn alerts the phone when the app is in the background or the screen is locked. With the app open, the session list updates and there is no banner. The green unread dot is the desktop's: reading a session on either one clears it on both. Tapping the banner opens that session. The simulator cannot receive these.
@@ -221,13 +240,17 @@ Niceties:
 
 **Cmd/Ctrl+R**: Rename selected session
 
-**Cmd+[ / Alt+Left**: Go back to the previously selected session
+**Cmd+Left / Alt+Left**: Go back to the previously selected session
 
-**Cmd+] / Alt+Right**: Go forward through selected sessions
+**Cmd+Right / Alt+Right**: Go forward through selected sessions
 
 **Cmd/Ctrl+/**: Toggle zen mode
 
 **Cmd/Ctrl+,**: Open settings
+
+**Cmd/Ctrl+1**: Switch between Home and the previous session
+
+**Cmd/Ctrl+2**: Switch between Home's file explorer and the previous session
 
 ### Sessions mode
 

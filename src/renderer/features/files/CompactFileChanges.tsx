@@ -4,7 +4,7 @@ import { coalesceFileChanges } from "./coalesceFileChanges";
 import { FileDiff } from "./FileDiff";
 import { markdownPreviewText } from "./markdownPreviewText";
 import { OpenMarkdownPreview } from "./OpenMarkdownPreview";
-import { relativeChangePath } from "./relativeChangePath";
+import { relativeChangePath } from "../../../shared/relativeChangePath";
 import { shortChangeNames } from "./shortChangeNames";
 
 /** Filename chips under the final assistant message; click to toggle a coalesced diff. */

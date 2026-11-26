@@ -1,34 +1,31 @@
 import UIKit
 
+/// A turn's reply (or what the agent is doing), with the Turn Details chevron at the bottom right, as on the desktop.
 final class TranscriptReplyCell: UICollectionViewListCell {
-    private let replyView = UITextView()
+    var onDetails: (() -> Void)?
+
+    private let replyView = SelectableTextView()
     private let statusLabel = UILabel()
+    private lazy var detailsButton = TurnDetailsButton { [weak self] in self?.onDetails?() }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
         backgroundConfiguration = .clear()
 
-        replyView.backgroundColor = .clear
-        replyView.isEditable = false
-        replyView.isSelectable = true
-        replyView.isScrollEnabled = false
-        replyView.textContainerInset = .zero
-        replyView.textContainer.lineFragmentPadding = 0
-        replyView.linkTextAttributes = [
-            .foregroundColor: UIColor.link,
-            .underlineStyle: NSUnderlineStyle.single.rawValue,
-        ]
-
         statusLabel.numberOfLines = 0
         statusLabel.textColor = .secondaryLabel
         statusLabel.adjustsFontForContentSizeCategory = true
 
-        let stack = UIStackView(arrangedSubviews: [replyView, statusLabel])
+        let actions = UIStackView(arrangedSubviews: [UIView(), detailsButton])
+        // Into the margin, so this chevron lines up with the one under the prompt.
+        actions.isLayoutMarginsRelativeArrangement = true
+        actions.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: -8)
+        let stack = UIStackView(arrangedSubviews: [replyView, statusLabel, actions])
         stack.axis = .vertical
         stack.spacing = 3
         stack.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(stack)
-        contentView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 24, bottom: 16, trailing: 24)
+        contentView.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 8, leading: 24, bottom: 8, trailing: 24)
         let margins = contentView.layoutMarginsGuide
         NSLayoutConstraint.activate([
             stack.topAnchor.constraint(equalTo: margins.topAnchor),

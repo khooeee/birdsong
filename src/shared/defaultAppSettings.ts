@@ -14,6 +14,8 @@ export function defaultAppSettings(): AppSettings {
     lastAgent: "claude",
     lastCwd: "",
     lastPin: false,
+    homeCwd: "",
+    homeAgent: "claude",
     sessionListMax: 500,
     voiceModel: "inworld/models/mimo-v2.6-pro",
     voiceReasoning: "NONE",

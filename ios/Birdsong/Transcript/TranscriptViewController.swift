@@ -19,7 +19,7 @@ final class TranscriptViewController: UIViewController {
     private var followsEnd = true
     private let composer = ComposerView()
     private let modelConfigBar: ModelConfigBar
-    private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: Self.layout())
+    private lazy var collectionView = TranscriptCollectionView(frame: .zero, collectionViewLayout: Self.layout())
     private lazy var dataSource = makeDataSource()
 
     init(client: BirdsongClient, voice: VoiceController, session: Session) {
@@ -125,6 +125,8 @@ final class TranscriptViewController: UIViewController {
             composer.resumeNotice = current?.continuationNotice
             if let current { modelConfigBar.modelConfig = current.modelConfig }
             if current?.unread == true { markRead() }
+        case .turnDetail, .turnGone:
+            break
         }
     }
 
@@ -171,6 +173,12 @@ final class TranscriptViewController: UIViewController {
         }
     }
 
+    /// A sheet, so this screen's streams stay open underneath and keep the session read.
+    private func showDetails(_ turnId: String, openAtEnd: Bool) {
+        let details = TurnDetailsViewController(client: client, sessionId: session.id, turnId: turnId, openAtEnd: openAtEnd)
+        present(UINavigationController(rootViewController: details), animated: true)
+    }
+
     private func showError(_ error: any Error) {
         showError(error.localizedDescription)
     }
@@ -200,13 +208,15 @@ final class TranscriptViewController: UIViewController {
     }
 
     private func makeDataSource() -> UICollectionViewDiffableDataSource<Int, Row> {
-        let prompt = UICollectionView.CellRegistration<UICollectionViewListCell, Row> { [weak self] cell, _, row in
+        let prompt = UICollectionView.CellRegistration<TranscriptPromptCell, Row> { [weak self] cell, _, row in
             guard let turn = self?.turn(row.turnId) else { return }
-            TurnCellConfigurator.configurePrompt(cell, with: turn)
+            cell.configure(with: turn)
+            cell.onDetails = { [weak self] in self?.showDetails(row.turnId, openAtEnd: false) }
         }
         let reply = UICollectionView.CellRegistration<TranscriptReplyCell, Row> { [weak self] cell, _, row in
             guard let turn = self?.turn(row.turnId) else { return }
             cell.configure(with: turn)
+            cell.onDetails = { [weak self] in self?.showDetails(row.turnId, openAtEnd: true) }
         }
         return UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, row in
             if row.isReply {
@@ -233,13 +243,16 @@ extension TranscriptViewController: UICollectionViewDelegate {
         point: CGPoint
     ) -> UIContextMenuConfiguration? {
         guard let row = indexPaths.first.flatMap(dataSource.itemIdentifier(for:)),
-              let turn = turn(row.turnId),
-              let text = TurnCellConfigurator.copyText(turn, isReply: row.isReply)
+              let turn = turn(row.turnId)
         else { return nil }
+        let details = UIAction(title: "Turn Details", image: UIImage(systemName: "info.circle")) { [weak self] _ in
+            self?.showDetails(row.turnId, openAtEnd: row.isReply)
+        }
+        let copy = TurnCellConfigurator.copyText(turn, isReply: row.isReply).map { text in
+            UIAction(title: "Copy", image: UIImage(systemName: "doc.on.doc")) { _ in UIPasteboard.general.string = text }
+        }
         return UIContextMenuConfiguration(actionProvider: { _ in
-            UIMenu(children: [
-                UIAction(title: "Copy", image: UIImage(systemName: "doc.on.doc")) { _ in UIPasteboard.general.string = text },
-            ])
+            UIMenu(children: [copy, details].compactMap { $0 })
         })
     }
 }

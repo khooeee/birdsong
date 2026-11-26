@@ -7,6 +7,7 @@ import { WarmSessionPool } from "../acp/WarmSessionPool";
 import { AgentForkSupport } from "../acp/AgentForkSupport";
 import { prependPinnedInLists } from "../railLists/prependPinnedInLists";
 import { prependUnpinnedInLists } from "../railLists/prependUnpinnedInLists";
+import { keepHomeFirst } from "../railLists/keepHomeFirst";
 import type { SessionRailLists } from "../railLists/SessionRailLists";
 import { SubagentTranscriptStore } from "./SubagentTranscriptStore";
 import type { SessionObserver } from "./SessionObserver";
@@ -15,7 +16,8 @@ import type { SessionEventListener } from "./SessionEventListener";
 /** In-memory session state shared by SessionManager collaborators, plus renderer IPC. */
 export class SessionState {
   sessions = new Map<string, Session>();
-  railLists: SessionRailLists = { pinnedIds: [], unpinnedIds: [] };
+  private lists: SessionRailLists = { pinnedIds: [], unpinnedIds: [] };
+  private home: string | null = null;
   agents = new Map<string, AcpSession>();
   transcripts = new Map<string, TranscriptTurn[]>();
   subagentTranscripts = new SubagentTranscriptStore();
@@ -28,6 +30,25 @@ export class SessionState {
   observer: SessionObserver | null = null;
   /** Main-process taps on every renderer event (remote clients). */
   listeners = new Set<SessionEventListener>();
+
+  /** Rail order. Every write keeps Home first, so pinning, forking and reopening never move it. */
+  get railLists(): SessionRailLists {
+    return this.lists;
+  }
+
+  set railLists(lists: SessionRailLists) {
+    this.lists = keepHomeFirst(lists, this.home);
+  }
+
+  /** The Home session's id, or null while Home is off or being replaced. */
+  get homeId(): string | null {
+    return this.home;
+  }
+
+  set homeId(id: string | null) {
+    this.home = id;
+    this.lists = keepHomeFirst(this.lists, id);
+  }
 
   /** Put a session in the main panel, which reads it. */
   setActiveTabId(id: ActiveTabId): void {
@@ -58,9 +79,13 @@ export class SessionState {
       : prependUnpinnedInLists(this.railLists, sessionId);
   }
 
-  /** A session with its agent's current fork flags, as lists and the control API report it. */
+  /** A session with its agent's current fork flags and Home mark, as lists and the control API report it. */
   sessionPayload(session: Session): Session {
-    return { ...session, ...this.forkSupport.flags(session.agent) };
+    return {
+      ...session,
+      ...this.forkSupport.flags(session.agent),
+      ...(session.id === this.home ? { home: true } : {}),
+    };
   }
 
   sessionListPayload() {

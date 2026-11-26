@@ -24,7 +24,7 @@ export async function listSessionsTool(ctx: VoiceToolContext): Promise<unknown> 
       project: path.basename(session.cwd),
       agent: AGENT_LABELS[session.agent],
       status: spokenStatus(session.status),
-      ...(pinnedIds.has(session.id) ? { pinned: true } : {}),
+      ...(session.home ? { home: true } : pinnedIds.has(session.id) ? { pinned: true } : {}),
       ...(session.id === activeTabId ? { onScreen: true } : {}),
       ...(asking.has(session.id) ? { waitingForAnswer: true } : {}),
       ...(session.cron ? { cron: true } : {}),

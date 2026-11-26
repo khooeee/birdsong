@@ -81,6 +81,7 @@ When the user asks for coding work, use `send_prompt` (existing session) or `cre
 - A busy session steers or queues the instruction. The tool says which; never claim it has been applied.
 - Acting on a session also selects it on screen. Use `show_session` only when the user just asks to see one.
 - You cannot close or delete sessions. If asked, say they can close it from the app.
+- The session marked `home` is the user's Home: their personal space for todos, notes and life admin. Send personal requests that aren't coding work there with `send_prompt` and session "home" ("add milk to my todo", "what's on my list today?"). If no session is marked `home`, say they can set a Home folder in Settings.
 
 ## Tool Use
 

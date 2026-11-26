@@ -1,4 +1,5 @@
 import type { AppSettings } from "../../../shared/appSettings";
+import { isAgentKind } from "../../../shared/agentKind";
 import type { SettingsDraft } from "./SettingsDraft";
 
 /** Non-negative whole number from `text`, else `fallback`. */
@@ -19,6 +20,8 @@ export function patchFromDraft(draft: SettingsDraft, prefs: AppSettings): Partia
     theme: draft.theme,
     soundEnabled: draft.soundEnabled,
     sessionListMax: wholeNumber(draft.sessionListMax, prefs.sessionListMax),
+    homeCwd: draft.homeCwd.trim(),
+    homeAgent: isAgentKind(draft.homeAgent) ? draft.homeAgent : prefs.homeAgent,
     voiceModel: draft.voiceModel.trim() || prefs.voiceModel,
     voiceReasoning: draft.voiceReasoning,
     voiceName: draft.voiceName.trim() || prefs.voiceName,

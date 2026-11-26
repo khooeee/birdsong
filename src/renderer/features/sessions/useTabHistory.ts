@@ -7,9 +7,9 @@ import { isMac } from "../shortcuts/isMac";
 import { modKey } from "../shortcuts/modKey";
 import { TabHistory } from "./TabHistory";
 
-/** Back (-1) or forward (1) for Cmd+[ / Cmd+] on macOS and Alt+Left / Alt+Right elsewhere. */
+/** Back (-1) or forward (1) for Cmd+Left / Cmd+Right on macOS and Alt+Left / Alt+Right elsewhere. */
 function historyKeyStep(event: KeyboardEvent): 1 | -1 | null {
-  if (isMac) return modKey(event, "[") ? -1 : modKey(event, "]") ? 1 : null;
+  if (isMac) return modKey(event, "arrowleft") ? -1 : modKey(event, "arrowright") ? 1 : null;
   if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return null;
   return event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : null;
 }

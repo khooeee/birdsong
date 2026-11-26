@@ -37,7 +37,7 @@ export const voiceToolDefs = [
   ),
   tool("stop_session", "Stop the session's running turn. The session and its work stay.", { session: SESSION }),
   tool("show_session", "Switch the screen to a session. Only when the user asks to see it.", { session: SESSION }),
-  tool("update_session", "Rename (replaces the whole title), pin or unpin a session.", {
+  tool("update_session", "Rename (replaces the whole title), pin or unpin a session. Home can't be unpinned.", {
     session: SESSION,
     title: { type: "string" },
     pinned: { type: "boolean" },
