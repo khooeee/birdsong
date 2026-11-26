@@ -28,11 +28,6 @@ export function useRailModeShortcuts(): void {
       railModeStore.set("sessions");
       requestAnimationFrame(() => window.dispatchEvent(new CustomEvent(event.type)));
     };
-    const toggleDiff = () => {
-      if (dialogOpen()) return;
-      voiceLogView.close();
-      railModeStore.toggleDiff();
-    };
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.isComposing || event.repeat || dialogOpen()) return;
       const select = modKey(event, "s", true) ? selectSessions
@@ -45,7 +40,6 @@ export function useRailModeShortcuts(): void {
     };
     window.addEventListener("birdsong:toggle-explorer", toggle);
     window.addEventListener("birdsong:focus-prompt", backToSessions);
-    window.addEventListener("birdsong:toggle-diff", toggleDiff);
     window.addEventListener("birdsong:select-sessions", selectSessions);
     window.addEventListener("birdsong:select-files", selectFiles);
     window.addEventListener("birdsong:select-diff", selectDiff);
@@ -53,7 +47,6 @@ export function useRailModeShortcuts(): void {
     return () => {
       window.removeEventListener("birdsong:toggle-explorer", toggle);
       window.removeEventListener("birdsong:focus-prompt", backToSessions);
-      window.removeEventListener("birdsong:toggle-diff", toggleDiff);
       window.removeEventListener("birdsong:select-sessions", selectSessions);
       window.removeEventListener("birdsong:select-files", selectFiles);
       window.removeEventListener("birdsong:select-diff", selectDiff);

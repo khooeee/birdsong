@@ -49,7 +49,6 @@ export function useGitDiff(sessionId: string, folders: readonly WorkingFolder[],
     // The existing file watcher deliberately skips .git; also cover staging and branch switches.
     const poll = setInterval(() => { if (!document.hidden) void load(); }, 3000);
     window.addEventListener("focus", queue);
-    window.addEventListener("birdsong:refresh-diff", queue);
     return () => {
       stopped = true;
       clearTimeout(debounce);
@@ -57,7 +56,6 @@ export function useGitDiff(sessionId: string, folders: readonly WorkingFolder[],
       off();
       void window.birdsong.unwatchSessionFiles(sessionId);
       window.removeEventListener("focus", queue);
-      window.removeEventListener("birdsong:refresh-diff", queue);
     };
   }, [key, sessionId, scope, foldersKey]);
 

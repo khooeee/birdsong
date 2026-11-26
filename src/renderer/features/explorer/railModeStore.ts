@@ -2,19 +2,17 @@ import type { RailMode } from "../../../shared/railMode";
 import { patchAppSettings } from "../settings/appSettingsCache";
 
 let mode: RailMode = "sessions";
-let previousMode: RailMode = "sessions";
 let hasSessions = false;
 const listeners = new Set<() => void>();
 
 function apply(next: RailMode): boolean {
   if (next === mode) return false;
-  if (next === "diff") previousMode = mode;
   mode = next;
   listeners.forEach((listener) => listener());
   return true;
 }
 
-/** One mode for the whole window, saved in settings. Diff toggles back to the previous view. */
+/** One mode for the whole window, saved in settings. */
 export const railModeStore = {
   subscribe(listener: () => void): () => void {
     listeners.add(listener);
@@ -28,10 +26,6 @@ export const railModeStore = {
   set(next: RailMode): void {
     if (next !== "sessions" && !hasSessions) return;
     if (apply(next)) void patchAppSettings({ railMode: next });
-  },
-
-  toggleDiff(): void {
-    this.set(mode === "diff" ? previousMode : "diff");
   },
 
   /** Called with each loaded session list; closing the last session also leaves Files mode. */

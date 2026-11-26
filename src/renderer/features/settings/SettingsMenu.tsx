@@ -39,15 +39,9 @@ export function SettingsMenu() {
       setVisible(true);
     };
     const openSettings = show(setSettingsOpen);
-    const openCrons = show(setCronsOpen);
-    const openReminders = show(setRemindersOpen);
     window.addEventListener(OPEN_SETTINGS_EVENT, openSettings);
-    window.addEventListener("birdsong:open-crons", openCrons);
-    window.addEventListener("birdsong:open-reminders", openReminders);
     return () => {
       window.removeEventListener(OPEN_SETTINGS_EVENT, openSettings);
-      window.removeEventListener("birdsong:open-crons", openCrons);
-      window.removeEventListener("birdsong:open-reminders", openReminders);
     };
   }, []);
 
