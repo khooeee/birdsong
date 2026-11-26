@@ -92,7 +92,6 @@ export function buildAppMenu(opts: AppMenuOptions): void {
     {
       label: "View",
       submenu: [
-        commandMenuItem(win, "Command Palette…", "CmdOrCtrl+Shift+P", "birdsong:command-palette"),
         commandMenuItem(win, "Select Sessions Mode", "CmdOrCtrl+Shift+S", "birdsong:select-sessions"),
         { ...commandMenuItem(win, "Select Files Mode", "CmdOrCtrl+Shift+E", "birdsong:select-files"),
           id: "select-files-mode", enabled: opts.getHasSessions() },

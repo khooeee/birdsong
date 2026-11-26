@@ -33,7 +33,6 @@ import { railModeStore } from "./features/explorer/railModeStore";
 import { useFileShortcuts } from "./features/explorer/useFileShortcuts";
 import { useRailModeShortcuts } from "./features/explorer/useRailModeShortcuts";
 import { useQuitGuard } from "./features/editor/useQuitGuard";
-import { CommandPalette } from "./features/commandPalette/CommandPalette";
 import { DiffView } from "./features/diff/DiffView";
 import { ImageViewer } from "./features/images/ImageViewer";
 import { imageViewer } from "./features/images/imageViewerStore";
@@ -245,15 +244,6 @@ export function App() {
           />
         ) : null}
         {voiceRailOpen && voiceTurnId ? <VoiceTurnRail turnId={voiceTurnId} scrollRef={voiceRailRef} /> : null}
-
-        <CommandPalette
-          sessionId={activeSession?.id ?? null}
-          hasSessions={pinnedSessions.length + unpinnedSessions.length > 0}
-          supportsFork={!!activeSession?.supportsFork}
-          pinned={pinnedSessions.some((session) => session.id === activeSession?.id)}
-          home={!!activeSession?.home}
-          unread={!!activeSession?.unread}
-        />
 
         {showNewSession && (
           <NewSessionModal

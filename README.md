@@ -67,7 +67,7 @@ The row has a house icon and stays at the top while you scroll or filter. On iOS
 
 - **Cmd/Ctrl+1** switches between Home and the session you were on. It does not change Sessions, Files, or Diff.
 - **Cmd/Ctrl+2** switches between Home's file explorer and that session's files.
-- Both are in the Session menu and the command palette.
+- Both are in the Session menu.
 - Home can't be closed or unpinned. Right-click it and choose **Start Fresh** to open a new chat; Find in History still has the old one.
 - Saving a new folder or agent starts a new Home chat right away. If a turn is running, Birdsong asks before it stops the turn.
 - If the folder goes missing, the row stays and shows the error.
@@ -235,8 +235,6 @@ Niceties:
 **Cmd/Ctrl+I**: Focus on prompt
 
 **Cmd/Ctrl+Shift+N**: Fork selected session
-
-**Cmd/Ctrl+Shift+P**: Open command palette (search and run commands for the current mode)
 
 **Ctrl+Cmd+P / Ctrl+Alt+P**: Pin/unpin selected session
 
