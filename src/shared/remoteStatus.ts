@@ -2,7 +2,7 @@
 export interface RemoteStatus {
   /** Bearer token for the iOS app (control.json scripts have their own); null when the server is not running. */
   token: string | null;
-  /** `birdsong://<machine>.ts.net?token=…` to paste into the iOS app; null when not serving. */
+  /** `birdsong://<machine>.ts.net[:port]?token=…` to paste into the iOS app; null when not serving. */
   link: string | null;
   /** One-time command that publishes the local port to the tailnet over HTTPS. */
   serveCommand: string | null;

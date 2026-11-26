@@ -29,6 +29,7 @@ export function patchFromDraft(draft: SettingsDraft, prefs: AppSettings): Partia
     voiceIdleMinutes: wholeNumber(draft.voiceIdleMinutes, prefs.voiceIdleMinutes),
     remoteEnabled: draft.remoteEnabled,
     controlPort: port(draft.controlPort, prefs.controlPort),
+    tailscaleServePort: port(draft.tailscaleServePort, prefs.tailscaleServePort),
     apnsKeyId: draft.apnsKeyId.trim(),
     apnsTeamId: draft.apnsTeamId.trim(),
   };

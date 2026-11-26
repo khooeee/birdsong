@@ -24,6 +24,7 @@ export function defaultAppSettings(): AppSettings {
     voiceIdleMinutes: 30,
     remoteEnabled: false,
     controlPort: 7389,
+    tailscaleServePort: 8443,
     apnsKeyId: "",
     apnsTeamId: "",
     apnsKeyPath: "",

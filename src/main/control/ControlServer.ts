@@ -19,7 +19,7 @@ import { liveControlEndpoint } from "./liveControlEndpoint";
 import { loadRemoteToken } from "./loadRemoteToken";
 import { sendJson } from "./sendJson";
 
-type ControlSettings = Pick<AppSettings, "remoteEnabled" | "controlPort">;
+type ControlSettings = Pick<AppSettings, "remoteEnabled" | "controlPort" | "tailscaleServePort">;
 
 /**
  * Localhost control API for scripts (via control.json) and the iOS app (via `tailscale serve`), plus the
@@ -36,6 +36,7 @@ export class ControlServer {
   private endpoint: ControlEndpoint | null = null;
   private wantedPort = 0;
   private remoteEnabled = false;
+  private tailscaleServePort = 8443;
   private error: string | null = null;
   private applying = Promise.resolve();
 
@@ -80,13 +81,15 @@ export class ControlServer {
     if (!this.remoteEnabled) return { ...off, error: null };
     if (!this.endpoint || this.error) return { ...off, error: this.error ?? "The control server is not running." };
     const host = await tailscaleDnsName();
-    const serveCommand = `tailscale serve --bg ${this.endpoint.port}`;
+    const serveCommand = `tailscale serve --bg --https=${this.tailscaleServePort} ${this.endpoint.port}`;
     if (!host) return { ...off, serveCommand, error: "Tailscale is not installed or not logged in." };
-    return { ...off, link: `birdsong://${host}?token=${this.remoteToken}`, serveCommand, error: null };
+    const port = this.tailscaleServePort === 443 ? "" : `:${this.tailscaleServePort}`;
+    return { ...off, link: `birdsong://${host}${port}?token=${this.remoteToken}`, serveCommand, error: null };
   }
 
-  private async reconcile({ remoteEnabled, controlPort }: ControlSettings): Promise<void> {
+  private async reconcile({ remoteEnabled, controlPort, tailscaleServePort }: ControlSettings): Promise<void> {
     this.remoteEnabled = remoteEnabled;
+    this.tailscaleServePort = tailscaleServePort;
     if (process.env.BIRDSONG_CONTROL === "0") return liveControlEndpoint.set(null);
     if (this.server && controlPort === this.wantedPort) return this.updateKeepAwake();
     await this.close();
