@@ -13,8 +13,8 @@ An agentic development environment that sparks joy in my everyday coding:
 - Best paired with [beaver](https://github.com/khooeee/beaver/)
 
 There are also orchestration features:
-- Sessions can drive each other: create other sessions, rename them, send prompts to them, wait for & read their replies, and close them.  In other words, pretty much everything session-specific aside from forking.  This can lead to very useful parallelization strategies (e.g. reading GitHub issues & implementing them in parallel).  Every session gets these as tools from Birdsong's own MCP server, so it works the same for Claude Code, Codex, Cursor, Pi & Antigravity.
-- A hands-free voice agent ([Inworld Realtime](https://docs.inworld.ai/realtime/overview)) controls every session: ask what's running, send or steer prompts, start new sessions, and hear finished turns announced.  It also answers general questions and searches the web.  Click the mic in the bottom left to start it; add your Inworld API key under **Voice** → **Open Settings**. Pick the agent's voice in **Settings** → **Voice** from your Inworld workspace's voices (Inworld's own plus any you cloned or designed), and click **Play Sample** to hear one first. Saving a new voice switches it at once, even mid-call.
+- Sessions can drive each other: create other sessions, rename them, send prompts to them, and wait for & read their replies.  In other words, pretty much everything session-specific aside from forking.  This can lead to very useful parallelization strategies (e.g. reading GitHub issues & implementing them in parallel).  Every session gets these as tools from Birdsong's own MCP server, so it works the same for Claude Code, Codex, Cursor, Pi & Antigravity.
+- A hands-free voice agent ([Inworld Realtime](https://docs.inworld.ai/realtime/overview)) controls every session: ask what's running, send or steer prompts, start new sessions, and hear finished turns announced.  It also answers general questions and searches the web.  Add your Inworld API key first (bottom-left gear → **Open Settings** → **Voice**), then click the mic in the bottom left to start it. Pick the agent's voice in **Settings** → **Voice** from your Inworld workspace's voices (Inworld's own plus any you cloned or designed), and click **Play Sample** to hear one first. Saving a new voice switches it at once, even mid-call.
 
 ## Install (macOS)
 
@@ -38,12 +38,12 @@ sudo apt install ./birdsong_*_amd64.deb
 
 ## Prerequisites
 
-At least one agent CLI installed and authenticated. The Claude Code, Codex, and Pi ACP adapters ship with the app, but every agent runs on your own installed CLI:
+At least one agent CLI installed and authenticated. The Claude Code, Codex, and Pi ACP adapters ship with the app, but every agent runs on your own installed CLI. Those bundled adapters need **Node.js 22.12+** on `PATH` (Pi needs 22.19+); Cursor and Antigravity do not.
 
 - **Claude Code**: `claude` on `PATH` (e.g. `brew install --cask claude-code`) and Claude login or `ANTHROPIC_API_KEY`
 - **Codex**: `codex` on `PATH` (e.g. `brew install --cask codex`) and Codex/ChatGPT login or `OPENAI_API_KEY` / `CODEX_API_KEY`
 - **Cursor**: Cursor CLI `agent` on `PATH` (typically `~/.local/bin/agent`) and `agent login`
-- **Pi**: `pi` on `PATH` via `npm install -g @earendil-works/pi-coding-agent`
+- **Pi**: `pi` on `PATH` via `npm install -g --ignore-scripts @earendil-works/pi-coding-agent`
 - **Antigravity**: Antigravity CLI `agy` on `PATH` and a Google sign-in, from running `agy` once or `agy acp --login`
 
 `PATH` here means your terminal's `PATH`. On startup Birdsong runs your login shell once (`$SHELL -i -l`), so agents get the same environment as a new terminal window, even when you open the app from the Dock. While it runs, `BIRDSONG_RESOLVING_SHELL_ENV=1` is set, so your rc files can skip slow steps. If the shell fails or takes more than 10 seconds, agents use Birdsong's own environment plus common bin dirs. After editing rc files, restart Birdsong.
@@ -55,7 +55,7 @@ npm install
 npm start
 ```
 
-On macOS, settings and session data live in `~/Library/Application Support/Birdsong/`; app settings are saved in `birdsong.json`. The local control endpoint is published in `~/.birdsong/control.json`.
+On macOS, settings and session data live in `~/Library/Application Support/Birdsong/`; on Ubuntu, in `~/.config/Birdsong/`. App settings are saved in `birdsong.json`. The local control endpoint is published in `~/.birdsong/control.json`.
 
 ## Home
 
@@ -154,7 +154,7 @@ Pending reminders live in `reminders.json`. Click the Settings button on the bot
 
 Initial setup
 1. In the [Tailscale admin console](https://login.tailscale.com/admin/dns), turn on MagicDNS and HTTPS certificates.
-2. Build the app on iOS: `brew install xcodegen`, then `npm run ios` and open `ios/Birdsong.xcodeproj`. To run on a device, put `DEVELOPMENT_TEAM = <your team id>` in `ios/Config/Local.xcconfig`. The default bundle id is `com.khooeee.birdsong`, which only that Apple team can sign. To use your own team, also set `PRODUCT_BUNDLE_IDENTIFIER = <your bundle id>` in that file.
+2. Build the app on iOS: `brew install xcodegen`, then `npm run ios` and open `ios/Birdsong.xcodeproj`. To run on a device, create `ios/Config/Local.xcconfig` (gitignored) with `DEVELOPMENT_TEAM = <your team id>`. The default bundle id is `com.khooeee.birdsong`, which only that Apple team can sign. To use your own team, also set `PRODUCT_BUNDLE_IDENTIFIER = <your bundle id>` in that file.
 
 Birdsong desktop app
 3. If using a MacBook, plug it in.
@@ -240,9 +240,9 @@ Niceties:
 
 **Cmd/Ctrl+R**: Rename selected session
 
-**Cmd+Left / Alt+Left**: Go back to the previously selected session
+**Cmd+Left** (outside text fields) / **Alt+Left**: Go back to the previously selected session
 
-**Cmd+Right / Alt+Right**: Go forward through selected sessions
+**Cmd+Right** (outside text fields) / **Alt+Right**: Go forward through selected sessions
 
 **Cmd/Ctrl+/**: Toggle zen mode
 
@@ -250,7 +250,7 @@ Niceties:
 
 **Cmd/Ctrl+1**: Switch between Home and the previous session
 
-**Cmd/Ctrl+2**: Switch between Home's file explorer and the previous session
+**Cmd/Ctrl+2**: Switch between Home's file explorer and the previous session's files
 
 ### Sessions mode
 
