@@ -3,6 +3,8 @@ import type { McpProblem } from "../../../shared/mcpProblem";
 import { McpServerCard } from "./McpServerCard";
 import type { McpServerItem } from "./McpServerItem";
 import { nextServerName } from "./nextServerName";
+import type { ServerRow } from "./reconcileServerRows";
+import { useServerRows } from "./useServerRows";
 
 type Props = {
   servers: McpServerItem[];
@@ -11,45 +13,52 @@ type Props = {
   onChange: (servers: McpServerItem[]) => void;
 };
 
-/** Servers as cards, one open at a time. Cards are keyed by position so renaming keeps focus. */
+/** Servers as cards, one open at a time. Each card has an id, so renaming it doesn't hand its draft to another server. */
 export function McpServerList({ servers, problems, disabled, onChange }: Props) {
+  const { rows, replace, takeId } = useServerRows(servers);
   const [expanded, setExpanded] = useState<number | null>(null);
   const [added, setAdded] = useState<number | null>(null);
-  // Bumped on removal: cards after it shift position and must not keep the removed card's typing.
-  const [generation, setGeneration] = useState(0);
-  const names = servers.map((server) => server.name);
+  const names = rows.map((row) => row.name);
 
-  const add = () => {
-    onChange([...servers, { name: nextServerName(names), raw: { command: "" } }]);
-    setExpanded(servers.length);
-    setAdded(servers.length);
+  const commit = (next: ServerRow[]) => {
+    replace(next);
+    onChange(next.map(({ name, raw }) => ({ name, raw })));
   };
-  const remove = (index: number) => {
-    onChange(servers.filter((_, i) => i !== index));
-    setExpanded(null);
-    setAdded(null);
-    setGeneration((value) => value + 1);
+  const add = () => {
+    const id = takeId();
+    commit([...rows, { id, name: nextServerName(names), raw: { command: "" }, stash: {} }]);
+    setExpanded(id);
+    setAdded(id);
+  };
+  const remove = (id: number) => {
+    commit(rows.filter((row) => row.id !== id));
+    if (expanded === id) setExpanded(null);
+    if (added === id) setAdded(null);
   };
 
   return (
     <>
-      {servers.length > 0 ? (
+      {rows.length > 0 ? (
         <ul className="mcp-cards">
-          {servers.map((item, index) => (
+          {rows.map((row, index) => (
             <McpServerCard
-              key={`${generation}:${index}`}
-              item={item}
+              key={row.id}
+              item={row}
               otherNames={names.filter((_, i) => i !== index)}
-              problems={problems.filter((problem) => problem.server === item.name)}
-              expanded={expanded === index}
-              justAdded={added === index}
+              problems={problems.filter((problem) => problem.server === row.name)}
+              expanded={expanded === row.id}
+              justAdded={added === row.id}
               disabled={disabled}
               onToggle={() => {
-                setExpanded(expanded === index ? null : index);
+                setExpanded(expanded === row.id ? null : row.id);
                 setAdded(null);
               }}
-              onChange={(next) => onChange(servers.map((server, i) => (i === index ? next : server)))}
-              onRemove={() => remove(index)}
+              onChange={(next) =>
+                commit(rows.map((current) =>
+                  current.id === row.id ? { ...current, name: next.name, raw: next.raw, stash: next.stash ?? current.stash } : current,
+                ))
+              }
+              onRemove={() => remove(row.id)}
             />
           ))}
         </ul>

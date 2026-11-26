@@ -135,6 +135,14 @@
   text-transform: uppercase;
 }
 
+.mcp-transport {
+  display: contents;
+}
+
+.mcp-transport[hidden] {
+  display: none;
+}
+
 .mcp-form {
   display: flex;
   flex-direction: column;

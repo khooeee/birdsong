@@ -3,8 +3,7 @@ import { KeyValueRows } from "./KeyValueRows";
 import { McpCommandField } from "./McpCommandField";
 import { McpKindPicker } from "./McpKindPicker";
 import { McpNameField } from "./McpNameField";
-import type { McpServerFields } from "./McpServerFields";
-import type { McpServerItem } from "./McpServerItem";
+import type { McpServerItem, McpTransport } from "./McpServerItem";
 import { patchRecord } from "./patchRecord";
 import { readMcpServerFields } from "./readMcpServerFields";
 
@@ -17,7 +16,7 @@ type Props = {
   onRemove: () => void;
 };
 
-const KIND_KEYS: Record<McpServerFields["kind"], string[]> = {
+const KIND_KEYS: Record<McpTransport, string[]> = {
   command: ["type", "command", "args", "env"],
   url: ["type", "url", "headers"],
 };
@@ -27,15 +26,19 @@ const orNothing = (record: Record<string, string>) => (Object.keys(record).lengt
 /** Edits one server in place; fields it doesn't show stay in the entry. */
 export function McpServerForm({ item, otherNames, disabled, autoFocus, onChange, onRemove }: Props) {
   const fields = readMcpServerFields(item.raw);
-  // What the other kind had, so flipping back and forth loses nothing.
-  const stash = useRef<Partial<Record<McpServerFields["kind"], Record<string, unknown>>>>({});
+  // Once a transport has been shown, keep it mounted so blank rows and the typed command survive a switch.
+  const seen = useRef<Record<McpTransport, boolean>>({ command: false, url: false });
+  seen.current[fields.kind] = true;
   const patch = (changes: Record<string, unknown>) => onChange({ ...item, raw: patchRecord(item.raw, changes) });
 
-  const switchKind = (kind: McpServerFields["kind"]) => {
+  const switchKind = (kind: McpTransport) => {
+    if (kind === fields.kind) return;
     const leaving = KIND_KEYS[fields.kind];
-    stash.current[fields.kind] = Object.fromEntries(leaving.filter((key) => key in item.raw).map((key) => [key, item.raw[key]]));
+    const saved = Object.fromEntries(leaving.filter((key) => key in item.raw).map((key) => [key, item.raw[key]]));
     const cleared = Object.fromEntries(leaving.map((key) => [key, undefined]));
-    patch({ ...cleared, ...(stash.current[kind] ?? (kind === "url" ? { url: "" } : { command: "" })) });
+    const stash = { ...item.stash, [fields.kind]: saved };
+    const restored = stash[kind] ?? (kind === "url" ? { url: "" } : { command: "" });
+    onChange({ ...item, stash, raw: patchRecord(item.raw, { ...cleared, ...restored }) });
   };
 
   return (
@@ -48,15 +51,14 @@ export function McpServerForm({ item, otherNames, disabled, autoFocus, onChange,
         onRename={(name) => onChange({ ...item, name })}
       />
       <McpKindPicker kind={fields.kind} disabled={disabled} onChange={switchKind} />
-      {fields.kind === "command" ? (
-        <>
+      {seen.current.command && (
+        <div className="mcp-transport" hidden={fields.kind !== "command"}>
           <McpCommandField
             words={fields.words}
             disabled={disabled}
             onChange={(words) => patch({ command: words[0] ?? "", args: words.length > 1 ? words.slice(1) : undefined })}
           />
           <KeyValueRows
-            key="env"
             label="Environment"
             addLabel="Add variable"
             keyPlaceholder="NAME"
@@ -65,9 +67,10 @@ export function McpServerForm({ item, otherNames, disabled, autoFocus, onChange,
             disabled={disabled}
             onChange={(env) => patch({ env: orNothing(env) })}
           />
-        </>
-      ) : (
-        <>
+        </div>
+      )}
+      {seen.current.url && (
+        <div className="mcp-transport" hidden={fields.kind !== "url"}>
           <label>
             URL
             <input
@@ -80,7 +83,6 @@ export function McpServerForm({ item, otherNames, disabled, autoFocus, onChange,
             />
           </label>
           <KeyValueRows
-            key="headers"
             label="Headers"
             addLabel="Add header"
             keyPlaceholder="Authorization"
@@ -89,7 +91,7 @@ export function McpServerForm({ item, otherNames, disabled, autoFocus, onChange,
             disabled={disabled}
             onChange={(headers) => patch({ headers: orNothing(headers) })}
           />
-        </>
+        </div>
       )}
       <div className="mcp-form-actions">
         <button type="button" className="btn mcp-remove" disabled={disabled} onClick={onRemove}>
