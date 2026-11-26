@@ -18,6 +18,7 @@ import { SessionAgents } from "./SessionAgents";
 import { UsageLimitResumer } from "./UsageLimitResumer";
 import { SessionFind } from "./SessionFind";
 import { SessionRail } from "./SessionRail";
+import { HomeSession } from "../home/HomeSession";
 import type { SessionDeps } from "./SessionDeps";
 import type { SessionObserver } from "./SessionObserver";
 import type { SessionEventListener } from "./SessionEventListener";
@@ -56,6 +57,7 @@ export class SessionManager {
     agents: this.agents,
   };
   private rail = new SessionRail(this.deps);
+  readonly home = new HomeSession(this.deps);
 
   setWindow(win: BrowserWindow): void {
     this.state.window = win;
@@ -80,6 +82,7 @@ export class SessionManager {
     if (saved) await restoreSavedState(this.deps, saved);
     if (await enforceSessionListMax(this.deps)) await this.persistence.persistStateFile();
     this.agents.ensureWarm(getAppSettings().lastCwd);
+    void this.home.sync().catch(console.error);
     this.resumer.start();
   }
 
@@ -91,9 +94,11 @@ export class SessionManager {
     return getAppSettings();
   }
 
+  /** A new Home folder or agent replaces the Home chat. */
   updateSettings(patch: Partial<AppSettings>): AppSettings {
     const next = patchAppSettings(patch);
     void this.persistence.persistStateFile();
+    if (patch.homeCwd !== undefined || patch.homeAgent !== undefined) void this.home.sync().catch(console.error);
     return next;
   }
 

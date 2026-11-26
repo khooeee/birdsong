@@ -5,7 +5,7 @@ import { loadListsFromPersisted } from "../railLists/loadListsFromPersisted";
 import { removeSessionFromLists } from "../railLists/removeSessionFromLists";
 import type { SessionDeps } from "./SessionDeps";
 
-/** Rebuild rail sessions and the active tab from the saved state file. */
+/** Rebuild rail sessions, Home and the active tab from the saved state file. */
 export async function restoreSavedState(
   { state, hydration }: SessionDeps,
   saved: PersistedState,
@@ -18,6 +18,7 @@ export async function restoreSavedState(
     (next, id, i) => (metas[i] ? next : removeSessionFromLists(next, id)),
     lists,
   );
+  state.homeId = saved.homeId && openIds.includes(saved.homeId) ? saved.homeId : null;
   savedIds.forEach((id, i) => {
     const meta = metas[i];
     if (meta) state.sessions.set(id, sessionFromMeta(id, meta));

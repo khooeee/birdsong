@@ -45,6 +45,7 @@ export class SessionPersistence {
       settings: getAppSettings(),
       pinned: [...this.state.railLists.pinnedIds],
       unpinned: [...this.state.railLists.unpinnedIds],
+      ...(this.state.homeId ? { homeId: this.state.homeId } : {}),
     };
     await saveState(state);
   }

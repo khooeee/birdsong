@@ -23,7 +23,7 @@ export const BIRDSONG_TOOLS = [
   ),
   tool(
     "list_sessions",
-    "List the sessions in Birdsong's sidebar, pinned first, then newest. Returns up to `limit` of them and the total count.",
+    "List the sessions in Birdsong's sidebar, pinned first, then newest. Returns up to `limit` of them and the total count. `home` marks the user's Home session, their personal space for todos and notes: send it things they want to keep, like \"add this to my todo\".",
     { limit: { type: "number", description: "Default 20" } },
   ),
   tool(
@@ -60,7 +60,7 @@ export const BIRDSONG_TOOLS = [
   ),
   tool(
     "update_session",
-    "Rename, pin or unpin a session, including this one. Titles can be multiline, and URLs in them become links.",
+    "Rename, pin or unpin a session, including this one. Titles can be multiline, and URLs in them become links. Home can't be unpinned.",
     {
       sessionId: { ...sessionId, description: "Birdsong session id; defaults to this session" },
       title: { type: "string" },

@@ -43,8 +43,10 @@ export function paletteCommands(context: PaletteContext): PaletteCommand[] {
     command("fork-session", "Fork Session", "birdsong:fork-session", modLabel("N", true),
       sessionRequired ?? (context.supportsFork ? undefined : "This session does not support forking."), "duplicate branch"),
     command("rename-session", "Rename Session…", "birdsong:rename-session", modLabel("R"), sessionRequired),
+    command("open-home", "Go to Home", "birdsong:open-home", modLabel("1"),
+      context.homeOn ? undefined : "Set a Home folder in Settings.", "todos notes personal"),
     command("pin-session", `${context.pinned ? "Unpin" : "Pin"} Session`, "birdsong:toggle-pin",
-      pinShortcut.label, sessionRequired, "toggle pin favorite"),
+      pinShortcut.label, context.home ? "Home stays pinned." : sessionRequired, "toggle pin favorite"),
     command("unread-session", `Mark Session as ${context.unread ? "Read" : "Unread"}`, "birdsong:mark-unread",
       undefined, sessionRequired, "toggle read unread"),
   ];
@@ -52,14 +54,16 @@ export function paletteCommands(context: PaletteContext): PaletteCommand[] {
   if (context.mode === "sessions") return [...global,
     command("new-session", "New Session…", "birdsong:new-session", modLabel("N"), undefined, "create chat"),
     ...session,
-    command("close-session", "Close Session", "birdsong:close-session", modLabel("W"), sessionRequired),
+    command("close-session", "Close Session", "birdsong:close-session", modLabel("W"),
+      context.home ? "Home can't be closed." : sessionRequired),
     command("filter-sessions", "Filter Sessions", "birdsong:focus-filter", modLabel("P"), undefined, "search sessions"),
     command("find", "Find in Current Session", "birdsong:find", modLabel("F"), sessionRequired, "search transcript"),
     command("find-history", "Find in History…", "birdsong:find-sessions", modLabel("F", true), undefined, "search all sessions"),
   ];
 
   if (context.mode === "diff") return [...global, ...session,
-    command("close-session", "Close Session", "birdsong:close-session", modLabel("W"), sessionRequired),
+    command("close-session", "Close Session", "birdsong:close-session", modLabel("W"),
+      context.home ? "Home can't be closed." : sessionRequired),
     command("refresh-diff", "Refresh Git Diff", "birdsong:refresh-diff", undefined, sessionRequired),
     command("find-diff", "Filter Changed Files", "birdsong:find-diff", modLabel("F"), sessionRequired),
   ];

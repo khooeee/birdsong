@@ -193,6 +193,17 @@ See [Inworld's list of models](https://inworld.ai/models).
 
 For intelligence comparisons, see [Artificial Analysis](https://artificialanalysis.ai/evaluations/artificial-analysis-intelligence-index?models=mimo-v2-6-pro%2Cgemma-4-31b%2Cglm-5-3-flash%2Cdeepseek-v4-1-flash-1017-non-reasoning%2Cdeepseek-v4-1-flash-1017%2Cdeepseek-v4-1-flash-1017-high).
 
+## Home
+
+Home is one session pinned above the others, for a folder you choose in Settings (a blank folder turns it off). Birdsong never creates that folder or writes into it.
+
+- The row has a house icon and stays at the top while you scroll or filter the list. The iOS list shows the same row, with no Unpin swipe.
+- **⌘1** (Ctrl+1 on Linux) opens Home from any view. Press it again to go back. It's also in the Session menu and the command palette.
+- Home can't be closed or unpinned. **Start Fresh**, in its right-click menu, replaces the chat. The old one stays in Find in History.
+- Saving a new folder or agent starts a new Home chat right away. If a turn is running, Birdsong asks first.
+- If the folder goes missing, Home stays in the list and shows an error.
+- Voice and other sessions can see which session is Home, so a request like "add milk to my todo" can go there.
+
 ## Features
 
 Speed optimizations:
@@ -232,6 +243,8 @@ Niceties:
 **Cmd/Ctrl+/**: Toggle zen mode
 
 **Cmd/Ctrl+,**: Open settings
+
+**Cmd/Ctrl+1**: Go to Home (press again to go back)
 
 ### Sessions mode
 

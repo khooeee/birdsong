@@ -21,6 +21,10 @@ export interface AppSettings {
   lastAgent: AgentKind;
   lastCwd: string;
   lastPin: boolean;
+  /** Folder of the Home session at the top of the rail; empty turns Home off. */
+  homeCwd: string;
+  /** Agent the Home session runs. */
+  homeAgent: AgentKind;
   /** Soft-close oldest rail sessions on startup when over this (0 = unlimited). */
   sessionListMax: number;
   /** Inworld realtime LLM; also answers web searches. */

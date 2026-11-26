@@ -12,6 +12,7 @@ function parsePersistedState(parsed: unknown): PersistedState | null {
   if (raw.version !== 1) return null;
   if (typeof raw.activeTabId !== "string") return null;
   if (!Array.isArray(raw.pinned) || !Array.isArray(raw.unpinned)) return null;
+  if (raw.homeId !== undefined && typeof raw.homeId !== "string") return { ...raw, homeId: undefined };
   return raw;
 }
 

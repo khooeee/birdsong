@@ -14,7 +14,7 @@ final class SessionSwipeActions {
 
     func configuration(for session: Session, pinned: Bool) -> UISwipeActionsConfiguration {
         var actions = [renameAction(session)]
-        if !pendingPinUpdates.contains(session.id) {
+        if session.home != true, !pendingPinUpdates.contains(session.id) {
             actions.insert(pinAction(session.id, pin: !pinned), at: 0)
         }
         let config = UISwipeActionsConfiguration(actions: actions)

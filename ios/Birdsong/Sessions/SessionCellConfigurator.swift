@@ -7,6 +7,10 @@ enum SessionCellConfigurator {
         var content = cell.defaultContentConfiguration()
         content.text = session.title
         content.textProperties.numberOfLines = 3
+        if session.home == true {
+            content.image = UIImage(systemName: "house.fill")
+            content.imageProperties.tintColor = .secondaryLabel
+        }
         if let notice = session.continuationNotice {
             content.secondaryText = notice
             content.secondaryTextProperties.color = .secondaryLabel

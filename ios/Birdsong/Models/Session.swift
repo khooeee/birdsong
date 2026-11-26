@@ -17,6 +17,8 @@ struct Session: Decodable, Sendable, Hashable, Identifiable {
     let modelConfig: SessionModelConfig?
     /// A turn finished while the session was off screen; absent from an older Mac app.
     var unread: Bool?
+    /// The Home session, pinned above the others. Absent from an older Mac app.
+    let home: Bool?
 
     var continuationNotice: String? {
         guard let resumeAt else { return nil }

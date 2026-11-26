@@ -3,5 +3,6 @@ export interface PaletteTarget {
   hasSessions: boolean;
   supportsFork: boolean;
   pinned: boolean;
+  home: boolean;
   unread: boolean;
 }

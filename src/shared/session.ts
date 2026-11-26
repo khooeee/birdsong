@@ -54,4 +54,6 @@ export interface Session {
   resumeAt?: number;
   /** A turn finished while the session was off screen; opening it on the Mac or the phone clears this (not persisted). */
   unread?: boolean;
+  /** The Home session: always first in the rail and never closed or unpinned (set in lists, not persisted). */
+  home?: boolean;
 }

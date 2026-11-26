@@ -15,6 +15,7 @@ export function sessionMenu(win: () => BrowserWindow | null): Electron.MenuItemC
     label: "Session",
     submenu: [
       item("New Session…", "CmdOrCtrl+N", "birdsong:new-session"),
+      item("Go to Home", "CmdOrCtrl+1", "birdsong:open-home"),
       item("Fork", "CmdOrCtrl+Shift+N", "birdsong:fork-session"),
       item("Rename…", "CmdOrCtrl+R", "birdsong:rename-session"),
       item("Pin / Unpin", isMac ? "Ctrl+Cmd+P" : "Ctrl+Alt+P", "birdsong:toggle-pin"),
