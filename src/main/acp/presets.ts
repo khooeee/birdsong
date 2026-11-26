@@ -1,3 +1,5 @@
+import { homedir } from "node:os";
+import { join } from "node:path";
 import type { AgentKind } from "../../shared/agentKind";
 import { findOnPath } from "./findOnPath";
 import { packageBin } from "./packageBin";
@@ -24,6 +26,11 @@ interface AgentPreset {
 
 function resolveCursorAgent(): string {
   return resolvePathCommand("agent");
+}
+
+/** OpenCode's install script puts it in `~/.opencode/bin`; Homebrew and npm put it on PATH. */
+function resolveOpencode(): string {
+  return resolvePathCommand("opencode", [join(homedir(), ".opencode", "bin", "opencode")]);
 }
 
 function claudeCommand(): string {
@@ -104,6 +111,14 @@ export const AGENT_PRESETS: Record<AgentKind, AgentPreset> = {
     },
     args: ["acp"],
     loginHint: "Devin is not signed in. Run `devin auth login` in a terminal, then try again.",
+  },
+  opencode: {
+    kind: "opencode",
+    get command() {
+      return resolveOpencode();
+    },
+    args: ["acp"],
+    loginHint: "OpenCode is not signed in. Run `opencode auth login` in a terminal, then try again.",
   },
   pi: {
     kind: "pi",

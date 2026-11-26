@@ -37,7 +37,7 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
   // Fall back when the remembered agent is no longer installed.
   const selectedAgent = agentOptions.includes(agent) ? agent : agentOptions[0];
   const draft = useNewSessionDraft(selectedAgent, cwd);
-  // Agents that title themselves get the first prompt; the rest (pi) a title.
+  // Agents that title themselves get the first prompt; the rest (OpenCode, Pi) a title.
   const asksPrompt = generatesSessionTitles(selectedAgent);
   const canCreate = !!selectedAgent && !!cwd.trim() && (asksPrompt || !!title.trim()) && !busy && !draft.updating;
 
