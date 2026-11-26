@@ -1,8 +1,8 @@
 import UIKit
 
-/// A rail row's trailing swipe: Pin or Unpin, and Rename.
+/// A rail row's long-press menu: Pin or Unpin, and Rename.
 @MainActor
-final class SessionSwipeActions {
+final class SessionContextMenu {
     private let client: BirdsongClient
     private weak var presenter: UIViewController?
     private var pendingPinUpdates = Set<String>()
@@ -12,46 +12,34 @@ final class SessionSwipeActions {
         self.presenter = presenter
     }
 
-    func configuration(for session: Session, pinned: Bool) -> UISwipeActionsConfiguration {
+    func configuration(for session: Session, pinned: Bool) -> UIContextMenuConfiguration {
         var actions = [renameAction(session)]
         if session.home != true, !pendingPinUpdates.contains(session.id) {
             actions.insert(pinAction(session.id, pin: !pinned), at: 0)
         }
-        let config = UISwipeActionsConfiguration(actions: actions)
-        config.performsFirstActionWithFullSwipe = false
-        return config
+        return UIContextMenuConfiguration(actionProvider: { _ in UIMenu(children: actions) })
     }
 
-    private func pinAction(_ id: String, pin: Bool) -> UIContextualAction {
-        let action = UIContextualAction(style: .normal, title: pin ? "Pin" : "Unpin") { [weak self] _, _, finish in
-            guard let self, pendingPinUpdates.insert(id).inserted else {
-                finish(false)
-                return
-            }
+    private func pinAction(_ id: String, pin: Bool) -> UIAction {
+        UIAction(title: pin ? "Pin" : "Unpin", image: UIImage(systemName: pin ? "pin" : "pin.slash")) { [weak self] _ in
+            guard let self, pendingPinUpdates.insert(id).inserted else { return }
             Task {
                 defer { self.pendingPinUpdates.remove(id) }
                 do {
                     try await self.client.setPinned(pin, sessionId: id)
-                    finish(true)
                 } catch {
-                    finish(false)
                     self.showPinError(error, pin: pin)
                 }
             }
         }
-        action.backgroundColor = .systemBlue
-        return action
     }
 
-    private func renameAction(_ session: Session) -> UIContextualAction {
-        let action = UIContextualAction(style: .normal, title: "Rename") { [weak self] _, _, finish in
-            finish(true)
+    private func renameAction(_ session: Session) -> UIAction {
+        UIAction(title: "Rename", image: UIImage(systemName: "pencil")) { [weak self] _ in
             guard let self, let presenter = availablePresenter() else { return }
             let form = RenameSessionViewController(client: client, session: session)
             presenter.present(UINavigationController(rootViewController: form), animated: true)
         }
-        action.backgroundColor = .systemGray
-        return action
     }
 
     private func showPinError(_ error: any Error, pin: Bool) {
