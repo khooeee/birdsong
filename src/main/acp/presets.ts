@@ -89,6 +89,14 @@ export const AGENT_PRESETS: Record<AgentKind, AgentPreset> = {
     args: ["acp", "--dangerously-skip-permissions", "--process-per-session"],
     loginHint: "Antigravity is not signed in. Run `agy acp --login` in a terminal, then try again.",
   },
+  devin: {
+    kind: "devin",
+    get command() {
+      return resolvePathCommand("devin");
+    },
+    args: ["acp"],
+    loginHint: "Devin is not signed in. Run `devin auth login` in a terminal, then try again.",
+  },
   pi: {
     kind: "pi",
     command: "node",

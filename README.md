@@ -5,14 +5,14 @@ An agentic development environment that sparks joy in my everyday coding:
 - Each session on the left sidebar shows the title, nothing else.  Details such as coding agent, directory you're in, date/time, etc. add clutter and are not useful most of the time.  Renaming the title is very easy to do and it can be multiline as well.  If you supply URLs, they will be linked as well so you can stuff things into it like issue/PR URLs, etc.
 - Pinning sessions will put them at the top of the list, and once you're done, unpin and they will eventually float down.  You can find them later on through find in history.
 - [Home](#home) is one session that stays above the pinned ones, pointed at a folder you choose in Settings. I use it for a personal repo: todos, notes, and the rest of life that isn't a coding project. Command/Control + 1 switches between Home and the session you were on, and stays in Sessions, Files, or Diff. Command/Control + 2 switches between Home's file explorer and that session's files.
-- Sending new messages while the agent is already in progress should always steer where available, otherwise queue.  Claude Code & Codex steer.  Antigravity, Cursor & Pi queue (due to lack of support for steering in their ACP implementation).  But in general, I think the concept of queueing should just go away and every coding agent should always steer.
+- Sending new messages while the agent is already in progress should always steer where available, otherwise queue.  Claude Code & Codex steer.  Antigravity, Cursor, Devin & Pi queue (due to lack of support for steering in their ACP implementation).  But in general, I think the concept of queueing should just go away and every coding agent should always steer.
 - All agents are started in bypass permissions/YOLO mode.
 - Zen mode hides the message type & timestamps.  It's on by default.  You can always turn it off to see those details as needed with Command/Control + /.
 - You can control your sessions through an iOS app.
 - Best paired with [beaver](https://github.com/khooeee/beaver/)
 
 There are also orchestration features:
-- Sessions can drive each other: create other sessions, rename them, send prompts to them, and wait for & read their replies.  In other words, pretty much everything session-specific aside from forking.  This can lead to very useful parallelization strategies (e.g. reading GitHub issues & implementing them in parallel).  Every session gets these as tools from Birdsong's own MCP server, so it works the same for Claude Code, Codex, Cursor, Pi & Antigravity.
+- Sessions can drive each other: create other sessions, rename them, send prompts to them, and wait for & read their replies.  In other words, pretty much everything session-specific aside from forking.  This can lead to very useful parallelization strategies (e.g. reading GitHub issues & implementing them in parallel).  Every session gets these as tools from Birdsong's own MCP server, so it works the same for Claude Code, Codex, Cursor, Pi, Antigravity & Devin.
 - A hands-free voice agent ([Inworld Realtime](https://docs.inworld.ai/realtime/overview)) controls every session: ask what's running, send or steer prompts, start new sessions, and hear finished turns announced.  It also answers general questions and searches the web.  Add your Inworld API key first (bottom-left gear → **Open Settings** → **Voice**), then click the mic in the bottom left to start it. Pick the agent's voice in **Settings** → **Voice** from your Inworld workspace's voices (Inworld's own plus any you cloned or designed), and click **Play Sample** to hear one first. Saving a new voice switches it at once, even mid-call.
 
 ## Install (macOS)
@@ -37,13 +37,14 @@ sudo apt install ./birdsong_*_amd64.deb
 
 ## Prerequisites
 
-At least one agent CLI installed and authenticated. The Claude Code, Codex, and Pi ACP adapters ship with the app, but every agent runs on your own installed CLI. Those bundled adapters need **Node.js 22.12+** on `PATH` (Pi needs 22.19+); Cursor and Antigravity do not.
+At least one agent CLI installed and authenticated. The Claude Code, Codex, and Pi ACP adapters ship with the app, but every agent runs on your own installed CLI. Those bundled adapters need **Node.js 22.12+** on `PATH` (Pi needs 22.19+); Cursor, Antigravity and Devin do not.
 
 - **Claude Code**: `claude` on `PATH` (e.g. `brew install --cask claude-code`) and Claude login or `ANTHROPIC_API_KEY`
 - **Codex**: `codex` on `PATH` (e.g. `brew install --cask codex`) and Codex/ChatGPT login or `OPENAI_API_KEY` / `CODEX_API_KEY`
 - **Cursor**: Cursor CLI `agent` on `PATH` (typically `~/.local/bin/agent`) and `agent login`
 - **Pi**: `pi` on `PATH` via `npm install -g --ignore-scripts @earendil-works/pi-coding-agent`
 - **Antigravity**: Antigravity CLI `agy` on `PATH` and a Google sign-in, from running `agy` once or `agy acp --login`
+- **Devin**: Devin CLI `devin` on `PATH` (e.g. `brew install --cask devin-cli`) and `devin auth login`, or `WINDSURF_API_KEY`
 
 `PATH` here means your terminal's `PATH`. On startup Birdsong runs your login shell once (`$SHELL -i -l`), so agents get the same environment as a new terminal window, even when you open the app from the Dock. While it runs, `BIRDSONG_RESOLVING_SHELL_ENV=1` is set, so your rc files can skip slow steps. If the shell fails or takes more than 10 seconds, agents use Birdsong's own environment plus common bin dirs. After editing rc files, restart Birdsong.
 
@@ -90,7 +91,7 @@ Click the Settings button on the bottom and select **Open Crons** to add, edit, 
 ```
 
 - `cron` is a standard 5-field expression in local time: `minute hour day-of-month month day-of-week` (e.g. `*/15 * * * *` is every 15 minutes, `0 9 * * 1-5` is 9:00 on weekdays). Numbers, `*`, ranges, steps and lists are supported; names like `MON` are not.
-- `agent` is one of `claude`, `codex`, `cursor`, `pi` or `antigravity`.
+- `agent` is one of `claude`, `codex`, `cursor`, `pi`, `antigravity` or `devin`.
 - `enabled` must be `true` to run; a missing `enabled` is off.
 - `title` is optional; `YYYY-MM-DD`, `HH:MM` and `H:MM` in it become the run's local date and 24-hour time.
 - Crons only run while Birdsong is open. Runs missed while the app was closed or the computer was asleep are skipped.
