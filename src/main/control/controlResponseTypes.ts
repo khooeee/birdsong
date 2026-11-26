@@ -1,3 +1,4 @@
+import { AGENT_KINDS } from "../../shared/agentKind";
 import type { FileChange } from "../../shared/fileChange";
 import type { Session } from "../../shared/session";
 import type { SessionConfigPickers } from "../../shared/sessionConfigPickers";
@@ -14,7 +15,7 @@ export const controlResponseTypes = {
   Session: {
     id: "string — Birdsong session id used in /sessions/:id routes",
     title: "string",
-    agent: "claude | codex | cursor | pi",
+    agent: AGENT_KINDS.join(" | "),
     cwd: "string — absolute Session Folder path",
     workingFolders: "{ id, path }[] — ordered working folder roots; paths resolve symlinks",
     agentSessionId: "string | null — ACP agent session id (not the Birdsong id)",

@@ -1,3 +1,5 @@
+import { AGENT_KINDS } from "./agentKind";
+
 interface CatalogRoute {
   method: string;
   path: string;
@@ -40,7 +42,7 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
       auth: true,
       summary: "Create a session",
       body: {
-        agent: "claude | codex | cursor | pi",
+        agent: AGENT_KINDS.join(" | "),
         cwd: "absolute workspace path",
         title: "optional string",
         pin: "optional boolean — pin the session at the top of the rail",

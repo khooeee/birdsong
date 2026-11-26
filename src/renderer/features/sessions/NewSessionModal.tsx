@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
-import type { AgentKind } from "../../../shared/agentKind";
+import { AGENT_KINDS, type AgentKind } from "../../../shared/agentKind";
 import { AGENT_LABELS } from "../../../shared/agentLabels";
 import type { CreateSessionInput } from "../../../shared/createSessionInput";
 import { errorMessage } from "../../../shared/errorMessage";
@@ -15,8 +15,6 @@ import { NewSessionConfigSelect } from "./NewSessionConfigSelect";
 import { useNewSessionDraft } from "./useNewSessionDraft";
 import "../modals/modal.css";
 import "./newSessionModal.css";
-
-const AGENT_KINDS = Object.keys(AGENT_LABELS) as AgentKind[];
 
 interface Props {
   onCancel: () => void;

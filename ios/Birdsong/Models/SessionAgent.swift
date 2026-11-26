@@ -1,5 +1,5 @@
 enum SessionAgent: String, CaseIterable, Sendable {
-    case claude, codex, cursor, pi
+    case claude, codex, cursor, pi, antigravity
 
     var label: String {
         switch self {
@@ -7,6 +7,7 @@ enum SessionAgent: String, CaseIterable, Sendable {
         case .codex: "Codex"
         case .cursor: "Cursor"
         case .pi: "Pi"
+        case .antigravity: "Antigravity"
         }
     }
 }

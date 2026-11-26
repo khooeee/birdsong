@@ -1,3 +1,5 @@
+import { AGENT_KINDS } from "../../shared/agentKind";
+
 const sessionId = { type: "string", description: "Birdsong session id" };
 
 function tool(name: string, description: string, properties: Record<string, unknown> = {}, required: string[] = []) {
@@ -28,7 +30,7 @@ export const BIRDSONG_TOOLS = [
     "create_session",
     "Start a new agent session in the background, optionally with a first prompt. Returns at once with the session; keep its id and track children by id, never by title.",
     {
-      agent: { type: "string", enum: ["claude", "codex", "cursor", "pi"] },
+      agent: { type: "string", enum: [...AGENT_KINDS] },
       cwd: { type: "string", description: "Absolute workspace path" },
       title: { type: "string" },
       prompt: { type: "string", description: "First prompt; returns without waiting for the reply" },

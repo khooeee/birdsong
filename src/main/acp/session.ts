@@ -22,6 +22,7 @@ import { sessionConnectionHandlers } from "./sessionConnectionHandlers";
 import { includesBirdsongServer } from "../mcp/includesBirdsongServer";
 import { sessionMcpServers } from "../mcp/sessionMcpServers";
 import { sessionPipeline } from "./sessionPipeline";
+import { withLoginHint } from "./withLoginHint";
 
 export class AcpSession extends SharedAgentConnection {
   sessionId: string | null = null;
@@ -119,7 +120,9 @@ export class AcpSession extends SharedAgentConnection {
   private startOnce(run: () => Promise<void>): Promise<void> {
     if (this.starting) return this.starting;
     if (this.sessionId) return Promise.resolve();
-    this.starting = run().finally(() => { this.starting = null; });
+    this.starting = run()
+      .catch((error: unknown) => { throw withLoginHint(this.agent, error); })
+      .finally(() => { this.starting = null; });
     return this.starting;
   }
 
