@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { AGENT_KINDS, type AgentKind } from "../../../shared/agentKind";
+import type { AgentKind } from "../../../shared/agentKind";
 import { AGENT_LABELS } from "../../../shared/agentLabels";
 import type { Session } from "../../../shared/session";
 import { resumeElsewhere } from "./resumeElsewhere";
@@ -16,8 +16,8 @@ export function ResumeElsewhereItem({
   onDismiss: () => void;
 }) {
   const available = useAvailableAgents();
-  const agents = AGENT_KINDS.filter((kind) => available === null || available.includes(kind));
-  const disabled = !session.cwd.trim() || (available !== null && agents.length === 0);
+  const agents = available ?? [];
+  const disabled = !session.cwd.trim() || agents.length === 0;
   const rowRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [alignLeft, setAlignLeft] = useState(false);
