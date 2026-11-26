@@ -10,7 +10,6 @@ import { useRightRail } from "./features/chat/useRightRail";
 import { useTurnDetailsEvent } from "./features/chat/useTurnDetailsEvent";
 import { useChatActions } from "./features/chat/useChatActions";
 import { useSessionScrollPosition } from "./features/sessions/useSessionScrollPosition";
-import { useSessionLinkScroll } from "./features/sessions/useSessionLinkScroll";
 import { useAppShortcuts } from "./features/shortcuts/useAppShortcuts";
 import { useMenuCommands } from "./features/shortcuts/useMenuCommands";
 import { FindBar } from "./features/find/FindBar";
@@ -60,7 +59,6 @@ export function App() {
     setFocusEvent,
     sessionNotice,
     setSessionNotice,
-    sessionLinkTarget,
   } = useAppSessionState();
   const railActions = useSessionRailActions();
   const voiceLogOpen = useSyncExternalStore(voiceLogView.subscribe, voiceLogView.getSnapshot);
@@ -96,13 +94,6 @@ export function App() {
   const voiceRailOpen = voiceLogOpen && !!voiceTurnId;
   const askQuestion = useAgentQuestions(activeTabId);
   const pinTranscriptToBottom = useSessionScrollPosition(activeTabId, chatRef, true, !voiceLogOpen);
-  useSessionLinkScroll(
-    sessionLinkTarget,
-    activeSession?.id,
-    !!activeSession && !!transcripts[activeSession.id],
-    sessionsMode && !voiceLogOpen,
-    pinTranscriptToBottom,
-  );
 
   const {
     rightRailView,

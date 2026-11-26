@@ -67,7 +67,6 @@ const config: ForgeConfig = {
     ignore: (file) => !keepPackagedPath(file),
     name: "Birdsong",
     icon: "./assets/icon",
-    protocols: [{ name: "Birdsong Session", schemes: ["birdsong"] }],
     // `pi-mcp` runs outside the asar: pi-acp spawns its wrapper and Pi loads its extension.
     extraResource: ["./assets/icon.png", "./assets/pi-mcp"],
     extendInfo: {
@@ -94,7 +93,6 @@ const config: ForgeConfig = {
         // Matches `packagerConfig.name`; the maker defaults to the lowercase package name.
         bin: 'Birdsong',
         icon: './assets/icon.png',
-        mimeType: ['x-scheme-handler/birdsong'],
       },
     }, ['linux']),
   ],

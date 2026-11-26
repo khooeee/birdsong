@@ -28,7 +28,6 @@ import { createSession } from "./createSession";
 import { forkSession } from "./forkSession";
 import { setActiveTab } from "./setActiveTab";
 import { navigateToEvent } from "./navigateToEvent";
-import { navigateToSession } from "./navigateToSession";
 import { noteReminder } from "./noteReminder";
 import { promptSession } from "./promptSession";
 import { showSessionConfigMenu } from "./showSessionConfigMenu";
@@ -178,10 +177,6 @@ export class SessionManager {
 
   navigateToEvent(sessionId: string, turnId: string, eventId: string): Promise<void> {
     return navigateToEvent(this.deps, sessionId, turnId, eventId);
-  }
-
-  navigateToSession(sessionId: string): Promise<void> {
-    return navigateToSession(this.deps, sessionId);
   }
 
   /** Start uncapped history search; progress arrives via find:progress / find:done. */

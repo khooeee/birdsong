@@ -40,9 +40,6 @@ const api: BirdsongApi = {
   openHome: () => ipcRenderer.invoke("home:open"),
   startFreshHome: () => ipcRenderer.invoke("home:startFresh"),
   checkHomeChange: (cwd, agent) => ipcRenderer.invoke("home:checkChange", cwd, agent),
-  openSessionLink: (link) => ipcRenderer.invoke("sessions:openLink", link),
-  sessionLinksReady: () => ipcRenderer.invoke("sessions:linksReady"),
-  onNavigateToSession: (cb) => subscribe<{ sessionId: string }>("navigate-session", cb),
   listSessions: () => ipcRenderer.invoke("sessions:list"),
   sendPrompt: (sessionId: string, text: string) =>
     ipcRenderer.invoke("session:prompt", sessionId, text),
