@@ -4,7 +4,8 @@ import type { McpServerEntry } from "./McpServerEntry";
 const HTTP_TYPES = new Set(["http", "streamable-http", "streamableHttp"]);
 
 function text(value: unknown, field: string): string {
-  if (typeof value !== "string" || !value.trim()) throw new Error(`${field} must be text`);
+  if (typeof value !== "string") throw new Error(`${field} must be text`);
+  if (!value.trim()) throw new Error(`${field} is empty`);
   return value.trim();
 }
 

@@ -11,6 +11,7 @@ import type { CronsSnapshot } from "./cronsSnapshot";
 import type { DirListing } from "./dirListing";
 import type { FindInFilesResult } from "./findInFilesResult";
 import type { FindInSessionsHit } from "./findInSessionsHit";
+import type { McpProblem } from "./mcpProblem";
 import type { Reminder } from "./reminder";
 import type { ReminderInput } from "./reminderInput";
 import type { ApnsKeyInfo } from "./apnsKeyInfo";
@@ -86,7 +87,7 @@ export interface BirdsongApi {
   /** Custom MCP servers as mcp.json text; empty when there are none. */
   getMcpServers: () => Promise<string>;
   /** Problems with `text`: errors that block saving it, and servers sessions would leave out. */
-  checkMcpServers: (text: string) => Promise<string[]>;
+  checkMcpServers: (text: string) => Promise<McpProblem[]>;
   /** Rejects invalid text. New sessions use the saved servers. */
   saveMcpServers: (text: string) => Promise<void>;
   /** iOS remote access: the pairing link and `tailscale serve` setup. */

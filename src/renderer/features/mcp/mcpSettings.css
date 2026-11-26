@@ -7,3 +7,213 @@
   font-weight: var(--font-mono-weight);
   font-size: var(--font-mono-size);
 }
+
+.mcp-heading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.mcp-heading .settings-section {
+  margin: 0;
+}
+
+.mcp-link-btn {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--text-dim);
+  font-size: var(--font-ui-size);
+}
+
+.mcp-link-btn:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.mcp-link-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.mcp-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mcp-card {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.mcp-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 10px;
+}
+
+.modal .mcp-card-header input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  accent-color: var(--accent, #8a9299);
+}
+
+.mcp-card-toggle {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 9px 10px 9px 0;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.mcp-card-toggle:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: -2px;
+  border-radius: 8px;
+}
+
+.mcp-card-name {
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+
+.mcp-card-summary {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--font-mono-small-size);
+}
+
+.mcp-card-chevron {
+  flex: none;
+  align-self: center;
+  display: flex;
+  color: var(--text-dim);
+}
+
+.mcp-card-chevron svg {
+  transition: transform 0.1s ease;
+}
+
+.mcp-card-toggle[aria-expanded="true"] .mcp-card-chevron svg {
+  transform: rotate(90deg);
+}
+
+.mcp-card.off .mcp-card-name,
+.mcp-card.off .mcp-card-summary {
+  opacity: 0.45;
+}
+
+.mcp-card-problem {
+  padding: 0 10px 9px 33px;
+  overflow-wrap: anywhere;
+}
+
+.mcp-card-problem::first-letter {
+  text-transform: uppercase;
+}
+
+.mcp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px 10px 10px;
+  border-top: 1px solid var(--border);
+}
+
+.mcp-kind {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.mcp-kind button {
+  border: none;
+  border-radius: 6px;
+  background: none;
+  padding: 4px 12px;
+  color: var(--text-dim);
+}
+
+.mcp-kind button[aria-checked="true"] {
+  background: var(--bg-3);
+  color: var(--text);
+}
+
+.mcp-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.mcp-group-label {
+  color: var(--text-dim);
+}
+
+.mcp-row {
+  display: grid;
+  grid-template-columns: 2fr 3fr auto;
+  gap: 6px;
+}
+
+.modal .mcp-row input,
+.modal input.mcp-mono {
+  min-width: 0;
+  font-family: var(--font-mono);
+  font-size: var(--font-mono-small-size);
+}
+
+.modal input.mcp-invalid {
+  border-color: var(--danger);
+}
+
+.mcp-icon-btn {
+  width: 24px;
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--text-dim);
+  font-size: 15px;
+}
+
+.mcp-icon-btn:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.mcp-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.btn.mcp-remove {
+  padding: 5px 10px;
+  color: var(--danger);
+}
+
+.btn.mcp-add {
+  align-self: flex-start;
+}
