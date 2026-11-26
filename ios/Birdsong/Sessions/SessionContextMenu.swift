@@ -1,6 +1,6 @@
 import UIKit
 
-/// A rail row's long-press menu: Pin or Unpin, Rename, and Continue with.
+/// A rail row's long-press menu: Rename, Pin or Unpin, and Continue with.
 @MainActor
 final class SessionContextMenu {
     private let client: BirdsongClient
@@ -23,7 +23,7 @@ final class SessionContextMenu {
     func configuration(for session: Session, pinned: Bool) -> UIContextMenuConfiguration {
         var actions: [UIMenuElement] = [renameAction(session), continueWith.element(for: session, pinned: pinned)]
         if session.home != true, !pendingPinUpdates.contains(session.id) {
-            actions.insert(pinAction(session.id, pin: !pinned), at: 0)
+            actions.insert(pinAction(session.id, pin: !pinned), at: 1)
         }
         return UIContextMenuConfiguration(actionProvider: { _ in UIMenu(children: actions) })
     }
