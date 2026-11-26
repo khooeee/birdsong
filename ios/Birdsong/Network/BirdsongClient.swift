@@ -77,9 +77,15 @@ final class BirdsongClient: Sendable {
         _ = try await send(request(["sessions", sessionId, pinned ? "pin" : "unpin"], method: "POST"))
     }
 
-    /// Clears the unread dot, here and on the Mac.
-    func markRead(sessionId: String) async throws {
-        _ = try await send(request(["sessions", sessionId, "read"], method: "POST"))
+    /// Shows or clears the unread dot, here and on the Mac.
+    func setUnread(_ unread: Bool, sessionId: String) async throws {
+        _ = try await send(request(["sessions", sessionId, unread ? "unread" : "read"], method: "POST"))
+    }
+
+    /// A copy of the session with the same agent, folders and history, pinned if the source is.
+    func forkSession(_ sessionId: String) async throws -> Session {
+        let data = try await send(request(["sessions", sessionId, "fork"], method: "POST"))
+        return try JSONDecoder().decode(Session.self, from: data)
     }
 
     /// Replaces the title; the agent stops naming the session.

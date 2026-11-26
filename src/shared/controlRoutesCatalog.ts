@@ -100,6 +100,14 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
     },
     {
       method: "POST",
+      path: "/sessions/:id/fork",
+      auth: true,
+      summary: "Fork the session: a new rail entry with the same agent, folders and history, pinned if the source is",
+      response: "Session — the fork; status is \"error\" when the agent can't fork",
+      example: `curl -s -X POST -H "Authorization: Bearer $TOKEN" ${b}/sessions/<id>/fork`,
+    },
+    {
+      method: "POST",
       path: "/sessions/:id/rename",
       auth: true,
       summary: "Rename a session",
@@ -151,6 +159,14 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
       summary: "Clear a session's unread dot, as opening it does",
       response: { sessionId: "string", unread: "false", ok: "true" },
       example: `curl -s -X POST -H "Authorization: Bearer $TOKEN" ${b}/sessions/<id>/read`,
+    },
+    {
+      method: "POST",
+      path: "/sessions/:id/unread",
+      auth: true,
+      summary: "Show a session's unread dot again",
+      response: { sessionId: "string", unread: "true", ok: "true" },
+      example: `curl -s -X POST -H "Authorization: Bearer $TOKEN" ${b}/sessions/<id>/unread`,
     },
     {
       method: "POST",

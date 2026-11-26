@@ -7,6 +7,7 @@ export async function forkSession(
   { state, persistence, hydration, agents }: SessionDeps,
   sessionId: string,
   eventId?: string,
+  focus = true,
 ): Promise<Session> {
   if (!(await hydration.ensure(sessionId))) throw new Error("Session not found");
   // A fork of a pinned session is pinned too; an unpinned source forks unpinned.
@@ -25,7 +26,7 @@ export async function forkSession(
       state.hydrated.add(session.id);
       void state.subagentTranscripts.copySession(sessionId, session.id).catch(() => undefined);
     },
-    setActiveSession: (id) => { state.activeTabId = id; },
+    setActiveSession: (id) => { if (focus) state.activeTabId = id; },
     emitSessions: () => state.emitSessions(),
     send: (channel, payload) => state.send(channel, payload),
     persist: () => persistence.persist(),
