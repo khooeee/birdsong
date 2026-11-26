@@ -17,9 +17,9 @@ final class TranscriptReplyCell: UICollectionViewListCell {
         statusLabel.adjustsFontForContentSizeCategory = true
 
         let actions = UIStackView(arrangedSubviews: [UIView(), detailsButton])
-        // Into the margin, so this chevron lines up with the one under the prompt.
+        // In from the edge, clear of the scroll indicator, and lined up with the prompt.
         actions.isLayoutMarginsRelativeArrangement = true
-        actions.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: -8)
+        actions.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 12)
         let stack = UIStackView(arrangedSubviews: [replyView, statusLabel, actions])
         stack.axis = .vertical
         stack.spacing = 3
