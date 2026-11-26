@@ -67,6 +67,12 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
         />
         Allow the iOS app over Tailscale
       </label>
+      {draft.remoteEnabled && (
+        <div className="settings-note">
+          Keeps this computer awake while it is plugged in and Birdsong is listening on the Control API port. Closing
+          the lid still puts it to sleep.
+        </div>
+      )}
       {status?.serveCommand && !status.servedUrl && (
         <div className="settings-note">
           Run once in a terminal:

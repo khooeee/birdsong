@@ -1,4 +1,5 @@
 import Foundation
+import Synchronization
 
 /// REST calls and event streams against the desktop app's remote server.
 final class BirdsongClient: Sendable {
@@ -21,14 +22,22 @@ final class BirdsongClient: Sendable {
     }
 
     let config: ServerConfig
-    private let session: URLSession
+    private let current = Mutex(HTTPConnection())
 
     init(config: ServerConfig) {
         self.config = config
-        let configuration = URLSessionConfiguration.default
-        // Event streams ping every 20s, so a minute of silence means the Mac is gone.
-        configuration.timeoutIntervalForRequest = 60
-        session = URLSession(configuration: configuration)
+    }
+
+    /// What new requests go over; hand it to `retire` if it seems dead.
+    var connection: HTTPConnection {
+        current.withLock { $0 }
+    }
+
+    /// Sends new requests over a fresh connection. `tailscale serve` speaks HTTP/2, so otherwise they queue on
+    /// one that died silently until it times out. Does nothing if `connection` was already replaced, so every
+    /// stream on it can report it.
+    func retire(_ connection: HTTPConnection) {
+        current.withLock { if $0 === connection { $0 = HTTPConnection() } }
     }
 
     /// Fails unless the server answers and accepts the token.
@@ -95,35 +104,42 @@ final class BirdsongClient: Sendable {
         _ = try await send(request(["sessions", sessionId, "cancel"], method: "POST"))
     }
 
-    /// `path` is `["events"]` for the rail or `["sessions", id, "events"]` for one transcript.
-    func events(_ path: [String]) -> AsyncThrowingStream<RemoteEvent, any Error> {
+    /// `path` is `["events"]` for the rail or `["sessions", id, "events"]` for one transcript. Fails unless an
+    /// event arrives within `timeout`; the desktop always sends one on opening.
+    func events(
+        _ path: [String],
+        over connection: HTTPConnection,
+        firstWithin timeout: Duration
+    ) -> AsyncThrowingStream<RemoteEvent, any Error> {
         let request = request(path)
-        let session = session
         return AsyncThrowingStream { continuation in
+            let deadline = Task {
+                try await Task.sleep(for: timeout)
+                let message = "Your Mac isn't answering."
+                continuation.finish(throwing: URLError(.timedOut, userInfo: [NSLocalizedDescriptionKey: message]))
+            }
             let task = Task {
                 do {
-                    let (bytes, response) = try await session.bytes(for: request)
+                    let (bytes, response) = try await connection.bytes(for: request)
                     let status = (response as? HTTPURLResponse)?.statusCode ?? 0
                     guard status == 200 else { throw ServerError(status: status, body: Data()) }
-                    // `lines` skips blank lines, so dispatch on `data:`; the server sends one per event.
-                    var name = "message"
-                    for try await line in bytes.lines {
-                        if line.hasPrefix("event:") {
-                            name = line.dropFirst(6).trimmingCharacters(in: .whitespaces)
-                        } else if line.hasPrefix("data:") {
-                            let data = String(line.dropFirst(5))
-                            if let event = try RemoteEvent.decode(name: name, data: data) {
-                                continuation.yield(event)
-                            }
-                            name = "message"
-                        }
+                    var parser = ServerSentEventParser()
+                    for try await byte in bytes {
+                        guard let (name, data) = parser.consume(byte),
+                              let event = try RemoteEvent.decode(name: name, data: data)
+                        else { continue }
+                        deadline.cancel()
+                        continuation.yield(event)
                     }
                     continuation.finish()
                 } catch {
                     continuation.finish(throwing: error)
                 }
             }
-            continuation.onTermination = { _ in task.cancel() }
+            continuation.onTermination = { _ in
+                deadline.cancel()
+                task.cancel()
+            }
         }
     }
 
@@ -136,7 +152,7 @@ final class BirdsongClient: Sendable {
     }
 
     private func send(_ request: URLRequest) async throws -> Data {
-        let (data, response) = try await session.data(for: request)
+        let (data, response) = try await connection.data(for: request)
         let status = (response as? HTTPURLResponse)?.statusCode ?? 0
         guard (200..<300).contains(status) else { throw ServerError(status: status, body: data) }
         return data
