@@ -1,12 +1,12 @@
 import UIKit
 
-/// A turn's reply (or what the agent is doing), with a button for the turn's details.
+/// A turn's reply (or what the agent is doing), with the Turn Details chevron at the bottom right, as on the desktop.
 final class TranscriptReplyCell: UICollectionViewListCell {
     var onDetails: (() -> Void)?
 
     private let replyView = SelectableTextView()
     private let statusLabel = UILabel()
-    private lazy var detailsButton = TurnDetailsButton(showsTitle: true) { [weak self] in self?.onDetails?() }
+    private lazy var detailsButton = TurnDetailsButton { [weak self] in self?.onDetails?() }
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -16,7 +16,11 @@ final class TranscriptReplyCell: UICollectionViewListCell {
         statusLabel.textColor = .secondaryLabel
         statusLabel.adjustsFontForContentSizeCategory = true
 
-        let stack = UIStackView(arrangedSubviews: [replyView, statusLabel, detailsButton])
+        let actions = UIStackView(arrangedSubviews: [UIView(), detailsButton])
+        // Into the margin, so this chevron lines up with the one beside the prompt.
+        actions.isLayoutMarginsRelativeArrangement = true
+        actions.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: -8)
+        let stack = UIStackView(arrangedSubviews: [replyView, statusLabel, actions])
         stack.axis = .vertical
         stack.spacing = 3
         stack.translatesAutoresizingMaskIntoConstraints = false

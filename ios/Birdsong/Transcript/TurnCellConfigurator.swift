@@ -11,7 +11,7 @@ enum TurnCellConfigurator {
         content.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 16, leading: 24, bottom: 16, trailing: 24)
         cell.contentConfiguration = content
         // A button, not the system disclosure indicator: the row isn't selectable, and VoiceOver needs a button.
-        let button = TurnDetailsButton(showsTitle: false, onTap: onDetails)
+        let button = TurnDetailsButton(onTap: onDetails)
         cell.accessories = [
             .customView(configuration: .init(customView: button, placement: .trailing(), reservedLayoutWidth: .actual)),
         ]
