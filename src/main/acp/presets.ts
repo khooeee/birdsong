@@ -70,6 +70,14 @@ export const AGENT_PRESETS: Record<AgentKind, AgentPreset> = {
       return { CODEX_PATH: userCli(codexCommand()) };
     },
   },
+  copilot: {
+    kind: "copilot",
+    get command() {
+      return resolvePathCommand("copilot");
+    },
+    args: ["--acp", "--allow-all"],
+    loginHint: "Copilot is not signed in. Run `copilot login` in a terminal, then try again.",
+  },
   cursor: {
     kind: "cursor",
     get command() {

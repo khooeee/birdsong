@@ -5,6 +5,7 @@ export const AGENT_LABELS: Record<AgentKind, string> = {
   antigravity: "Antigravity",
   claude: "Claude Code",
   codex: "Codex",
+  copilot: "Copilot",
   cursor: "Cursor",
   devin: "Devin",
   pi: "Pi",
