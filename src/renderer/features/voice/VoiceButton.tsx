@@ -25,7 +25,7 @@ export function VoiceButton({ sessionId }: { sessionId: string }) {
       type="button"
       className={`event-action voice-button voice-${status.state} voice-${status.activity}`}
       data-tooltip={voiceTooltip(status)}
-      data-tooltip-align="end"
+      data-tooltip-align="center"
       aria-label={voiceToggleLabel(status.state)}
       aria-pressed={status.state === "listening"}
       onClick={() => void window.birdsong.toggleVoice(sessionId)}

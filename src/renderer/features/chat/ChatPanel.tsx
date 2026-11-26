@@ -65,8 +65,8 @@ export function ChatPanel({
               nameHint={title}
             />
           ) : null}
-          <SessionDiffStats sessionId={session.id} folders={session.workingFolders} />
           <VoiceButton sessionId={session.id} />
+          <SessionDiffStats sessionId={session.id} folders={session.workingFolders} />
         </div>
       </div>
 
