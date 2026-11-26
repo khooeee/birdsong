@@ -14,7 +14,9 @@ final class SessionListViewController: UIViewController {
     private var sessionsById: [String: Session] = [:] {
         didSet { AppBadge.show(sessionsById.values) }
     }
-    private lazy var contextMenu = SessionContextMenu(client: client, presenter: self)
+    private lazy var contextMenu = SessionContextMenu(client: client, presenter: self) { [weak self] session in
+        self?.openIfOnRail(session)
+    }
     private var filter = ""
     /// A notification tap that arrived before the rail did.
     private var pendingSessionId: String?
@@ -102,6 +104,12 @@ final class SessionListViewController: UIViewController {
         if navigationController.viewControllers.count > 1 {
             navigationController.popToRootViewController(animated: false)
         }
+        openSession(session)
+    }
+
+    /// Opens a session started from the rail, unless the user has since moved on.
+    private func openIfOnRail(_ session: Session) {
+        guard navigationController?.topViewController === self else { return }
         openSession(session)
     }
 

@@ -17,6 +17,7 @@ import { resolveFolderPickerStart } from "./files/resolveFolderPickerStart";
 import { confirmCreateFolder } from "./files/confirmCreateFolder";
 import { saveMarkdownFile } from "./files/saveMarkdownFile";
 import type { SessionManager } from "./sessions/SessionManager";
+import { continueSession } from "./sessions/continueSession";
 import type { ControlServer } from "./control/ControlServer";
 import type { AppSettings } from "../shared/appSettings";
 import type { AgentKind } from "../shared/agentKind";
@@ -73,6 +74,9 @@ export function registerIpc({
   ipcMain.handle("sessions:list", () => sessions.list());
   ipcMain.handle("sessions:create", (_e, input: CreateSessionInput) => sessions.createSession(input));
   ipcMain.handle("sessions:fork", (_e, sessionId: string, eventId?: string) => sessions.forkSession(sessionId, eventId));
+  ipcMain.handle("sessions:continue", (_e, sessionId: string, agent: AgentKind, pin: boolean) =>
+    continueSession(sessions, sessionId, agent, { pin, focus: true }),
+  );
   ipcMain.handle("sessions:close", (_e, sessionId: string) => sessions.closeSession(sessionId));
   ipcMain.handle("sessions:rename", (_e, sessionId: string, title: string) => {
     sessions.renameSession(sessionId, title);
