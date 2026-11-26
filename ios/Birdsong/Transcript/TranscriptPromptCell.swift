@@ -21,9 +21,9 @@ final class TranscriptPromptCell: UICollectionViewListCell {
         queuedLabel.text = "Queued"
 
         let actions = UIStackView(arrangedSubviews: [UIView(), detailsButton])
-        // In from the edge, clear of the scroll indicator, and lined up with the reply.
+        // Into the margin, so this chevron lines up with the one under the reply.
         actions.isLayoutMarginsRelativeArrangement = true
-        actions.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 4)
+        actions.directionalLayoutMargins = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: -8)
         let stack = UIStackView(arrangedSubviews: [promptLabel, queuedLabel, actions])
         stack.axis = .vertical
         stack.spacing = 3

@@ -19,7 +19,7 @@ final class TranscriptViewController: UIViewController {
     private var followsEnd = true
     private let composer = ComposerView()
     private let modelConfigBar: ModelConfigBar
-    private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: Self.layout())
+    private lazy var collectionView = TranscriptCollectionView(frame: .zero, collectionViewLayout: Self.layout())
     private lazy var dataSource = makeDataSource()
 
     init(client: BirdsongClient, voice: VoiceController, session: Session) {
