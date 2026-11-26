@@ -72,7 +72,6 @@ export function SessionRailMenu({
         onSelect={() => onFork(session.id)}
         onDismiss={onDismiss}
       />
-      <ResumeElsewhereItem session={session} onDismiss={onDismiss} />
       {session.home ? (
         <SessionRailMenuItem
           label="Start Fresh"
@@ -88,6 +87,7 @@ export function SessionRailMenu({
           onDismiss={onDismiss}
         />
       )}
+      <ResumeElsewhereItem session={session} onDismiss={onDismiss} />
       <SessionRailMenuItem
         label={`${SAVE_MARKDOWN_VIEW_LABELS.session}...`}
         onSelect={() => void saveSessionMarkdown(session).catch(console.error)}

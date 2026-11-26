@@ -5,7 +5,7 @@ import type { Session } from "../../../shared/session";
 import { resumeElsewhere } from "./resumeElsewhere";
 import { useAvailableAgents } from "./useAvailableAgents";
 
-/** Resume Elsewhere, with a flyout of the installed coding agents. */
+/** Continue with, and a flyout of the installed coding agents. */
 export function ResumeElsewhereItem({
   session,
   onDismiss,
@@ -52,7 +52,7 @@ export function ResumeElsewhereItem({
         aria-expanded={open}
         onClick={() => (open ? setOpen(false) : show())}
       >
-        Resume Elsewhere
+        Continue with
         <span className="settings-shortcut" aria-hidden="true">›</span>
       </button>
       {open && !disabled && (
