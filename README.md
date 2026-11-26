@@ -240,9 +240,9 @@ Niceties:
 
 **Cmd/Ctrl+R**: Rename selected session
 
-**Cmd+[ / Alt+Left**: Go back to the previously selected session
+**Cmd+Left / Alt+Left**: Go back to the previously selected session
 
-**Cmd+] / Alt+Right**: Go forward through selected sessions
+**Cmd+Right / Alt+Right**: Go forward through selected sessions
 
 **Cmd/Ctrl+/**: Toggle zen mode
 
