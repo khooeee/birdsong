@@ -120,6 +120,7 @@ final class TranscriptViewController: UIViewController {
             }
             apply(changed: [turn.id])
         case .sessions(let list):
+            AppBadge.show(list.pinned + list.unpinned)
             let current = (list.pinned + list.unpinned).first { $0.id == session.id }
             composer.resumeNotice = current?.continuationNotice
             if let current { modelConfigBar.modelConfig = current.modelConfig }

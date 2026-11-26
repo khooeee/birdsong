@@ -152,6 +152,8 @@ Birdsong desktop app
 
 A finished turn alerts the phone when the app is in the background or the screen is locked. With the app open, the session list updates and there is no banner. The green unread dot is the desktop's: reading a session on either one clears it on both. Tapping the banner opens that session. The simulator cannot receive these.
 
+The home screen icon's badge counts the unread sessions. It uses the same APNs key to stay current while the app is closed, including when you read a session on the Mac. To hide it, turn off **Badges** for Birdsong in the iPhone's notification settings.
+
 1. In the [Apple developer portal](https://developer.apple.com/account/resources/identifiers/list), register the bundle id you sign (the default, or the one in `Local.xcconfig`) and enable **Push Notifications**. The key below has to belong to that same Apple team.
 2. Under [Keys](https://developer.apple.com/account/resources/authkeys/list), create a key with **Apple Push Notifications service (APNs)**. Download the `.p8` (Apple allows this once) and note the **Key ID**. The **Team ID** is the same value as `DEVELOPMENT_TEAM`.
 3. In Birdsong, open **Settings**, fill in **APNs key ID** and **APNs team ID**, click **Choose APNs Key** to import the `.p8` (stored encrypted in app data; the original can be deleted), and click **Save**.
