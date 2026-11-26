@@ -20,7 +20,7 @@ import { useSessionFocusShortcuts } from "./useSessionFocusShortcuts";
 
 const focusFilter = () => window.dispatchEvent(new CustomEvent("birdsong:focus-filter"));
 
-/** Window-level shortcuts: find, sessions, pin, focus, rename, fork, stop, close, zen, Escape. */
+/** Window-level shortcuts: find, sessions, pin, focus, rename, mark unread, fork, stop, close, zen, Escape. */
 export function useAppShortcuts({
   pinned,
   unpinned,
@@ -197,6 +197,13 @@ export function useAppShortcuts({
         event.preventDefault();
         if (event.repeat) return;
         window.dispatchEvent(new CustomEvent("birdsong:rename-session"));
+        return;
+      }
+      // Not in File Explorer mode, where the editor keeps Cmd/Ctrl+U (undo selection).
+      if (modKey(event, "u") && !inFilesMode()) {
+        event.preventDefault();
+        if (event.repeat) return;
+        window.dispatchEvent(new CustomEvent("birdsong:mark-unread"));
         return;
       }
 

@@ -20,7 +20,7 @@ export function sessionMenu(win: () => BrowserWindow | null): Electron.MenuItemC
       item("Fork", "CmdOrCtrl+Shift+N", "birdsong:fork-session"),
       item("Rename…", "CmdOrCtrl+R", "birdsong:rename-session"),
       item("Pin / Unpin", isMac ? "Ctrl+Cmd+P" : "Ctrl+Alt+P", "birdsong:toggle-pin"),
-      item("Mark as Unread / Read", undefined, "birdsong:mark-unread"),
+      item("Mark as Unread / Read", "CmdOrCtrl+U", "birdsong:mark-unread"),
       { type: "separator" },
       item("Focus Prompt", "CmdOrCtrl+I", "birdsong:focus-prompt"),
       item("Filter Sessions", "CmdOrCtrl+P", "birdsong:focus-filter"),
