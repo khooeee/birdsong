@@ -174,8 +174,8 @@ final class TranscriptViewController: UIViewController {
     }
 
     /// A sheet, so this screen's streams stay open underneath and keep the session read.
-    private func showDetails(_ turnId: String) {
-        let details = TurnDetailsViewController(client: client, sessionId: session.id, turnId: turnId)
+    private func showDetails(_ turnId: String, openAtEnd: Bool) {
+        let details = TurnDetailsViewController(client: client, sessionId: session.id, turnId: turnId, openAtEnd: openAtEnd)
         present(UINavigationController(rootViewController: details), animated: true)
     }
 
@@ -210,12 +210,14 @@ final class TranscriptViewController: UIViewController {
     private func makeDataSource() -> UICollectionViewDiffableDataSource<Int, Row> {
         let prompt = UICollectionView.CellRegistration<UICollectionViewListCell, Row> { [weak self] cell, _, row in
             guard let turn = self?.turn(row.turnId) else { return }
-            TurnCellConfigurator.configurePrompt(cell, with: turn) { [weak self] in self?.showDetails(row.turnId) }
+            TurnCellConfigurator.configurePrompt(cell, with: turn) { [weak self] in
+                self?.showDetails(row.turnId, openAtEnd: false)
+            }
         }
         let reply = UICollectionView.CellRegistration<TranscriptReplyCell, Row> { [weak self] cell, _, row in
             guard let turn = self?.turn(row.turnId) else { return }
             cell.configure(with: turn)
-            cell.onDetails = { [weak self] in self?.showDetails(row.turnId) }
+            cell.onDetails = { [weak self] in self?.showDetails(row.turnId, openAtEnd: true) }
         }
         return UICollectionViewDiffableDataSource(collectionView: collectionView) { collectionView, indexPath, row in
             if row.isReply {
@@ -245,7 +247,7 @@ extension TranscriptViewController: UICollectionViewDelegate {
               let turn = turn(row.turnId)
         else { return nil }
         let details = UIAction(title: "Turn Details", image: UIImage(systemName: "info.circle")) { [weak self] _ in
-            self?.showDetails(row.turnId)
+            self?.showDetails(row.turnId, openAtEnd: row.isReply)
         }
         let copy = TurnCellConfigurator.copyText(turn, isReply: row.isReply).map { text in
             UIAction(title: "Copy", image: UIImage(systemName: "doc.on.doc")) { _ in UIPasteboard.general.string = text }

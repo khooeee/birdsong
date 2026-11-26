@@ -7,13 +7,14 @@ final class TurnDetailsViewController: UIViewController {
     private var status: RemoteTurn.Status?
     private var isGone = false
     private var connection: EventSubscription.State?
-    /// A running turn opens at its newest step and follows it until the user scrolls up; a finished one opens at its start.
-    private var followsEnd = false
+    /// True when opened from the reply, or after scrolling to the end; keeps the end in view until the user scrolls up.
+    private var followsEnd: Bool
     private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: Self.layout())
     private lazy var dataSource = makeDataSource()
 
-    init(client: BirdsongClient, sessionId: String, turnId: String) {
+    init(client: BirdsongClient, sessionId: String, turnId: String, openAtEnd: Bool = false) {
         subscription = EventSubscription(client: client, path: ["sessions", sessionId, "turns", turnId, "events"])
+        followsEnd = openAtEnd
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -82,7 +83,6 @@ final class TurnDetailsViewController: UIViewController {
     }
 
     private func apply(_ detail: RemoteTurnDetail) {
-        if status == nil { followsEnd = detail.status == .running }
         status = detail.status
         let changed = detail.items.map(\.id).filter { items[$0] != nil }
         for item in detail.items { items[item.id] = item }
@@ -127,9 +127,15 @@ final class TurnDetailsViewController: UIViewController {
     }
 
     private func scrollToEnd() {
+        collectionView.layoutIfNeeded()
         let inset = collectionView.adjustedContentInset
-        let end = collectionView.contentSize.height - collectionView.bounds.height + inset.bottom
-        collectionView.contentOffset.y = max(-inset.top, end)
+        let target = max(-inset.top, collectionView.contentSize.height - collectionView.bounds.height + inset.bottom)
+        if abs(collectionView.contentOffset.y - target) > 0.5 {
+            collectionView.contentOffset.y = target
+            collectionView.layoutIfNeeded()
+            let updated = max(-inset.top, collectionView.contentSize.height - collectionView.bounds.height + inset.bottom)
+            collectionView.contentOffset.y = updated
+        }
     }
 
     private static func layout() -> UICollectionViewLayout {
@@ -152,7 +158,7 @@ final class TurnDetailsViewController: UIViewController {
 
 extension TurnDetailsViewController: UICollectionViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        guard scrollView.isTracking || scrollView.isDecelerating else { return }
-        followsEnd = status == .running && isAtEnd
+        guard status != nil, scrollView.isTracking || scrollView.isDecelerating else { return }
+        followsEnd = isAtEnd
     }
 }
