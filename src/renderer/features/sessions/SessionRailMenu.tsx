@@ -4,7 +4,6 @@ import { SAVE_MARKDOWN_VIEW_LABELS } from "../../../shared/saveMarkdownViewLabel
 import { sessionLink } from "../../../shared/sessionLink";
 import "../settings/menus.css";
 import "../settings/settingsShortcuts.css";
-import { openSessionInEditor } from "../explorer/openSessionInEditor";
 import { modLabel } from "../shortcuts/modLabel";
 import { pinShortcut } from "./pinShortcut";
 import { ResumeElsewhereItem } from "./ResumeElsewhereItem";
@@ -46,12 +45,6 @@ export function SessionRailMenu({
         shortcut={modLabel("R")}
         keys="Meta+R Control+R"
         onSelect={() => onRename(session)}
-        onDismiss={onDismiss}
-      />
-      <SessionRailMenuItem
-        label="Open in Editor"
-        disabled={!session.cwd.trim()}
-        onSelect={() => void openSessionInEditor(session.id).catch(console.error)}
         onDismiss={onDismiss}
       />
       <SessionRailMenuItem
