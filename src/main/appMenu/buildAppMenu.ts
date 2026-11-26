@@ -5,7 +5,6 @@ import { refreshSessionMenuItems } from "./refreshSessionMenuItems";
 import { sessionMenu } from "./sessionMenu";
 import { SESSION_MENU_IDS } from "./sessionMenuIds";
 import { commandMenuItem } from "./commandMenuItem";
-import otterPrompt from "./otterPrompt.md?raw";
 
 /** Build the application menu; session item state comes from getters. */
 export function buildAppMenu(opts: AppMenuOptions): void {
@@ -50,12 +49,6 @@ export function buildAppMenu(opts: AppMenuOptions): void {
         { role: "cut" },
         { role: "copy" },
         { role: "paste" },
-        {
-          label: "Paste Otter prompt",
-          click: () => {
-            void win()?.webContents.insertText(otterPrompt);
-          },
-        },
         { role: "selectAll" },
         { type: "separator" },
         {
