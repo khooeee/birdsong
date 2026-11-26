@@ -27,8 +27,10 @@ export function sessionMenu(win: () => BrowserWindow | null): Electron.MenuItemC
       { type: "separator" },
       item("Next Session", "Ctrl+Tab", "birdsong:next-session"),
       item("Previous Session", "Ctrl+Shift+Tab", "birdsong:prev-session"),
-      item("Back", isMac ? "Cmd+Left" : "Alt+Left", "birdsong:session-back"),
-      item("Forward", isMac ? "Cmd+Right" : "Alt+Right", "birdsong:session-forward"),
+      // macOS registers menu accelerators app-wide, which would take Cmd+Left / Cmd+Right from text
+      // fields. The renderer owns those keys and leaves them alone while a text field has focus.
+      item("Back", isMac ? undefined : "Alt+Left", "birdsong:session-back"),
+      item("Forward", isMac ? undefined : "Alt+Right", "birdsong:session-forward"),
       { type: "separator" },
       item("Close Session", "CmdOrCtrl+W", "birdsong:close-session"),
     ],
