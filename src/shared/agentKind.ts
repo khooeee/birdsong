@@ -1,4 +1,4 @@
-export const AGENT_KINDS = ["antigravity", "claude", "codex", "cursor", "devin", "pi"] as const;
+export const AGENT_KINDS = ["antigravity", "claude", "codex", "copilot", "cursor", "devin", "pi"] as const;
 
 export type AgentKind = (typeof AGENT_KINDS)[number];
 
