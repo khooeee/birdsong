@@ -19,8 +19,8 @@ function splitUrls(text: string): Part[] {
   return parts.length > 0 ? parts : [{ type: "text", value: text }];
 }
 
-/** Session rail title with http(s) URLs opened in the browser. */
-export function SessionRailLabel({ title }: { title: string }) {
+/** Session rail title with http(s) URLs opened in the browser. `detail` is a second line, used for Home's error. */
+export function SessionRailLabel({ title, detail }: { title: string; detail?: string }) {
   return (
     <span className="rail-label">
       {splitUrls(title).map((part, index) =>
@@ -40,6 +40,7 @@ export function SessionRailLabel({ title }: { title: string }) {
           <span key={index}>{part.value}</span>
         ),
       )}
+      {detail ? <span className="rail-label-detail">{detail}</span> : null}
     </span>
   );
 }

@@ -19,6 +19,7 @@ import { runCron } from "./main/crons/runCron";
 import { ReminderScheduler } from "./main/reminders/ReminderScheduler";
 import { fireReminder } from "./main/reminders/fireReminder";
 import { registerIpc } from "./main/registerIpc";
+import { registerHomeIpc } from "./main/home/registerHomeIpc";
 import { registerFileIpc } from "./main/files/registerFileIpc";
 import type { SessionFileWatcher } from "./main/files/SessionFileWatcher";
 import { confirmRendererUnsaved } from "./main/files/confirmRendererUnsaved";
@@ -138,6 +139,7 @@ if (installSingleInstanceLock(() => mainWindow)) {
       refreshMenus,
     });
     registerVoiceIpc(voice);
+    registerHomeIpc(sessions);
     fileWatcher = registerFileIpc(sessions);
     const menuOptions: AppMenuOptions = {
       getMainWindow: () => mainWindow,

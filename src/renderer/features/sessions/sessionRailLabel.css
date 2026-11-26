@@ -1,3 +1,11 @@
+.rail-label-detail {
+  display: block;
+  color: var(--danger);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .rail-label-link {
   color: var(--codex);
   text-decoration: underline;

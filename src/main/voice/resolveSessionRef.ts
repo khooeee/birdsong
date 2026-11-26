@@ -8,6 +8,7 @@ import { spokenMatchScore } from "./spokenMatchScore";
 type Resolved = { ok: true; session: Session } | { ok: false; error: string; candidates?: string[] };
 
 const ACTIVE_REFS = /^(active|current|this|this one|open|selected|on screen)$/i;
+const HOME_REFS = /^(the |my )?home( session| one| chat)?$/i;
 const MIN_SCORE = 30;
 
 /**
@@ -32,6 +33,8 @@ export function resolveSessionRef(
   }
   const direct = byId(spoken);
   if (direct) return { ok: true, session: direct };
+  const home = HOME_REFS.test(spoken) && sessions.find((session) => session.home);
+  if (home) return { ok: true, session: home };
   const position = listPosition(spoken);
   if (position !== null) {
     const session = byId(numbered[position - 1]);

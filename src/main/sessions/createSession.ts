@@ -8,11 +8,15 @@ import { newSessionId } from "./newSessionId";
 import type { SessionDeps } from "./SessionDeps";
 import { setSessionStatus } from "./setSessionStatus";
 
-/** Add a new session to the rail and connect it, preferring a warm agent. */
+/**
+ * Add a new session to the rail and connect it, preferring a warm agent. A `home` session becomes Home
+ * before the rail first shows it, and leaves the warm agents in the folder new sessions use.
+ */
 export async function createSession(
   { state, persistence, agents }: SessionDeps,
   input: CreateSessionInput,
   focus: boolean,
+  home = false,
 ): Promise<Session> {
   const workingFolders = await loadWorkingFolders(undefined, input.cwd);
   const draft = input.draftId ? agents.draft.claim(input.draftId, input.agent, input.cwd) : null;
@@ -36,6 +40,7 @@ export async function createSession(
     cron: input.cron || undefined,
     autoTitle: input.autoTitle || undefined,
   };
+  if (home) state.homeId = id;
   state.prependSession(session, input.pin === true);
   state.transcripts.set(id, []);
   state.hydrated.add(id);
@@ -59,7 +64,7 @@ export async function createSession(
     setSessionStatus(state, id, "error", errorMessage(err));
   }
 
-  agents.ensureWarm(input.cwd);
+  if (!home) agents.ensureWarm(input.cwd);
   void persistence.persist();
   return session;
 }

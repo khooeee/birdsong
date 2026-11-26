@@ -1,6 +1,6 @@
 import type { Session } from "../../shared/session";
 
-/** What an agent needs to know about a session; `self` marks the caller's own. */
+/** What an agent needs to know about a session; `self` marks the caller's own, `home` the user's Home session. */
 export function sessionSummary(session: Session, callerId: string) {
   return {
     id: session.id,
@@ -11,5 +11,6 @@ export function sessionSummary(session: Session, callerId: string) {
     status: session.status,
     ...(session.error ? { error: session.error } : {}),
     ...(session.id === callerId ? { self: true } : {}),
+    ...(session.home ? { home: true } : {}),
   };
 }

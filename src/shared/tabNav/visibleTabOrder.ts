@@ -8,6 +8,6 @@ export function visibleTabOrder(
   filterQuery: string,
 ): string[] {
   return [...pinned, ...unpinned]
-    .filter((session) => sessionMatchesFilter(session, filterQuery))
+    .filter((session) => session.home || sessionMatchesFilter(session, filterQuery))
     .map((session) => session.id);
 }

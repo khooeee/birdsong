@@ -151,7 +151,7 @@ final class SessionListViewController: UIViewController {
 
     private func applySnapshot(changed: [String] = []) {
         let visible = { (sessions: [Session]) in
-            sessions.filter { self.filter.isEmpty || $0.title.localizedCaseInsensitiveContains(self.filter) }.map(\.id)
+            sessions.filter { $0.home == true || self.filter.isEmpty || $0.title.localizedCaseInsensitiveContains(self.filter) }.map(\.id)
         }
         var snapshot = NSDiffableDataSourceSnapshot<Section, String>()
         let pinned = visible(list?.pinned ?? [])

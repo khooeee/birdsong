@@ -6,6 +6,8 @@ export function draftFromSettings(prefs: AppSettings): SettingsDraft {
     theme: prefs.theme,
     soundEnabled: prefs.soundEnabled,
     sessionListMax: String(prefs.sessionListMax),
+    homeCwd: prefs.homeCwd,
+    homeAgent: prefs.homeAgent,
     mcpServers: null,
     voiceKey: null,
     voiceModel: prefs.voiceModel,

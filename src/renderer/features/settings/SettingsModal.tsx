@@ -8,6 +8,7 @@ import { voiceKeyPresence } from "../voice/voiceKeyPresence";
 import { getAppSettingsCache, patchAppSettings } from "./appSettingsCache";
 import { draftFromSettings } from "./draftFromSettings";
 import { GeneralSettingsFields } from "./GeneralSettingsFields";
+import { HomeSettingsFields } from "./HomeSettingsFields";
 import { patchFromDraft } from "./patchFromDraft";
 import { RemoteSettingsFields } from "./RemoteSettingsFields";
 import type { SettingsDraft } from "./SettingsDraft";
@@ -34,7 +35,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         await window.birdsong.setVoiceKey(draft.voiceKey);
         voiceKeyPresence.refresh();
       }
-      await patchAppSettings(patchFromDraft(draft, getAppSettingsCache()));
+      const prefs = getAppSettingsCache();
+      const patch = patchFromDraft(draft, prefs);
+      if (patch.homeCwd !== prefs.homeCwd || patch.homeAgent !== prefs.homeAgent) {
+        const check = await window.birdsong.checkHomeChange(patch.homeCwd ?? "", patch.homeAgent ?? prefs.homeAgent);
+        if (!check.ok) {
+          if (check.error) setError(check.error);
+          setBusy(false);
+          return;
+        }
+        patch.homeCwd = check.cwd;
+      }
+      await patchAppSettings(patch);
       applyStoredTheme();
       onClose();
     } catch (err) {
@@ -49,6 +61,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
         <h2>Settings</h2>
         <div className="settings-body">
           <GeneralSettingsFields draft={draft} busy={busy} onChange={onChange} />
+          <HomeSettingsFields draft={draft} busy={busy} onChange={onChange} />
           <McpSettingsFields draft={draft} busy={busy} onChange={onChange} />
           <VoiceSettingsFields draft={draft} busy={busy} onChange={onChange} />
           <RemoteSettingsFields draft={draft} busy={busy} onChange={onChange} />

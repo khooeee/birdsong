@@ -5,8 +5,10 @@ import { useEffect } from "react";
 import { pinShortcut } from "./pinShortcut";
 import { dialogOpen } from "../shortcuts/dialogOpen";
 
-function toggleActivePin(pinned: Session[], activeTabId: ActiveTabId) {
+function toggleActivePin(pinned: Session[], unpinned: Session[], activeTabId: ActiveTabId) {
   if (!activeTabId) return;
+  const active = [...pinned, ...unpinned].find((session) => session.id === activeTabId);
+  if (!active || active.home) return;
   if (pinned.some((session) => session.id === activeTabId)) {
     void window.birdsong.unpinSession(activeTabId);
     return;
@@ -42,7 +44,7 @@ export function useSessionShortcuts(
       if (disabled || event.defaultPrevented || event.isComposing || dialogOpen()) return;
       if (pinShortcut.matches(event)) {
         event.preventDefault();
-        toggleActivePin(pinned, activeTabId);
+        toggleActivePin(pinned, unpinned, activeTabId);
         return;
       }
 
@@ -53,7 +55,7 @@ export function useSessionShortcuts(
     // Session menu clicks (see useMenuCommands).
     const menuCommands: Array<[string, () => void]> = [
       ["birdsong:toggle-pin", () => {
-        if (!disabled) toggleActivePin(pinned, activeTabId);
+        if (!disabled) toggleActivePin(pinned, unpinned, activeTabId);
       }],
       ["birdsong:next-session", () => step(1)],
       ["birdsong:prev-session", () => step(-1)],

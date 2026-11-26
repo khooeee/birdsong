@@ -63,6 +63,15 @@ export function useAppShortcuts({
   blockedRef.current = blocked;
   const forkableId = useRef<string | null>(null);
   forkableId.current = activeSession?.supportsFork ? activeSession.id : null;
+  const pinnedRef = useRef(pinned);
+  pinnedRef.current = pinned;
+  const unpinnedRef = useRef(unpinned);
+  unpinnedRef.current = unpinned;
+  const selectTabRef = useRef(selectTab);
+  selectTabRef.current = selectTab;
+  // The session ⌘1 returns to. Updated whenever the open session is not Home, including clicks.
+  const otherSession = useRef<string | null>(null);
+  if (activeTabId && !activeSession?.home) otherSession.current = activeTabId;
 
   const mode = useRailMode();
   const filesMode = mode === "files";
@@ -76,10 +85,41 @@ export function useAppShortcuts({
   useTabHistory(pinned, unpinned, activeTabId, selectTab, blocked, sessionFilter);
 
   useEffect(() => {
+    const sessionIsHome = (id: string | null) =>
+      !!id && [...pinnedRef.current, ...unpinnedRef.current].some((session) => session.id === id && session.home);
     const closeActive = () => {
       const id = activeId.current;
-      if (!id || blockedRef.current) return;
+      if (!id || blockedRef.current || sessionIsHome(id)) return;
       void closeSessionSafely(id);
+    };
+    const toggleHome = () => {
+      if (blockedRef.current) return;
+      const sessions = [...pinnedRef.current, ...unpinnedRef.current];
+      const home = sessions.find((session) => session.home);
+      // Switch the session and leave Sessions, Files, or Diff as they are.
+      if (home && activeId.current === home.id) {
+        const back = otherSession.current;
+        if (back && sessions.some((session) => session.id === back)) selectTabRef.current(back);
+        return;
+      }
+      void window.birdsong.openHome();
+    };
+    const toggleHomeFiles = () => {
+      if (blockedRef.current) return;
+      const sessions = [...pinnedRef.current, ...unpinnedRef.current];
+      const home = sessions.find((session) => session.home);
+      const onHomeFiles = !!home && activeId.current === home.id && railModeStore.getSnapshot() === "files";
+      if (onHomeFiles) {
+        const back = otherSession.current;
+        if (back && sessions.some((session) => session.id === back)) {
+          selectTabRef.current(back);
+          railModeStore.set("files");
+        }
+        return;
+      }
+      void window.birdsong.openHome().then((opened) => {
+        if (opened) railModeStore.set("files");
+      });
     };
     const forkActive = () => {
       const id = forkableId.current;
@@ -107,6 +147,20 @@ export function useAppShortcuts({
 
     const onKey = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.isComposing || dialogOpen()) return;
+
+      if (modKey(event, "1")) {
+        event.preventDefault();
+        if (event.repeat) return;
+        toggleHome();
+        return;
+      }
+
+      if (modKey(event, "2")) {
+        event.preventDefault();
+        if (event.repeat) return;
+        toggleHomeFiles();
+        return;
+      }
 
       if (modKey(event, "/")) {
         if (event.repeat) return;
@@ -177,6 +231,8 @@ export function useAppShortcuts({
       ["birdsong:close-session", () => {
         if (!inFilesMode()) closeActive();
       }],
+      ["birdsong:open-home", toggleHome],
+      ["birdsong:home-files", toggleHomeFiles],
     ];
     for (const [name, handler] of menuCommands) window.addEventListener(name, handler);
     window.addEventListener("keydown", onKey);

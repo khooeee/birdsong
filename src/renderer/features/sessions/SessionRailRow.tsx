@@ -1,5 +1,6 @@
 import { memo, type MouseEvent as ReactMouseEvent } from "react";
 import type { Session } from "../../../shared/session";
+import { HouseIcon } from "./HouseIcon";
 import { SessionRailLabel } from "./SessionRailLabel";
 import { SessionRailPinButton } from "./SessionRailPinButton";
 import { SessionRailRename } from "./SessionRailRename";
@@ -68,7 +69,8 @@ export const SessionRailRow = memo(function SessionRailRow({
       }}
       onContextMenu={(e) => onOpenSessionMenu(e, session, isPinned)}
     >
-      <SessionRailLabel title={session.title} />
+      {session.home ? <HouseIcon /> : null}
+      <SessionRailLabel title={session.title} detail={session.home ? session.error ?? undefined : undefined} />
       {session.resumeAt !== undefined && <SessionResumeIndicator resumeAt={session.resumeAt} />}
       <span className="rail-session-end">
         {session.status === "running" ? (
@@ -76,10 +78,12 @@ export const SessionRailRow = memo(function SessionRailRow({
         ) : session.unread ? (
           <span className="rail-unread" role="status" aria-label="Unread" />
         ) : null}
-        <SessionRailPinButton
-          pinned={isPinned}
-          onToggle={() => (isPinned ? onUnpin(session.id) : onPin(session.id))}
-        />
+        {session.home ? null : (
+          <SessionRailPinButton
+            pinned={isPinned}
+            onToggle={() => (isPinned ? onUnpin(session.id) : onPin(session.id))}
+          />
+        )}
       </span>
     </div>
   );

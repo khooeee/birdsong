@@ -45,12 +45,16 @@ export function SessionList({
 }: SessionListProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const allSessions = useMemo(() => flatRailSessions(pinned, unpinned), [pinned, unpinned]);
+  const home = useMemo(
+    () => pinned.find((session) => session.home) ?? unpinned.find((session) => session.home),
+    [pinned, unpinned],
+  );
   const filteredPinned = useMemo(
-    () => pinned.filter((session) => sessionMatchesFilter(session, filter)),
+    () => pinned.filter((session) => !session.home && sessionMatchesFilter(session, filter)),
     [pinned, filter],
   );
   const filteredUnpinned = useMemo(
-    () => unpinned.filter((session) => sessionMatchesFilter(session, filter)),
+    () => unpinned.filter((session) => !session.home && sessionMatchesFilter(session, filter)),
     [unpinned, filter],
   );
   const filterActive = filter.trim().length > 0;
@@ -87,6 +91,11 @@ export function SessionList({
       </button>
       <SessionRailFilter value={filter} onChange={onFilter} />
       <div className="rail-sessions">
+        {home ? (
+          <div className="rail-home">
+            <SessionRailRow {...rowProps(home, true)} />
+          </div>
+        ) : null}
         <div className="rail-scroll" ref={scrollRef}>
           {filteredPinned.map((session) => (
             <SessionRailRow key={session.id} {...rowProps(session, true)} />
