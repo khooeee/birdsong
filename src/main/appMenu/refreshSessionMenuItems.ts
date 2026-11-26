@@ -30,7 +30,7 @@ export function refreshSessionMenuItems(mode: RailMode, hasSessions: boolean, ed
   if (session) {
     session.enabled = sessionsMode || hasSessions;
     for (const item of session.submenu?.items ?? []) {
-      const diffSessionCommand = mode === "diff" && ["birdsong:next-session", "birdsong:prev-session", "birdsong:close-session"].includes(item.id);
+      const diffSessionCommand = mode === "diff" && ["birdsong:next-session", "birdsong:prev-session", "birdsong:close-session", "birdsong:mark-unread"].includes(item.id);
       const homeCommand = item.id === "birdsong:open-home" || item.id === "birdsong:home-files";
       item.enabled = homeCommand || sessionsMode || (hasSessions && (FILES_MODE_SESSION_COMMANDS.has(item.id) || diffSessionCommand));
     }

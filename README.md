@@ -240,6 +240,8 @@ Niceties:
 
 **Cmd/Ctrl+R**: Rename selected session
 
+**Cmd/Ctrl+U**: Mark selected session as unread/read (not in Files mode, where the editor keeps it)
+
 **Cmd+Left** (outside text fields) / **Alt+Left**: Go back to the previously selected session
 
 **Cmd+Right** (outside text fields) / **Alt+Right**: Go forward through selected sessions

@@ -48,6 +48,8 @@ export function SessionRailMenu({
       />
       <SessionRailMenuItem
         label={session.unread ? "Mark as Read" : "Mark as Unread"}
+        shortcut={modLabel("U")}
+        keys="Meta+U Control+U"
         onSelect={() => toggleSessionUnread(session)}
         onDismiss={onDismiss}
       />
