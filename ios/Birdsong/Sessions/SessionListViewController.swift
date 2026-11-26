@@ -14,7 +14,7 @@ final class SessionListViewController: UIViewController {
     private var sessionsById: [String: Session] = [:] {
         didSet { AppBadge.show(sessionsById.values) }
     }
-    private lazy var swipeActions = SessionSwipeActions(client: client, presenter: self)
+    private lazy var contextMenu = SessionContextMenu(client: client, presenter: self)
     private var filter = ""
     /// A notification tap that arrived before the rail did.
     private var pendingSessionId: String?
@@ -174,13 +174,6 @@ final class SessionListViewController: UIViewController {
     private func makeLayout() -> UICollectionViewLayout {
         var config = UICollectionLayoutListConfiguration(appearance: .insetGrouped)
         config.headerMode = .supplementary
-        config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-            guard let self,
-                  let id = dataSource.itemIdentifier(for: indexPath),
-                  let session = sessionsById[id],
-                  let section = dataSource.sectionIdentifier(for: indexPath.section) else { return nil }
-            return swipeActions.configuration(for: session, pinned: section == .pinned)
-        }
         return UICollectionViewCompositionalLayout.list(using: config)
     }
 
@@ -213,6 +206,18 @@ extension SessionListViewController: UICollectionViewDelegate {
         collectionView.deselectItem(at: indexPath, animated: true)
         guard let id = dataSource.itemIdentifier(for: indexPath), let session = sessionsById[id] else { return }
         openSession(session)
+    }
+
+    func collectionView(
+        _ collectionView: UICollectionView,
+        contextMenuConfigurationForItemsAt indexPaths: [IndexPath],
+        point: CGPoint
+    ) -> UIContextMenuConfiguration? {
+        guard let indexPath = indexPaths.first,
+              let id = dataSource.itemIdentifier(for: indexPath),
+              let session = sessionsById[id],
+              let section = dataSource.sectionIdentifier(for: indexPath.section) else { return nil }
+        return contextMenu.configuration(for: session, pinned: section == .pinned)
     }
 }
 

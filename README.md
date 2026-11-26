@@ -60,7 +60,7 @@ On macOS, settings and session data live in `~/Library/Application Support/Birds
 
 Set the folder and agent in **Settings**. A blank folder turns Home off. Birdsong never creates the folder or writes into it, so whatever you keep there (a git repo or not) is yours to edit.
 
-The row has a house icon and stays at the top while you scroll or filter. On iOS it is the top row, and swipe does not offer Unpin.
+The row has a house icon and stays at the top while you scroll or filter. On iOS it is the top row, and its long-press menu does not offer Unpin.
 
 - **Cmd/Ctrl+1** switches between Home and the session you were on. It does not change Sessions, Files, or Diff.
 - **Cmd/Ctrl+2** switches between Home's file explorer and that session's files.
