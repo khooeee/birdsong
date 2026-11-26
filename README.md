@@ -250,7 +250,7 @@ Niceties:
 
 **Cmd/Ctrl+1**: Switch between Home and the previous session
 
-**Cmd/Ctrl+2**: Switch between Home's file explorer and the previous session's files
+**Cmd/Ctrl+2**: Switch between Home's file explorer and the previous session
 
 ### Sessions mode
 
