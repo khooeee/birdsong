@@ -27,7 +27,7 @@ function arg(name, fallback) {
 const sessionCount = Number(arg("sessions", "5000"));
 const messagesPerSession = Number(arg("messages", "200"));
 const token = "seed-find-token";
-const agents = ["claude", "codex", "cursor", "pi", "antigravity", "devin", "copilot", "opencode"];
+const agents = ["claude", "codex", "cursor", "pi", "antigravity", "devin", "copilot", "opencode", "vibe"];
 const root = path.join(os.homedir(), "Library", "Application Support", "Birdsong", "sessions");
 
 function dayOffset(i) {
