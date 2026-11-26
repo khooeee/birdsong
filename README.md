@@ -150,7 +150,7 @@ Birdsong desktop app
 
 ### Turn details
 
-Tap the info button on a prompt, or **Turn Details** under a reply, to see that turn's thoughts, tool calls, steers and subagents, live while it runs. File diffs, images and subagent transcripts are on the Mac only.
+Tap the chevron on a prompt, or **Turn Details** under a reply, to see that turn's thoughts, tool calls, steers and subagents, live while it runs. File diffs, images and subagent transcripts are on the Mac only.
 
 ### Alerts when a turn finishes
 

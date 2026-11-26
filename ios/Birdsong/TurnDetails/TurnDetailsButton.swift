@@ -1,14 +1,16 @@
 import UIKit
 
-/// Opens Turn Details: titled under a reply, just the icon beside a prompt.
+/// Opens Turn Details: "Turn Details ›" under a reply, just the chevron beside a prompt.
 final class TurnDetailsButton: UIButton {
     init(showsTitle: Bool, onTap: @escaping () -> Void) {
         super.init(frame: .zero)
         var config = UIButton.Configuration.plain()
         config.title = showsTitle ? "Turn Details" : nil
-        config.image = UIImage(systemName: "info.circle")
-        config.imagePadding = 5
-        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(textStyle: showsTitle ? .footnote : .body)
+        config.image = UIImage(systemName: "chevron.right")
+        config.imagePlacement = .trailing
+        config.imagePadding = 4
+        config.preferredSymbolConfigurationForImage = UIImage.SymbolConfiguration(textStyle: showsTitle ? .caption2 : .footnote)
+            .applying(UIImage.SymbolConfiguration(weight: .semibold))
         config.baseForegroundColor = .secondaryLabel
         config.contentInsets = NSDirectionalEdgeInsets(top: 10, leading: showsTitle ? 0 : 10, bottom: 10, trailing: 10)
         config.titleTextAttributesTransformer = UIConfigurationTextAttributesTransformer { attributes in
