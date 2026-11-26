@@ -4,10 +4,14 @@ import type { Session } from "../../../shared/session";
 import { visibleTabOrder } from "../../../shared/tabNav/visibleTabOrder";
 import { dialogOpen } from "../shortcuts/dialogOpen";
 import { isMac } from "../shortcuts/isMac";
+import { isTextEntry } from "../shortcuts/isTextEntry";
 import { modKey } from "../shortcuts/modKey";
 import { TabHistory } from "./TabHistory";
 
-/** Back (-1) or forward (1) for Cmd+Left / Cmd+Right on macOS and Alt+Left / Alt+Right elsewhere. */
+/**
+ * Back (-1) or forward (1) for Cmd+Left / Cmd+Right on macOS and Alt+Left / Alt+Right elsewhere.
+ * Text fields keep these keys for caret movement, so the caller skips them while typing.
+ */
 function historyKeyStep(event: KeyboardEvent): 1 | -1 | null {
   if (isMac) return modKey(event, "arrowleft") ? -1 : modKey(event, "arrowright") ? 1 : null;
   if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return null;
@@ -41,7 +45,7 @@ export function useTabHistory(
     const onKey = (event: KeyboardEvent) => {
       if (disabled || event.defaultPrevented || event.isComposing || dialogOpen()) return;
       const delta = historyKeyStep(event);
-      if (!delta) return;
+      if (!delta || (isMac && isTextEntry(event.target))) return;
       event.preventDefault();
       event.stopPropagation();
       go(delta);
