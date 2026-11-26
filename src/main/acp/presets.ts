@@ -112,6 +112,14 @@ export const AGENT_PRESETS: Record<AgentKind, AgentPreset> = {
     args: ["acp"],
     loginHint: "Devin is not signed in. Run `devin auth login` in a terminal, then try again.",
   },
+  vibe: {
+    kind: "vibe",
+    get command() {
+      return resolvePathCommand("vibe-acp");
+    },
+    args: [],
+    loginHint: "Mistral Vibe is not signed in. Run `vibe` in a terminal to sign in, or set `MISTRAL_API_KEY`, then try again.",
+  },
   opencode: {
     kind: "opencode",
     get command() {
