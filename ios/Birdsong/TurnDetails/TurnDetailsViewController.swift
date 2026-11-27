@@ -9,7 +9,7 @@ final class TurnDetailsViewController: UIViewController {
     private var connection: EventSubscription.State?
     /// True when opened from the reply, or after scrolling to the end; keeps the end in view until the user scrolls up.
     private var followsEnd: Bool
-    private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: Self.layout())
+    private lazy var collectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionView.plainFeedLayout())
     private lazy var dataSource = makeDataSource()
 
     init(client: BirdsongClient, sessionId: String, turnId: String, openAtEnd: Bool = false) {
@@ -121,28 +121,13 @@ final class TurnDetailsViewController: UIViewController {
         }
     }
 
-    private var isAtEnd: Bool {
-        let visibleBottom = collectionView.contentOffset.y + collectionView.bounds.height - collectionView.adjustedContentInset.bottom
-        return visibleBottom >= collectionView.contentSize.height - 40
-    }
-
+    /// Self-sizing rows settle after the first jump, so lay out and jump once more.
     private func scrollToEnd() {
         collectionView.layoutIfNeeded()
-        let inset = collectionView.adjustedContentInset
-        let target = max(-inset.top, collectionView.contentSize.height - collectionView.bounds.height + inset.bottom)
-        if abs(collectionView.contentOffset.y - target) > 0.5 {
-            collectionView.contentOffset.y = target
-            collectionView.layoutIfNeeded()
-            let updated = max(-inset.top, collectionView.contentSize.height - collectionView.bounds.height + inset.bottom)
-            collectionView.contentOffset.y = updated
-        }
-    }
-
-    private static func layout() -> UICollectionViewLayout {
-        var config = UICollectionLayoutListConfiguration(appearance: .plain)
-        config.showsSeparators = false
-        config.backgroundColor = .systemBackground
-        return UICollectionViewCompositionalLayout.list(using: config)
+        guard abs(collectionView.contentOffset.y - collectionView.endContentOffsetY) > 0.5 else { return }
+        collectionView.contentOffset.y = collectionView.endContentOffsetY
+        collectionView.layoutIfNeeded()
+        collectionView.contentOffset.y = collectionView.endContentOffsetY
     }
 
     private func makeDataSource() -> UICollectionViewDiffableDataSource<Int, String> {
@@ -159,6 +144,6 @@ final class TurnDetailsViewController: UIViewController {
 extension TurnDetailsViewController: UICollectionViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard status != nil, scrollView.isTracking || scrollView.isDecelerating else { return }
-        followsEnd = isAtEnd
+        followsEnd = collectionView.isNearEnd
     }
 }

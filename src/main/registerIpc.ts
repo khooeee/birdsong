@@ -1,4 +1,4 @@
-import { BrowserWindow, dialog, ipcMain } from "electron";
+import { BrowserWindow, ipcMain } from "electron";
 import { openTranscriptsFolder } from "./files/openTranscriptsFolder";
 import { CronsStore } from "./crons/CronsStore";
 import { cronsPath } from "./storage/userDataPaths";
@@ -29,6 +29,7 @@ import { readMcpServersFile } from "./mcp/custom/readMcpServersFile";
 import { saveMcpServersFile } from "./mcp/custom/saveMcpServersFile";
 import { apnsKeyStore } from "./push/apnsKeyStore";
 import { pickApnsKey } from "./push/pickApnsKey";
+import { windowDialog } from "./dialogs/windowDialog";
 import type { VoiceAgent } from "./voice/VoiceAgent";
 
 type IpcContext = {
@@ -115,7 +116,7 @@ export function registerIpc({
   });
   ipcMain.handle("fs:pickFolder", async (_e, startPath?: string) => {
     const defaultPath = await resolveFolderPickerStart(startPath);
-    const result = await dialog.showOpenDialog(getMainWindow()!, {
+    const result = await windowDialog.open(getMainWindow(), {
       properties: ["openDirectory", "createDirectory"],
       ...(defaultPath ? { defaultPath } : {}),
     });

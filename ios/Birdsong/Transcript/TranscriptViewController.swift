@@ -19,7 +19,7 @@ final class TranscriptViewController: UIViewController {
     private var followsEnd = true
     private let composer = ComposerView()
     private let modelConfigBar: ModelConfigBar
-    private lazy var collectionView = TranscriptCollectionView(frame: .zero, collectionViewLayout: Self.layout())
+    private lazy var collectionView = TranscriptCollectionView(frame: .zero, collectionViewLayout: UICollectionView.plainFeedLayout())
     private lazy var dataSource = makeDataSource()
 
     init(client: BirdsongClient, voice: VoiceController, session: Session) {
@@ -189,22 +189,8 @@ final class TranscriptViewController: UIViewController {
         present(alert, animated: true)
     }
 
-    private var isAtEnd: Bool {
-        let visibleBottom = collectionView.contentOffset.y + collectionView.bounds.height - collectionView.adjustedContentInset.bottom
-        return visibleBottom >= collectionView.contentSize.height - 40
-    }
-
     private func scrollToEnd() {
-        let inset = collectionView.adjustedContentInset
-        let end = collectionView.contentSize.height - collectionView.bounds.height + inset.bottom
-        collectionView.contentOffset.y = max(-inset.top, end)
-    }
-
-    private static func layout() -> UICollectionViewLayout {
-        var config = UICollectionLayoutListConfiguration(appearance: .plain)
-        config.showsSeparators = false
-        config.backgroundColor = .systemBackground
-        return UICollectionViewCompositionalLayout.list(using: config)
+        collectionView.contentOffset.y = collectionView.endContentOffsetY
     }
 
     private func makeDataSource() -> UICollectionViewDiffableDataSource<Int, Row> {
@@ -234,7 +220,7 @@ final class TranscriptViewController: UIViewController {
 extension TranscriptViewController: UICollectionViewDelegate {
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView.isTracking || scrollView.isDecelerating else { return }
-        followsEnd = isAtEnd
+        followsEnd = collectionView.isNearEnd
     }
 
     func collectionView(

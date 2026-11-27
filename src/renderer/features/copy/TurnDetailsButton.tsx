@@ -1,4 +1,5 @@
 import "./eventActionButton.css";
+import { LineIcon } from "../icons/LineIcon";
 
 /** Opens / toggles turn details (right rail) for a transcript message. */
 export function TurnDetailsButton({ onToggle }: { onToggle: () => void }) {
@@ -22,9 +23,8 @@ export function TurnDetailsButton({ onToggle }: { onToggle: () => void }) {
 
 function ChevronRightIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <LineIcon>
       <path d="m9 18 6-6-6-6" />
-    </svg>
+    </LineIcon>
   );
 }

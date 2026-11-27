@@ -1,5 +1,6 @@
-import { dialog, type BrowserWindow } from "electron";
+import type { BrowserWindow } from "electron";
 import { toEditorPath } from "./toEditorPath";
+import { windowDialog } from "../dialogs/windowDialog";
 
 /** Native file picker, returning an absolute editor path. */
 export async function pickSessionFile(win: BrowserWindow | null, cwd: string): Promise<string | null> {
@@ -8,9 +9,7 @@ export async function pickSessionFile(win: BrowserWindow | null, cwd: string): P
     properties: ["openFile"],
     ...(cwd ? { defaultPath: cwd } : {}),
   };
-  const result = win && !win.isDestroyed()
-    ? await dialog.showOpenDialog(win, options)
-    : await dialog.showOpenDialog(options);
+  const result = await windowDialog.open(win, options);
   const file = result.filePaths[0];
   if (result.canceled || !file) return null;
   return toEditorPath(cwd, file);

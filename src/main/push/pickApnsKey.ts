@@ -1,4 +1,5 @@
-import { dialog, type BrowserWindow } from "electron";
+import type { BrowserWindow } from "electron";
+import { windowDialog } from "../dialogs/windowDialog";
 
 /** Native picker for the APNs auth key file. */
 export async function pickApnsKey(win: BrowserWindow | null): Promise<string | null> {
@@ -7,6 +8,6 @@ export async function pickApnsKey(win: BrowserWindow | null): Promise<string | n
     properties: ["openFile"],
     filters: [{ name: "APNs Auth Key", extensions: ["p8"] }],
   };
-  const result = win && !win.isDestroyed() ? await dialog.showOpenDialog(win, options) : await dialog.showOpenDialog(options);
+  const result = await windowDialog.open(win, options);
   return result.canceled ? null : result.filePaths[0] ?? null;
 }

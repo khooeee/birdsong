@@ -1,5 +1,6 @@
-import { dialog, type BrowserWindow } from "electron";
+import type { BrowserWindow } from "electron";
 import type { UnsavedChoice } from "../../shared/unsavedChoice";
+import { windowDialog } from "../dialogs/windowDialog";
 
 const CHOICES: UnsavedChoice[] = ["save", "discard", "cancel"];
 
@@ -18,8 +19,6 @@ export async function confirmUnsavedChanges(
       : `Do you want to save the changes to ${names.length} files?`,
     detail: `${names.length > 1 ? `${names.join("\n")}\n\n` : ""}Your changes will be lost if you don't save them.`,
   };
-  const { response } = win && !win.isDestroyed()
-    ? await dialog.showMessageBox(win, options)
-    : await dialog.showMessageBox(options);
+  const { response } = await windowDialog.message(win, options);
   return CHOICES[response] ?? "cancel";
 }

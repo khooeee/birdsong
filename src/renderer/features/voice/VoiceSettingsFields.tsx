@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { VoiceKeyInfo } from "../../../shared/voiceKeyInfo";
+import type { SecretKeyInfo } from "../../../shared/secretKeyInfo";
 import { VOICE_REASONING_EFFORTS, type VoiceReasoningEffort } from "../../../shared/voiceReasoningEffort";
 import type { SettingsFieldsProps } from "../settings/SettingsFieldsProps";
 import { VoiceNameField } from "../voicePicker/VoiceNameField";
@@ -18,7 +18,7 @@ const REASONING_LABELS: Record<VoiceReasoningEffort, string> = {
 
 /** Inworld key (write-only; stored encrypted in main; clear the field to remove it), model, reasoning, voice, language, idle timeout. */
 export function VoiceSettingsFields({ draft, busy, onChange }: SettingsFieldsProps) {
-  const [keyInfo, setKeyInfo] = useState<VoiceKeyInfo | null>(null);
+  const [keyInfo, setKeyInfo] = useState<SecretKeyInfo | null>(null);
   const keyRef = useRef<HTMLInputElement>(null);
   const key = draft.voiceKey;
 

@@ -1,6 +1,6 @@
 import type { TreeRow } from "./TreeRow";
 
-export type TreeKeyAction =
+type TreeKeyAction =
   | { type: "select" | "open"; row: TreeRow }
   | { type: "expand"; row: TreeRow; open: boolean };
 

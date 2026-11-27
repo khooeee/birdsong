@@ -1,8 +1,9 @@
-import { dialog, type BrowserWindow } from "electron";
+import type { BrowserWindow } from "electron";
 import { copyFile } from "node:fs/promises";
 import path from "node:path";
 import { imagesDir } from "../storage/userDataPaths";
 import { isStoredImageName } from "./isStoredImageName";
+import { windowDialog } from "../dialogs/windowDialog";
 
 /** Save-as dialog for a stored transcript image. False when cancelled or `name` isn't a stored image. */
 export async function saveImageFile(win: BrowserWindow | null, name: string): Promise<boolean> {
@@ -13,9 +14,7 @@ export async function saveImageFile(win: BrowserWindow | null, name: string): Pr
     filters: [{ name: "Image", extensions: [extension] }],
     properties: ["createDirectory", "showOverwriteConfirmation"],
   };
-  const result = win && !win.isDestroyed()
-    ? await dialog.showSaveDialog(win, options)
-    : await dialog.showSaveDialog(options);
+  const result = await windowDialog.save(win, options);
   if (result.canceled || !result.filePath) return false;
   await copyFile(path.join(imagesDir(), name), result.filePath);
   return true;
