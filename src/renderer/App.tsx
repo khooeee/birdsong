@@ -21,6 +21,7 @@ import { useAgentQuestions } from "./features/permissions/useAgentQuestions";
 import { useCompletionSound } from "./features/sound/useCompletionSound";
 import { useReminderChime } from "./features/sound/useReminderChime";
 import { useVoiceConnection } from "./features/voice/useVoiceConnection";
+import { useVoiceOnChime } from "./features/voice/useVoiceOnChime";
 import { VoiceLogPanel } from "./features/voiceLog/VoiceLogPanel";
 import { voiceLogView } from "./features/voiceLog/voiceLogView";
 import { voiceTurnDetails } from "./features/voiceLog/voiceTurnDetails";
@@ -44,6 +45,7 @@ export function App() {
   useCompletionSound();
   useReminderChime();
   useVoiceConnection();
+  useVoiceOnChime();
   useFileShortcuts();
   useRailModeShortcuts();
   useMenuCommands();

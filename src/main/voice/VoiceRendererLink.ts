@@ -2,10 +2,13 @@ import type { BrowserWindow } from "electron";
 import type { VoiceCommand } from "../../shared/voiceCommand";
 import type { VoiceLogEntry } from "../../shared/voiceLogEntry";
 import type { VoiceStatus } from "../../shared/voiceStatus";
+import { voiceLogFeed } from "./voiceLogFeed";
 
-/** Main → renderer voice channels; the renderer owns the WebRTC audio while voice is on the desktop. */
+/** Main → renderer voice channels (including the live voice log); the renderer owns the WebRTC audio while voice is on the desktop. */
 export class VoiceRendererLink {
-  constructor(private readonly getWindow: () => BrowserWindow | null) {}
+  constructor(private readonly getWindow: () => BrowserWindow | null) {
+    voiceLogFeed.subscribe((entry) => this.logEntry(entry));
+  }
 
   command(command: VoiceCommand): void {
     this.post("voice:command", command);

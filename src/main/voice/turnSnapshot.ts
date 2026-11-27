@@ -1,22 +1,21 @@
 import * as path from "node:path";
 import type { TranscriptTurn } from "../../shared/transcript";
-import { clipText } from "../../shared/clipText";
 import { isReminderTurn } from "../../shared/isReminderTurn";
 
 /** What a running turn is doing right now: its latest tool call or assistant text. */
 function currentStep(turn: TranscriptTurn): string {
   for (let i = turn.events.length - 1; i >= 0; i--) {
     const event = turn.events[i]!;
-    if (event.role === "tool") return clipText(event.toolTitle ?? event.text, 120);
-    if (event.role === "assistant" && event.text.trim()) return clipText(event.text, 200);
+    if (event.role === "tool") return event.toolTitle ?? event.text;
+    if (event.role === "assistant" && event.text.trim()) return event.text.trim();
   }
-  return turn.assistant?.text ? clipText(turn.assistant.text, 200) : "thinking";
+  return turn.assistant?.text.trim() || "thinking";
 }
 
-/** Compact, speakable view of one turn; `replyMax` bounds the final message. */
-export function turnSnapshot(turn: TranscriptTurn, replyMax: number) {
-  if (isReminderTurn(turn)) return { reminder: clipText(turn.user.text, 200) };
-  const prompt = turn.user ? clipText(turn.user.text, 200) : null;
+/** Speakable view of one turn, in full: its prompt, then its current step or its final message and changed files. */
+export function turnSnapshot(turn: TranscriptTurn) {
+  if (isReminderTurn(turn)) return { reminder: turn.user.text };
+  const prompt = turn.user?.text ?? null;
   const files = [...new Set(turn.fileChanges.map((change) => path.basename(change.path)))];
   if (turn.status === "running") {
     return {
@@ -29,7 +28,7 @@ export function turnSnapshot(turn: TranscriptTurn, replyMax: number) {
   return {
     status: turn.status,
     prompt,
-    reply: clipText(turn.assistant?.text ?? "", replyMax) || "(no reply)",
-    ...(files.length ? { files: files.slice(0, 8), fileCount: files.length } : {}),
+    reply: turn.assistant?.text.trim() || "(no reply)",
+    ...(files.length ? { files } : {}),
   };
 }

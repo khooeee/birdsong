@@ -72,7 +72,7 @@ export class VoiceConversation {
   }
 
   private remember(line: string): void {
-    this.history.push(line.length > 300 ? `${line.slice(0, 299)}…` : line);
+    this.history.push(line);
     if (this.history.length > HISTORY_LINES) this.history.splice(0, this.history.length - HISTORY_LINES);
   }
 }

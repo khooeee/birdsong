@@ -5,13 +5,14 @@ import { encodeJsonl } from "../storage/encodeJsonl";
 import { localDateStamp } from "../storage/localDateStamp";
 import { voiceLogPath } from "../storage/userDataPaths";
 import { voiceLogFeed } from "./voiceLogFeed";
+import { voiceLogSession } from "./voiceLogSession";
 
 let writes: Promise<void> = Promise.resolve();
 
 /** Append one voice event (what it heard, said, called, announced) to the day's log, in order, and feed it live. */
 export function appendVoiceLog(kind: VoiceLogEntry["kind"], data: Record<string, unknown>): void {
   const at = Date.now();
-  const entry: VoiceLogEntry = { at, kind, ...data };
+  const entry: VoiceLogEntry = { at, kind, ...voiceLogSession.get(), ...data };
   voiceLogFeed.emit(entry);
   writes = writes
     .then(async () => {

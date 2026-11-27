@@ -1,9 +1,10 @@
 import Foundation
 
-/// The desktop app's voice routes. The phone only asks the Mac to start, answer its offer, mark the call open,
-/// and stop; the Mac drives the call itself, and the audio goes straight to Inworld.
+/// The desktop app's voice routes. The phone only asks the Mac to start (on a session), answer its offer, mark the
+/// call open, and stop; the Mac drives the call itself, and the audio goes straight to Inworld.
 final class VoiceClient: Sendable {
     private struct StartBody: Encodable {
+        let sessionId: String
         let resume: Bool
         let reason: String?
     }
@@ -29,9 +30,10 @@ final class VoiceClient: Sendable {
         session = URLSession(configuration: configuration)
     }
 
-    /// ICE servers for a new call. `resume` after a drop fails with 409 if voice was stopped meanwhile.
-    func start(resume: Bool, reason: String?) async throws -> [VoiceIceServer] {
-        let data = try await post(["voice", "start"], body: StartBody(resume: resume, reason: reason))
+    /// ICE servers for a new call on a session. `resume` after a drop fails with 409 if voice was stopped or moved
+    /// to another session meanwhile.
+    func start(sessionId: String, resume: Bool, reason: String?) async throws -> [VoiceIceServer] {
+        let data = try await post(["voice", "start"], body: StartBody(sessionId: sessionId, resume: resume, reason: reason))
         return try JSONDecoder().decode(Start.self, from: data).iceServers
     }
 

@@ -6,7 +6,7 @@ import { sendJson } from "./sendJson";
 
 /**
  * The iOS app's voice routes. The phone carries the call's audio straight to Inworld; this Mac keeps the key and
- * drives the call over its sideband, so the phone only calls here to start, open, resume and stop.
+ * drives the call over its sideband, so the phone only calls here to start (on a session), open, resume and stop.
  */
 export async function handleVoiceRequest(
   req: IncomingMessage,
@@ -21,9 +21,11 @@ export async function handleVoiceRequest(
 
     if (pathname === "/voice/start") {
       const body = await readJson(req);
+      const sessionId = typeof body.sessionId === "string" ? body.sessionId : "";
+      if (!sessionId) return sendJson(res, 400, { error: "sessionId is required. Update the Birdsong app." });
       const reason = typeof body.reason === "string" ? body.reason : undefined;
-      const iceServers = await voice.startPhone(body.resume === true, reason);
-      // 409: voice was stopped (on the Mac, by idle, or by the agent), so the phone should not resume.
+      const iceServers = await voice.startPhone(sessionId, body.resume === true, reason);
+      // 409: voice was stopped (on the Mac, by idle, or by the agent) or moved to another session, so don't resume.
       if (!iceServers) return sendJson(res, 409, { error: voice.getStatus().error ?? "Voice is off." });
       return sendJson(res, 200, { iceServers });
     }

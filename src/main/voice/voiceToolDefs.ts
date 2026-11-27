@@ -1,49 +1,21 @@
-import { AGENT_LABELS } from "../../shared/agentLabels";
-import { orList } from "../../shared/orList";
-
-const SESSION = {
-  type: "string",
-  description:
-    "Which session, as the user said it (title words, project, or a number from list_sessions). Omit for the session already being discussed.",
-};
-
 function tool(name: string, description: string, properties: Record<string, unknown> = {}, required: string[] = []) {
   return { type: "function", name, description, parameters: { type: "object", properties, required } };
 }
 
-/** Function tools in `session.update`; names match runVoiceTool's handlers. */
+/** Function tools in `session.update`; names match runVoiceTool's handlers. Session tools act on this voice's session. */
 export const voiceToolDefs = [
-  tool("list_sessions", "List coding sessions: every working one plus the most recent, numbered."),
-  tool("get_session", "One session's status, what it is doing now, its last result and any open question.", { session: SESSION }),
+  tool("get_status", "The session's status, what it is doing now, its last result and any open question."),
   tool("read_turns", "The session's last few prompts and replies, when the user wants more than the last result.", {
-    session: SESSION,
     count: { type: "integer", description: "How many recent turns (1–10). Default 3." },
   }),
   tool(
     "send_prompt",
-    "Send the user's instruction to a coding session. Keep the user's words and intent; do not expand the task. Steers or queues if the session is busy.",
-    { session: SESSION, text: { type: "string", description: "The instruction, close to what the user said." } },
+    "Send the user's instruction to the session's coding agent. Keep the user's words and intent; do not expand the task. Steers or queues if it is busy.",
+    { text: { type: "string", description: "The instruction, close to what the user said." } },
     ["text"],
   ),
-  tool(
-    "create_session",
-    "Start a new coding session in a project the user already works in, and send it the first prompt if the user gave a task.",
-    {
-      project: { type: "string", description: "Project folder name as the user said it. Omit to use the current project." },
-      prompt: { type: "string", description: "The task, close to what the user said. Omit when the user only asked for a new session." },
-      agent: { type: "string", description: `${orList(Object.values(AGENT_LABELS))}. Omit for the user's usual agent.` },
-      title: { type: "string", description: "Short session title. Omit to derive one from the prompt." },
-    },
-  ),
-  tool("stop_session", "Stop the session's running turn. The session and its work stay.", { session: SESSION }),
-  tool("show_session", "Switch the screen to a session. Only when the user asks to see it.", { session: SESSION }),
-  tool("update_session", "Rename (replaces the whole title), pin or unpin a session. Home can't be unpinned.", {
-    session: SESSION,
-    title: { type: "string" },
-    pinned: { type: "boolean" },
-  }),
-  tool("answer_question", "Answer an agent's open multiple-choice question with option ids from get_session or the notice.", {
-    session: SESSION,
+  tool("stop_session", "Stop the session's running turn. The session and its work stay."),
+  tool("answer_question", "Answer the agent's open multiple-choice question with option ids from get_status or the notice.", {
     answers: {
       type: "array",
       items: {
@@ -68,20 +40,15 @@ export const voiceToolDefs = [
   ),
   tool(
     "set_reminder",
-    "Remind the user at a time: a popup with a chime, or you read it out while voice is on. Set it yourself; never start or prompt a coding session for it. Give minutes or at.",
+    "Remind the user at a time: a popup with a chime, or you read it out while voice is on this session. Set it yourself; never prompt the agent for it. Give minutes or at.",
     {
       message: { type: "string", description: "What to remind the user of, close to their words." },
       minutes: { type: "number", description: "Minutes from now." },
       at: { type: "string", description: "Local date and time as YYYY-MM-DDTHH:MM." },
-      session: {
-        ...SESSION,
-        description:
-          "The session it is about; clicking the reminder opens it. Omit for the session being discussed or on screen; with neither, a new session is started to hold it.",
-      },
     },
     ["message"],
   ),
-  tool("list_reminders", "Pending reminders, soonest first, with the current time."),
-  tool("cancel_reminder", "Cancel a pending reminder by its id from list_reminders.", { id: { type: "string" } }, ["id"]),
+  tool("list_reminders", "The session's pending reminders, soonest first, with the current time."),
+  tool("cancel_reminder", "Cancel one of the session's pending reminders by its id from list_reminders.", { id: { type: "string" } }, ["id"]),
   tool("stop_voice", "Turn voice off when the user says to stop listening, go to sleep, or goodbye."),
 ];

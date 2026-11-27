@@ -48,7 +48,6 @@ final class SessionListViewController: UIViewController {
         )
         newSession.accessibilityLabel = "New session"
         navigationItem.rightBarButtonItems = [settings, newSession]
-        navigationItem.leftBarButtonItem = VoiceBarButtonItem(voice: voice, presenter: self)
         let search = UISearchController()
         search.searchResultsUpdater = self
         search.obscuresBackgroundDuringPresentation = false
