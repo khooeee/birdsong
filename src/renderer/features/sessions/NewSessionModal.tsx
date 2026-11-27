@@ -14,7 +14,7 @@ import { useAvailableAgents } from "./useAvailableAgents";
 import { NewSessionConfigSelect } from "./NewSessionConfigSelect";
 import { SessionFolderField } from "./SessionFolderField";
 import { useNewSessionDraft } from "./useNewSessionDraft";
-import { withRecentFolder } from "./withRecentFolder";
+import { useRecentFolders } from "./useRecentFolders";
 import "../modals/modal.css";
 import "./newSessionModal.css";
 
@@ -27,7 +27,7 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
   const prefs = getAppSettingsCache();
   const [agent, setAgent] = useState<AgentKind>(prefs.lastAgent);
   const [cwd, setCwd] = useState(prefs.lastCwd);
-  const [recentFolders] = useState(() => withRecentFolder(prefs.recentCwds, prefs.lastCwd));
+  const recentFolders = useRecentFolders();
   const [prompt, setPrompt] = useState("");
   const [title, setTitle] = useState(randomSessionTitle);
   const [pin, setPin] = useState(prefs.lastPin);
@@ -66,7 +66,6 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
       void patchAppSettings({
         lastAgent: selectedAgent,
         lastCwd: cwd,
-        recentCwds: withRecentFolder(recentFolders, cwd),
         lastPin: pin,
       });
       await onCreate({ agent: selectedAgent, cwd, pin, draftId: draft.id, ...named });

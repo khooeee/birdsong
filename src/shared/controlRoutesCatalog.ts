@@ -45,6 +45,14 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
       example: `curl -s -H "Authorization: Bearer $TOKEN" ${b}/agents`,
     },
     {
+      method: "GET",
+      path: "/recent-folders",
+      auth: true,
+      summary: "Session Folders to suggest for POST /sessions: recent picks first, then rail sessions' folders",
+      response: "string[] — absolute paths, most recent first, at most 10",
+      example: `curl -s -H "Authorization: Bearer $TOKEN" ${b}/recent-folders`,
+    },
+    {
       method: "POST",
       path: "/sessions",
       auth: true,

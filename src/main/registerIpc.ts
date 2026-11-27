@@ -73,6 +73,7 @@ export function registerIpc({
   );
   ipcMain.handle("sessions:list", () => sessions.list());
   ipcMain.handle("sessions:create", (_e, input: CreateSessionInput) => sessions.createSession(input));
+  ipcMain.handle("sessions:recentFolders", () => sessions.recentFolders());
   ipcMain.handle("sessions:fork", (_e, sessionId: string, eventId?: string) => sessions.forkSession(sessionId, eventId));
   ipcMain.handle("sessions:continue", (_e, sessionId: string, agent: AgentKind, pin: boolean) =>
     continueSession(sessions, sessionId, agent, { pin, focus: true }),

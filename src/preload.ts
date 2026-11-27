@@ -27,6 +27,7 @@ const api: BirdsongApi = {
   onSessionDraftCommands: (cb) =>
     subscribe<{ id: string; commands: SlashCommand[] }>("sessionDraft:commands", cb),
   createSession: (input: CreateSessionInput) => ipcRenderer.invoke("sessions:create", input),
+  recentFolders: () => ipcRenderer.invoke("sessions:recentFolders"),
   forkSession: (sessionId, eventId) =>
     ipcRenderer.invoke("sessions:fork", sessionId, eventId),
   continueSession: (sessionId, agent, pin) => ipcRenderer.invoke("sessions:continue", sessionId, agent, pin),
