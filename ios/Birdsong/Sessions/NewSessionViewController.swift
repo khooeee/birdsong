@@ -2,6 +2,8 @@ import UIKit
 
 /// Starts a session in a folder on the paired Mac.
 final class NewSessionViewController: UIViewController {
+    /// The Pin choice from the last session created, so the next one starts the same way.
+    private static let lastPinKey = "newSession.lastPin"
     private let client: BirdsongClient
     private let onCreated: (Session) -> Void
     private var agent: SessionAgent
@@ -84,6 +86,7 @@ final class NewSessionViewController: UIViewController {
             button.configuration?.image = UIImage(systemName: checked ? "checkmark.square.fill" : "square")
             button.accessibilityValue = checked ? "Checked" : "Unchecked"
         }
+        pinCheckbox.isSelected = UserDefaults.standard.bool(forKey: Self.lastPinKey)
 
         errorLabel.numberOfLines = 0
         errorLabel.font = .preferredFont(forTextStyle: .footnote)
@@ -194,6 +197,7 @@ final class NewSessionViewController: UIViewController {
             return
         }
         view.endEditing(true)
+        UserDefaults.standard.set(pinCheckbox.isSelected, forKey: Self.lastPinKey)
         clearError()
         setCreating(true)
         Task {
