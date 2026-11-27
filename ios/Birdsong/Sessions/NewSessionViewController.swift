@@ -5,7 +5,7 @@ final class NewSessionViewController: UIViewController {
     private let client: BirdsongClient
     private let onCreated: (Session) -> Void
     private var agent: SessionAgent
-    private let recentFolders: [String]
+    private var recentFolders: [String]
     private let agentButton = UIButton(configuration: .gray())
     private let folderField = UITextField()
     private let recentButton = UIButton(configuration: .gray())
@@ -64,13 +64,8 @@ final class NewSessionViewController: UIViewController {
         recentButton.configuration?.title = "Recent"
         recentButton.accessibilityLabel = "Recent folders"
         recentButton.showsMenuAsPrimaryAction = true
-        recentButton.menu = UIMenu(children: recentFolders.map { path in
-            UIAction(title: path) { [weak self] _ in
-                self?.folderField.text = path
-                self?.clearError()
-            }
-        })
-        recentButton.isHidden = recentFolders.isEmpty
+        updateRecentMenu()
+        loadRecentFolders()
         recentButton.setContentHuggingPriority(.required, for: .horizontal)
         recentButton.setContentCompressionResistancePriority(.required, for: .horizontal)
         let folderRow = UIStackView(arrangedSubviews: [folderField, recentButton])
@@ -152,6 +147,32 @@ final class NewSessionViewController: UIViewController {
                 self?.clearError()
             }
         })
+    }
+
+    private func updateRecentMenu() {
+        recentButton.menu = UIMenu(children: recentFolders.map { path in
+            UIAction(title: path) { [weak self] _ in
+                self?.folderField.text = path
+                self?.clearError()
+            }
+        })
+        recentButton.isHidden = recentFolders.isEmpty
+    }
+
+    /// Swaps the rail's folders for the Mac's list. Macs without GET /recent-folders keep the rail's.
+    private func loadRecentFolders() {
+        Task {
+            guard let folders = try? await client.recentFolders() else { return }
+            let absolute = folders.filter { $0.hasPrefix("/") }
+            guard !absolute.isEmpty else { return }
+            // Replace the prefilled folder only while the user hasn't touched it.
+            if !folderField.isEditing, (folderField.text ?? "") == (recentFolders.first ?? "") {
+                folderField.text = absolute.first
+            }
+            recentFolders = absolute
+            updateRecentMenu()
+            clearError()
+        }
     }
 
     private func clearError() {

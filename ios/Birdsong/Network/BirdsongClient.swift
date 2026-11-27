@@ -59,6 +59,11 @@ final class BirdsongClient: Sendable {
         return try JSONDecoder().decode(Session.self, from: await send(request))
     }
 
+    /// Session Folders the Mac suggests for new sessions, most recent first, including ones picked on the Mac.
+    func recentFolders() async throws -> [String] {
+        try JSONDecoder().decode([String].self, from: await send(request(["recent-folders"])))
+    }
+
     /// Agents installed on the Mac; ones this build doesn't know are dropped.
     func availableAgents() async throws -> [SessionAgent] {
         let kinds = try JSONDecoder().decode([String].self, from: await send(request(["agents"])))

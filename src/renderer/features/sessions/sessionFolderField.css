@@ -1,0 +1,79 @@
+.session-folder-field {
+  display: flex;
+  gap: 8px;
+}
+
+.session-folder-combobox {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+}
+
+.modal .session-folder-combobox input {
+  flex: 1;
+  min-width: 0;
+  padding-right: 32px;
+}
+
+.session-folder-toggle {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 32px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+}
+
+.session-folder-toggle:hover:not(:disabled) {
+  color: var(--text);
+}
+
+.session-folder-toggle svg {
+  transform: rotate(90deg);
+}
+
+.session-folder-combobox input[aria-expanded="true"] + .session-folder-toggle svg {
+  transform: rotate(-90deg);
+}
+
+.recent-folder-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 5;
+  margin: 0;
+  padding: 4px;
+  list-style: none;
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-1);
+  box-shadow: 0 8px 24px var(--shadow);
+}
+
+.recent-folder-item {
+  padding: 8px 10px;
+  border-radius: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text);
+  font-family: var(--font-ui);
+  font-size: var(--font-ui-size);
+  font-weight: 300;
+  cursor: pointer;
+}
+
+.recent-folder-item.active,
+.recent-folder-item:hover {
+  background: var(--bg-2);
+}

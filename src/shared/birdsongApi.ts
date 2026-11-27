@@ -49,6 +49,8 @@ export interface BirdsongApi {
   /** Slash commands for the new-session draft, including ones that arrive after it starts. */
   onSessionDraftCommands: (cb: (payload: { id: string; commands: SlashCommand[] }) => void) => () => void;
   createSession: (input: CreateSessionInput) => Promise<Session>;
+  /** Session Folders to suggest for a new session, most recent first; shared with the iPhone app. */
+  recentFolders: () => Promise<string[]>;
   forkSession: (sessionId: string, eventId?: string) => Promise<Session>;
   /** A new session with `agent` in this one's folders, prompted to take over its work. */
   continueSession: (sessionId: string, agent: AgentKind, pin: boolean) => Promise<Session>;

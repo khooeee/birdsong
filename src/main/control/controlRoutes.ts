@@ -40,6 +40,10 @@ export async function handleControlRequest(
       return sendJson(res, 200, await availableAgents());
     }
 
+    if (method === "GET" && pathname === "/recent-folders") {
+      return sendJson(res, 200, sessions.recentFolders());
+    }
+
     if (method === "POST" && pathname === "/sessions") {
       const body = await readJson(req);
       const input = parseCreateSession(body);

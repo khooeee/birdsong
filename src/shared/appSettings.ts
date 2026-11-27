@@ -20,6 +20,8 @@ export interface AppSettings {
   composerHeight: number;
   lastAgent: AgentKind;
   lastCwd: string;
+  /** Session Folders picked in the new session modal, most recent first. */
+  recentCwds: string[];
   lastPin: boolean;
   /** Folder of the Home session at the top of the rail; empty turns Home off. */
   homeCwd: string;

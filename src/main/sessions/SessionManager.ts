@@ -25,6 +25,8 @@ import type { SessionEventListener } from "./SessionEventListener";
 import { restoreSavedState } from "./restoreSavedState";
 import { enforceSessionListMax } from "./enforceSessionListMax";
 import { createSession } from "./createSession";
+import { rememberRecentFolder } from "./rememberRecentFolder";
+import { recentFolders } from "./recentFolders";
 import { forkSession } from "./forkSession";
 import { setActiveTab } from "./setActiveTab";
 import { navigateToEvent } from "./navigateToEvent";
@@ -122,11 +124,18 @@ export class SessionManager {
     this.rail.unpin(sessionId);
   }
 
+  /** Folders the new session forms on the Mac and iPhone offer, most recent first. */
+  recentFolders(): string[] {
+    return recentFolders(this.state);
+  }
+
   /** `focus: false` adds the session to the rail without switching to it (control API, crons). */
   async createSession(
     input: CreateSessionInput,
     { focus = true }: { focus?: boolean } = {},
   ): Promise<Session> {
+    // Cron runs repeat a saved folder; they aren't a pick worth suggesting again.
+    if (!input.cron) rememberRecentFolder(input.cwd);
     const session = await createSession(this.deps, input, focus);
     await this.trimRail(session.id);
     if (input.prompt && session.status !== "error") await this.enqueuePrompt(session.id, input.prompt);
