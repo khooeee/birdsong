@@ -12,7 +12,9 @@ import { getAppSettingsCache, patchAppSettings } from "../settings/appSettingsCa
 import { randomSessionTitle } from "./sessionTitle";
 import { useAvailableAgents } from "./useAvailableAgents";
 import { NewSessionConfigSelect } from "./NewSessionConfigSelect";
+import { SessionFolderField } from "./SessionFolderField";
 import { useNewSessionDraft } from "./useNewSessionDraft";
+import { withRecentFolder } from "./withRecentFolder";
 import "../modals/modal.css";
 import "./newSessionModal.css";
 
@@ -25,6 +27,7 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
   const prefs = getAppSettingsCache();
   const [agent, setAgent] = useState<AgentKind>(prefs.lastAgent);
   const [cwd, setCwd] = useState(prefs.lastCwd);
+  const [recentFolders] = useState(() => withRecentFolder(prefs.recentCwds, prefs.lastCwd));
   const [prompt, setPrompt] = useState("");
   const [title, setTitle] = useState(randomSessionTitle);
   const [pin, setPin] = useState(prefs.lastPin);
@@ -63,6 +66,7 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
       void patchAppSettings({
         lastAgent: selectedAgent,
         lastCwd: cwd,
+        recentCwds: withRecentFolder(recentFolders, cwd),
         lastPin: pin,
       });
       await onCreate({ agent: selectedAgent, cwd, pin, draftId: draft.id, ...named });
@@ -129,28 +133,13 @@ export function NewSessionModal({ onCancel, onCreate }: Props) {
         </div>
         <label>
           Session Folder
-          <div style={{ display: "flex", gap: 8 }}>
-            <input
-              value={cwd}
-              disabled={busy}
-              onChange={(e) => setCwd(e.target.value)}
-              onKeyDown={createOnEnter}
-              placeholder="/path/to/project"
-              spellCheck={false}
-              style={{ flex: 1 }}
-            />
-            <button
-              type="button"
-              className="btn"
-              disabled={busy}
-              onClick={async () => {
-                const picked = await window.birdsong.pickFolder(cwd);
-                if (picked) setCwd(picked);
-              }}
-            >
-              Browse
-            </button>
-          </div>
+          <SessionFolderField
+            value={cwd}
+            recent={recentFolders}
+            disabled={busy}
+            onChange={setCwd}
+            onSubmit={() => void create()}
+          />
         </label>
         <label>
           {asksPrompt ? "Prompt" : "Title"}

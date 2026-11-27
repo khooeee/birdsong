@@ -13,6 +13,7 @@ export function defaultAppSettings(): AppSettings {
     composerHeight: 72,
     lastAgent: "claude",
     lastCwd: "",
+    recentCwds: [],
     lastPin: false,
     homeCwd: "",
     homeAgent: "claude",
