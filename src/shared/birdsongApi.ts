@@ -15,7 +15,7 @@ import type { HomeChangeCheck } from "./homeChangeCheck";
 import type { McpProblem } from "./mcpProblem";
 import type { Reminder } from "./reminder";
 import type { ReminderInput } from "./reminderInput";
-import type { ApnsKeyInfo } from "./apnsKeyInfo";
+import type { SecretKeyInfo } from "./secretKeyInfo";
 import type { RemoteStatus } from "./remoteStatus";
 import type { EditContextMenuOptions } from "./editContextMenuOptions";
 import type { FileContent } from "./fileContent";
@@ -29,7 +29,6 @@ import type { TranscriptTurn } from "./transcript";
 import type { UnsavedChoice } from "./unsavedChoice";
 import type { VoiceCommand } from "./voiceCommand";
 import type { VoiceConnectionEvent } from "./voiceConnectionEvent";
-import type { VoiceKeyInfo } from "./voiceKeyInfo";
 import type { VoiceLogEntry } from "./voiceLogEntry";
 import type { VoiceStatus } from "./voiceStatus";
 
@@ -101,11 +100,11 @@ export interface BirdsongApi {
   /** iOS remote access: the pairing link and `tailscale serve` setup. */
   getRemoteStatus: () => Promise<RemoteStatus>;
   /** Saved APNs key state (the key itself never leaves main). */
-  getApnsKeyInfo: () => Promise<ApnsKeyInfo>;
+  getApnsKeyInfo: () => Promise<SecretKeyInfo>;
   /** Pick a .p8 and import it into encrypted app storage. */
-  pickApnsKey: () => Promise<ApnsKeyInfo>;
+  pickApnsKey: () => Promise<SecretKeyInfo>;
   /** Delete the saved APNs key. */
-  removeApnsKey: () => Promise<ApnsKeyInfo>;
+  removeApnsKey: () => Promise<SecretKeyInfo>;
   /** New token for the iOS app (control.json scripts keep theirs); returns the status with the new link. */
   rotateControlToken: () => Promise<RemoteStatus>;
   /**
@@ -217,7 +216,7 @@ export interface BirdsongApi {
   /** A session's mic: start voice for that session (moving it from any other), or stop it there. */
   toggleVoice: (sessionId: string) => Promise<void>;
   getVoiceStatus: () => Promise<VoiceStatus>;
-  getVoiceKeyInfo: () => Promise<VoiceKeyInfo>;
+  getVoiceKeyInfo: () => Promise<SecretKeyInfo>;
   /** Save the Inworld API key (encrypted in main); empty removes it. */
   setVoiceKey: (key: string) => Promise<void>;
   /** Voices the saved key's Inworld workspace can use, cached in main until `refresh` or a new key. */

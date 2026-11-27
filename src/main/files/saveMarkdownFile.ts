@@ -1,6 +1,7 @@
-import { dialog, type BrowserWindow } from "electron";
+import type { BrowserWindow } from "electron";
 import { writeFileAtomic } from "../storage/writeFileAtomic";
 import { markdownFileName } from "./markdownFileName";
+import { windowDialog } from "../dialogs/windowDialog";
 
 /** Save-as dialog for markdown; the default name comes from `nameHint` (else `text`). False when cancelled. */
 export async function saveMarkdownFile(
@@ -13,9 +14,7 @@ export async function saveMarkdownFile(
     filters: [{ name: "Markdown", extensions: ["md"] }],
     properties: ["createDirectory", "showOverwriteConfirmation"],
   };
-  const result = win && !win.isDestroyed()
-    ? await dialog.showSaveDialog(win, options)
-    : await dialog.showSaveDialog(options);
+  const result = await windowDialog.save(win, options);
   if (result.canceled || !result.filePath) return false;
   await writeFileAtomic(result.filePath, text.endsWith("\n") ? text : `${text}\n`);
   return true;

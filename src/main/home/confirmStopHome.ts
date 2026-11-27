@@ -1,4 +1,5 @@
-import { dialog, type BrowserWindow } from "electron";
+import type { BrowserWindow } from "electron";
+import { windowDialog } from "../dialogs/windowDialog";
 
 /** Ask before replacing a Home chat mid-turn; true to go ahead and stop it. */
 export async function confirmStopHome(win: BrowserWindow | null, action: string): Promise<boolean> {
@@ -10,8 +11,6 @@ export async function confirmStopHome(win: BrowserWindow | null, action: string)
     message: "Home is working.",
     detail: "This stops its turn and starts a new Home chat. Find in History still has the old one.",
   };
-  const { response } = win && !win.isDestroyed()
-    ? await dialog.showMessageBox(win, options)
-    : await dialog.showMessageBox(options);
+  const { response } = await windowDialog.message(win, options);
   return response === 0;
 }

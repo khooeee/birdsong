@@ -1,7 +1,8 @@
-import { dialog, shell, type BrowserWindow } from "electron";
+import { shell, type BrowserWindow } from "electron";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 import { resolveInsideCwd } from "./resolveInsideCwd";
+import { windowDialog } from "../dialogs/windowDialog";
 
 /**
  * Ask, then move a file or folder under the session cwd to the Trash. `unsaved` warns that open
@@ -24,9 +25,7 @@ export async function trashSessionFile(
     message: `Are you sure you want to delete ${path.basename(target)}${isFolder ? " and its contents" : ""}?`,
     detail: `${unsaved ? "Your unsaved changes will be lost. " : ""}You can restore it from the Trash.`,
   };
-  const { response } = win && !win.isDestroyed()
-    ? await dialog.showMessageBox(win, options)
-    : await dialog.showMessageBox(options);
+  const { response } = await windowDialog.message(win, options);
   if (response !== 0) return false;
   await shell.trashItem(target);
   return true;

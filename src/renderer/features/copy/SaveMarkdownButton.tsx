@@ -1,6 +1,7 @@
 import { CheckIcon } from "./CheckIcon";
 import { useFlash } from "./useFlash";
 import "./eventActionButton.css";
+import { LineIcon } from "../icons/LineIcon";
 
 /** Opens a save dialog and writes markdown to a `.md` file. `text` may be a function so callers build it only on click. */
 export function SaveMarkdownButton({
@@ -45,11 +46,10 @@ export function SaveMarkdownButton({
 
 function SaveIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-      strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <LineIcon>
       <path d="M12 3v12" />
       <path d="m7 10 5 5 5-5" />
       <path d="M5 21h14" />
-    </svg>
+    </LineIcon>
   );
 }
