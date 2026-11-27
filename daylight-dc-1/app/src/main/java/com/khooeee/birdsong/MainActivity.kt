@@ -1,47 +1,45 @@
 package com.khooeee.birdsong
 
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import com.khooeee.birdsong.app.BirdsongApplication
+import com.khooeee.birdsong.app.LaunchRequests
+import com.khooeee.birdsong.root.BirdsongRoot
 import com.khooeee.birdsong.ui.theme.BirdsongTheme
 
+/** The only activity: pairing until a link works, then sessions beside the open transcript. */
 class MainActivity : ComponentActivity() {
+    private val requests = LaunchRequests()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        if (savedInstanceState == null) handle(intent)
+        val app = application as BirdsongApplication
         setContent {
             BirdsongTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                BirdsongRoot(app, requests)
             }
         }
     }
-}
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        handle(intent)
+    }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    BirdsongTheme {
-        Greeting("Android")
+    private fun handle(intent: Intent) {
+        intent.getStringExtra(EXTRA_SESSION_ID)?.let { requests.sessionId.value = it }
+        if (intent.action == Intent.ACTION_VIEW && intent.data?.scheme == "birdsong") {
+            requests.pairingLink.value = intent.dataString
+        }
+    }
+
+    companion object {
+        /** On an alert's tap: the session to open. */
+        const val EXTRA_SESSION_ID = "sessionId"
     }
 }

@@ -1,19 +1,18 @@
-import { readFile } from "node:fs/promises";
 import { errorMessage } from "../../shared/errorMessage";
 import { unreadCount } from "../../shared/unreadCount";
-import { getAppSettings } from "../appSettings";
 import type { SessionManager } from "../sessions/SessionManager";
-import { apnsJwt } from "./apnsJwt";
-import { apnsKeyStore } from "./apnsKeyStore";
-import { isDeadToken } from "./isDeadToken";
+import { apnsDelivery } from "./apnsDelivery";
+import { fcmDelivery } from "./fcmDelivery";
 import type { PushContent } from "./PushContent";
 import { PushDevices } from "./PushDevices";
-import { sendApnsPush } from "./sendApnsPush";
+import type { PushDelivery } from "./PushPayload";
 
 /** Waits before each resend of a badge that didn't get through; after the last, the next change sends. */
 const RETRY_MS = [10_000, 60_000, 300_000];
+/** FCM data must stay under 4 KB; past this many unread sessions, Android keeps its alerts. */
+const MAX_UNREAD_IDS = 40;
 
-/** Pushes to every registered phone, with the unread count for the app icon's badge. */
+/** Pushes to every registered phone and tablet, with the unread state for badges and clearing alerts. */
 export class PushSender {
   readonly devices = new PushDevices();
   /** The newest badge pushed; null until the first, so a launch replaces the one the last run left. */
@@ -24,21 +23,22 @@ export class PushSender {
 
   constructor(private sessions: SessionManager) {}
 
-  /** `compose` runs only once a phone can be reached; null sends nothing. */
+  /** `compose` runs only once a device can be reached; null sends nothing. */
   async send(compose: () => Promise<PushContent | null>, attempt = 0): Promise<void> {
     try {
-      const { apnsKeyId, apnsTeamId, apnsKeyPath } = getAppSettings();
-      if (!apnsKeyId || !apnsTeamId) return;
       const devices = await this.devices.list();
-      if (devices.length === 0) return;
-      const pem = (await apnsKeyStore.read()) ?? (apnsKeyPath ? await readFile(apnsKeyPath, "utf8") : null);
-      if (!pem) return;
+      const drop = (token: string) => this.devices.remove(token);
+      const deliveries = (await Promise.all([apnsDelivery(devices, drop), fcmDelivery(devices, drop)])).filter(
+        (delivery): delivery is PushDelivery => delivery !== null,
+      );
+      if (deliveries.length === 0) return;
       const content = await compose();
       if (!content) return;
-      const unread = unreadCount(this.sessions.list());
+      const list = this.sessions.list();
+      const unread = unreadCount(list);
+      const ids = [...list.pinned, ...list.unpinned].filter((session) => session.unread).map((session) => session.id);
       // iOS drops the app's delivered alerts when a push takes the badge to 0, so an alert never carries it.
       const badge = content.alert && unread === 0 ? undefined : unread;
-      const jwt = apnsJwt(pem, apnsKeyId, apnsTeamId);
       let badgePush: number | undefined;
       if (badge !== undefined) {
         this.lastBadge = badge;
@@ -46,25 +46,15 @@ export class PushSender {
         // This push carries the current count, so an older one's retry has nothing left to fix.
         clearTimeout(this.retry);
       }
-      const settled = await Promise.all(
-        devices.map(async (device) => {
-          try {
-            const result = await sendApnsPush({ ...device, ...content, badge, jwt });
-            if (isDeadToken(result)) await this.devices.remove(device.token);
-            return result.status !== 429 && result.status < 500;
-          } catch (error) {
-            console.warn(`[push] ${errorMessage(error)}`);
-            return false;
-          }
-        }),
-      );
+      const payload = { ...content, badge, unreadIds: ids.length <= MAX_UNREAD_IDS ? ids : undefined };
+      const settled = (await Promise.all(deliveries.map((deliver) => deliver(payload)))).flat();
       if (badgePush === this.newestBadgePush && settled.includes(false)) this.retryBadge(attempt);
     } catch (error) {
       console.warn(`[push] ${errorMessage(error)}`);
     }
   }
 
-  /** Resends the badge alone; a phone that already has it is unaffected. */
+  /** Resends the badge alone; a device that already has it is unaffected. */
   private retryBadge(attempt: number): void {
     const wait = RETRY_MS[attempt];
     if (wait === undefined) return;

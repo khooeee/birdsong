@@ -66,6 +66,9 @@ const api: BirdsongApi = {
   getApnsKeyInfo: () => ipcRenderer.invoke("apns:keyInfo"),
   pickApnsKey: () => ipcRenderer.invoke("apns:pickKey"),
   removeApnsKey: () => ipcRenderer.invoke("apns:removeKey"),
+  getFcmKeyInfo: () => ipcRenderer.invoke("fcm:keyInfo"),
+  pickFcmKey: () => ipcRenderer.invoke("fcm:pickKey"),
+  removeFcmKey: () => ipcRenderer.invoke("fcm:removeKey"),
   rotateControlToken: () => ipcRenderer.invoke("control:rotateToken"),
   savePastedImage: (sessionId, image) =>
     ipcRenderer.invoke("images:savePaste", sessionId, image.mimeType, image.bytes),

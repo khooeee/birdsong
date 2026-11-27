@@ -55,7 +55,7 @@ export class ControlServer {
     return this.enqueue(() => this.reconcile(settings));
   }
 
-  /** Replace the iOS token; the app needs the new link, and control.json scripts keep theirs. */
+  /** Replace the mobile token; the apps need the new link, and control.json scripts keep theirs. */
   rotateToken(): Promise<void> {
     return this.enqueue(() => this.swapToken());
   }
@@ -137,7 +137,7 @@ export class ControlServer {
     try {
       return await this.listen(port);
     } catch (error) {
-      this.error = `Port ${port} is busy (${errorMessage(error)}), so the iOS app can't connect.`;
+      this.error = `Port ${port} is busy (${errorMessage(error)}), so the mobile apps can't connect.`;
       console.warn(`[control] ${this.error}`);
       return this.listen(0);
     }

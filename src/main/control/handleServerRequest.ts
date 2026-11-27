@@ -44,7 +44,7 @@ export async function handleServerRequest(
     return sendJson(res, 403, { error: "Birdsong refuses Tailscale Funnel. Use tailscale serve, which keeps it on your tailnet." });
   }
   if (!remoteEnabled() && viaTailscaleServe(req)) {
-    return sendJson(res, 403, { error: "Remote access is off. Tick Allow the iOS app over Tailscale in Birdsong's Settings." });
+    return sendJson(res, 403, { error: "Remote access is off. Tick Allow the mobile apps over Tailscale in Birdsong's Settings." });
   }
   const url = new URL(req.url ?? "/", baseUrl);
   const pathname = url.pathname.replace(/\/$/, "") || "/";
@@ -59,7 +59,7 @@ export async function handleServerRequest(
     return handleDeviceRequest(req, res, devices);
   }
   if (pathname === "/voice" || pathname.startsWith("/voice/")) {
-    // The iOS token only: scripts and agents (with the local token) can't take the mic.
+    // The mobile token only: scripts and agents (with the local token) can't take the mic.
     if (!bearerAuthorized(req.headers.authorization, remoteToken)) return sendJson(res, 401, { error: "Unauthorized" });
     return handleVoiceRequest(req, res, pathname, voice);
   }

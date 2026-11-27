@@ -8,7 +8,7 @@ An agentic development environment that sparks joy in my everyday coding:
 - Sending new messages while the agent is already in progress should always steer where available, otherwise queue.  Claude Code, Codex, Devin & OpenCode steer.  Antigravity, Copilot, Cursor, Mistral Vibe & Pi queue (due to lack of support for steering in their ACP implementation).  But in general, I think the concept of queueing should just go away and every coding agent should always steer.
 - All agents are started in bypass permissions/YOLO mode.
 - Zen mode hides the message type & timestamps.  It's on by default.  You can always turn it off to see those details as needed with Command/Control + /.
-- You can control your sessions through an iOS app.
+- You can control your sessions through an iOS app, or an Android app built for the Daylight DC-1 tablet.
 - Best paired with [beaver](https://github.com/khooeee/beaver/)
 
 There are also orchestration features:
@@ -163,9 +163,9 @@ Initial setup
 Birdsong desktop app
 3. If using a MacBook, plug it in.
 4. Keep lid open (unless an external display is connected).
-5. In Birdsong desktop app, open **Settings** and tick **Allow the iOS app over Tailscale**. While it is ticked, Birdsong is listening on the Control API port, and the computer is plugged in, Birdsong stops the computer from sleeping when idle; the display still sleeps.
+5. In Birdsong desktop app, open **Settings** and tick **Allow the mobile apps over Tailscale**. While it is ticked, Birdsong is listening on the Control API port, and the computer is plugged in, Birdsong stops the computer from sleeping when idle; the display still sleeps.
 6. Run the provided command which should look similar to `tailscale serve --bg <port>`.
-7. Click **Copy iOS Link** & paste the link into the iOS app.
+7. Click **Copy Pairing Link** & paste the link into the iOS app.
 
 ### Turn details
 
@@ -188,7 +188,30 @@ Xcode installs use Apple's sandbox gateway, and this key works for that.
 
 Tap the mic at the top right of a session in the iOS app to talk to that session's voice agent, with the Inworld key and voice settings from the desktop app. Changing the voice in the desktop Settings also switches it on a call the phone is on. Whoever starts voice holds the mic: starting on the phone in the same session takes over from the Mac (and keeps the conversation), starting in another session moves voice there, and that session's desktop mic stops it wherever it is. The phone's audio goes straight to Inworld; the Mac attaches to the same call over Inworld's sideband (beta) to configure it, run tools and speak notices, so the phone only talks to the Mac to start, resume and stop. When the call drops (Wi-Fi to 5G, a dead spot) the phone starts a new one and the agent picks up where it left off. Voice keeps going with the screen locked.
 
-The phone uses the localhost control API, on a fixed port (7389 by default) that also serves Birdsong's MCP server to sessions. The Tailscale HTTPS port defaults to 8443 and can be changed in **Settings**; Birdsong includes it in the suggested `tailscale serve` command. Unticking the checkbox only refuses requests that come through Tailscale; sessions keep their MCP tools. Tailscale Funnel (public internet) traffic is always refused. The iOS token stays the same across launches. To revoke it, click **Rotate Token** in **Settings** and pair again. Scripts on the Mac use a separate token from `~/.birdsong/control.json`, which is new every launch and refused over Tailscale; sessions have their own MCP keys. Neither is affected by rotating.
+The phone uses the localhost control API, on a fixed port (7389 by default) that also serves Birdsong's MCP server to sessions. The Tailscale HTTPS port defaults to 8443 and can be changed in **Settings**; Birdsong includes it in the suggested `tailscale serve` command. Unticking the checkbox only refuses requests that come through Tailscale; sessions keep their MCP tools. Tailscale Funnel (public internet) traffic is always refused. The mobile token stays the same across launches, and both apps share it. To revoke it, click **Rotate Token** in **Settings** and pair again. Scripts on the Mac use a separate token from `~/.birdsong/control.json`, which is new every launch and refused over Tailscale; sessions have their own MCP keys. Neither is affected by rotating.
+
+## Android app (Daylight DC-1)
+
+`daylight-dc-1/` is an Android client built for the [Daylight DC-1](https://daylightcomputer.com) tablet (Android 13, grayscale display). It does what the iOS app does except voice, with the session list and the transcript side by side in both orientations. It pairs with the same link and reaches the Mac over Tailscale the same way.
+
+Build and install
+1. Install [Android Studio](https://developer.android.com/studio) (or the Android SDK with platform 37) and JDK 17 or later.
+2. For alerts, add `google-services.json` first (see below). Without it the app still builds and works, without alerts.
+3. `cd daylight-dc-1 && ./gradlew assembleDebug`
+4. On the tablet, turn on USB debugging in Developer options and connect it by USB. Then run `adb install -r app/build/outputs/apk/debug/app-debug.apk`.
+5. Install Tailscale on the tablet and sign in to the same tailnet as the Mac.
+6. Follow steps 3–7 of the iOS setup on the Mac, then paste the link into the app. Opening a `birdsong://` link on the tablet also opens the app with the link filled in.
+
+To try it in the emulator, run `adb reverse tcp:7389 tcp:7389` and pair with `birdsong://localhost:7389?token=<token>`, using the token from `~/.birdsong/control.json`.
+
+### Alerts on Android
+
+A finished turn alerts the tablet when the app is in the background or the screen is off. With the app open, the session list updates and there is no alert. Reading a session on the Mac takes its alert down. Tapping an alert opens that session. Alerts go through Firebase Cloud Messaging, which is free.
+
+1. In the [Firebase console](https://console.firebase.google.com), create a project. Analytics is not needed.
+2. Add an Android app with the package name `com.khooeee.birdsong`. Download its `google-services.json` into `daylight-dc-1/app/` (gitignored) and rebuild.
+3. In the project's settings, under **Service accounts**, click **Generate new private key**. In Birdsong, open **Settings** and, under **Alerts**, click **Choose FCM Service Account** to import the JSON. It is stored encrypted in app data, so the original can be deleted.
+4. Open the app and allow notifications. The tablet registers with the Mac it is paired to.
 
 ## History Management
 

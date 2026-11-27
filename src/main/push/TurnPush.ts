@@ -5,7 +5,7 @@ import type { PushContent } from "./PushContent";
 import type { PushSender } from "./PushSender";
 import { turnAlert } from "./turnAlert";
 
-/** Sends an APNs alert when a prompt finishes and no phone is watching the event stream. */
+/** Sends an alert when a prompt finishes and no phone or tablet is watching the event stream. */
 export class TurnPush {
   constructor(
     private sessions: SessionManager,
