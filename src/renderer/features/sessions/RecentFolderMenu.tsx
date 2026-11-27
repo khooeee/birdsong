@@ -7,10 +7,6 @@ interface Props {
   onPick: (folder: string) => void;
 }
 
-function folderName(folder: string): string {
-  return folder.split(/[\\/]/).filter(Boolean).pop() ?? folder;
-}
-
 /** Recent Session Folders below the folder input; the active row follows the arrow keys. */
 export function RecentFolderMenu({ id, folders, activeIndex, onPick }: Props) {
   const activeRef = useRef<HTMLLIElement>(null);
@@ -38,8 +34,7 @@ export function RecentFolderMenu({ id, folders, activeIndex, onPick }: Props) {
               onPick(folder);
             }}
           >
-            <span className="recent-folder-name">{folderName(folder)}</span>
-            <span className="recent-folder-path">{folder}</span>
+            {folder}
           </li>
         );
       })}
