@@ -202,7 +202,7 @@ Build and install
 5. Install Tailscale on the tablet and sign in to the same tailnet as the Mac.
 6. Follow steps 3–7 of the iOS setup on the Mac, then paste the link into the app. Opening a `birdsong://` link on the tablet also opens the app with the link filled in.
 
-To try it in the emulator, run `adb reverse tcp:7389 tcp:7389` and pair with `birdsong://localhost:7389?token=<token>`, using the token from `~/.birdsong/control.json`.
+To try it in the emulator, run `adb reverse tcp:7389 tcp:7389` and pair with `birdsong://localhost:7389?token=<token>`. Take `<token>` from the link **Copy Pairing Link** gives you, not from `~/.birdsong/control.json`: `/devices` only accepts the mobile token, so the control token can't register the emulator for alerts.
 
 ### Alerts on Android
 

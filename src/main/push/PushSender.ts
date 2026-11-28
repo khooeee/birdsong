@@ -28,9 +28,9 @@ export class PushSender {
     try {
       const devices = await this.devices.list();
       const drop = (token: string) => this.devices.remove(token);
-      const deliveries = (await Promise.all([apnsDelivery(devices, drop), fcmDelivery(devices, drop)])).filter(
-        (delivery): delivery is PushDelivery => delivery !== null,
-      );
+      const deliveries = (
+        await Promise.all([prepare(() => apnsDelivery(devices, drop)), prepare(() => fcmDelivery(devices, drop))])
+      ).filter((delivery): delivery is PushDelivery => delivery !== null);
       if (deliveries.length === 0) return;
       const content = await compose();
       if (!content) return;
@@ -60,4 +60,14 @@ export class PushSender {
     if (wait === undefined) return;
     this.retry = setTimeout(() => void this.send(async () => ({}), attempt + 1), wait);
   }
+}
+
+/** One provider failing to set up (say, a missing APNs key file) must not stop the other from sending. */
+function prepare(make: () => Promise<PushDelivery | null>): Promise<PushDelivery | null> {
+  return Promise.resolve()
+    .then(make)
+    .catch((error: unknown) => {
+      console.warn(`[push] ${errorMessage(error)}`);
+      return null;
+    });
 }

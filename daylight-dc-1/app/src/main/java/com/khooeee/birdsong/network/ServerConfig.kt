@@ -18,6 +18,7 @@ data class ServerConfig(val link: String, val baseUrl: HttpUrl, val token: Strin
                 .firstOrNull { it.size == 2 && it[0] == "token" }
                 ?.let { URLDecoder.decode(it[1], "UTF-8") }
             if (token.isNullOrEmpty()) return null
+            if (uri.port != -1 && uri.port !in 1..65535) return null
             val base = HttpUrl.Builder()
                 // The tailnet is https via `tailscale serve`; plain http only to loopback, for an emulator.
                 .scheme(if (isLoopback(host)) "http" else "https")

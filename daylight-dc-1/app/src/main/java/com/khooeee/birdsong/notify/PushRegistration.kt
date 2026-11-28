@@ -4,13 +4,14 @@ import android.content.Context
 import com.google.firebase.FirebaseApp
 import com.google.firebase.messaging.FirebaseMessaging
 import com.khooeee.birdsong.network.BirdsongClient
+import com.khooeee.birdsong.pairing.PairingStore
 import kotlin.coroutines.resume
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 /** Tells the paired Mac this tablet's FCM token, so it can alert when a turn finishes. */
-class PushRegistration(private val context: Context, private val scope: CoroutineScope) {
+class PushRegistration(private val context: Context, private val scope: CoroutineScope, private val pairing: PairingStore) {
     private var client: BirdsongClient? = null
     private var postedToken: String? = null
 
@@ -24,7 +25,7 @@ class PushRegistration(private val context: Context, private val scope: Coroutin
         scope.launch { token()?.let { post(it) } }
     }
 
-    /** FCM replaced the token. Called off the main thread. */
+    /** FCM replaced the token, possibly while the app isn't open; the saved pairing covers that. Called off the main thread. */
     fun tokenChanged(token: String) {
         scope.launch { post(token) }
     }
@@ -38,7 +39,7 @@ class PushRegistration(private val context: Context, private val scope: Coroutin
     }
 
     private suspend fun post(token: String) {
-        val client = client ?: return
+        val client = client ?: pairing.load()?.let(::BirdsongClient)?.also { this.client = it } ?: return
         if (token == postedToken) return
         postedToken = token
         try {

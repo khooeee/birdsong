@@ -4,6 +4,7 @@ import com.khooeee.birdsong.model.RemoteTurn
 import com.khooeee.birdsong.network.BirdsongClient
 import com.khooeee.birdsong.network.EventSubscription
 import com.khooeee.birdsong.network.RemoteEvent
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -29,6 +30,8 @@ class TranscriptState(private val client: BirdsongClient, val sessionId: String,
         scope.launch {
             try {
                 client.sendPrompt(text, sessionId)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 onFailed(text, e)
             }
@@ -40,6 +43,8 @@ class TranscriptState(private val client: BirdsongClient, val sessionId: String,
         scope.launch {
             try {
                 client.cancel(sessionId)
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: Exception) {
                 onFailed(e)
             }

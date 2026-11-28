@@ -54,8 +54,9 @@ fun NewSessionDialog(client: BirdsongClient, recent: List<Session>, onCreated: (
         folders = fromMac
     }
 
-    val create = { createFolder: Boolean ->
-        val path = cwd.trim()
+    // Takes the folder to create, so the confirmation creates what it showed even if the field has changed since.
+    val create = { folder: String, createFolder: Boolean ->
+        val path = folder.trim()
         if (!path.startsWith("/")) {
             error = "Enter the full folder path on your Mac, starting with /."
         } else {
@@ -119,7 +120,7 @@ fun NewSessionDialog(client: BirdsongClient, recent: List<Session>, onCreated: (
             }
         },
         confirmButton = {
-            TextButton(enabled = !creating && cwd.isNotBlank(), onClick = { create(false) }) {
+            TextButton(enabled = !creating && cwd.isNotBlank(), onClick = { create(cwd, false) }) {
                 Text(if (creating) "Starting…" else "Create")
             }
         },
@@ -133,7 +134,7 @@ fun NewSessionDialog(client: BirdsongClient, recent: List<Session>, onCreated: (
             confirmButton = {
                 TextButton(onClick = {
                     missingFolder = null
-                    create(true)
+                    create(path, true)
                 }) { Text("Create Folder") }
             },
             dismissButton = { TextButton(onClick = { missingFolder = null }) { Text("Cancel") } },

@@ -6,11 +6,23 @@ const SCOPE = "https://www.googleapis.com/auth/firebase.messaging";
 const MARGIN_MS = 5 * 60 * 1000;
 
 let cached: { identity: string; token: string; until: number } | null = null;
+/** The request in flight, shared so concurrent deliveries sign and fetch only once. */
+let pending: { identity: string; promise: Promise<string> } | null = null;
 
 /** An OAuth access token for FCM, signed with the service account's key. Reused until close to expiry. */
-export async function fcmAccessToken(account: FcmServiceAccount, now = Date.now()): Promise<string> {
+export function fcmAccessToken(account: FcmServiceAccount, now = Date.now()): Promise<string> {
   const identity = `${account.clientEmail}\n${account.privateKey}`;
-  if (cached && cached.identity === identity && now < cached.until) return cached.token;
+  if (cached && cached.identity === identity && now < cached.until) return Promise.resolve(cached.token);
+  if (pending && pending.identity === identity) return pending.promise;
+  const promise = requestToken(account, now).finally(() => {
+    if (pending?.promise === promise) pending = null;
+  });
+  pending = { identity, promise };
+  return promise;
+}
+
+async function requestToken(account: FcmServiceAccount, now: number): Promise<string> {
+  const identity = `${account.clientEmail}\n${account.privateKey}`;
   const iat = Math.floor(now / 1000);
   const header = base64url(JSON.stringify({ alg: "RS256", typ: "JWT" }));
   const claims = base64url(
@@ -32,7 +44,7 @@ export async function fcmAccessToken(account: FcmServiceAccount, now = Date.now(
   }
   const lifetimeMs = (typeof body.expires_in === "number" ? body.expires_in : 3600) * 1000;
   cached = { identity, token: body.access_token, until: now + lifetimeMs - MARGIN_MS };
-  return cached.token;
+  return body.access_token;
 }
 
 function base64url(value: string | Buffer): string {

@@ -22,7 +22,13 @@ import com.khooeee.birdsong.ui.UserAlert
 
 /** The open session: its title, streaming transcript, and the composer. */
 @Composable
-fun TranscriptPane(client: BirdsongClient, session: Session, onAlert: (UserAlert) -> Unit, modifier: Modifier = Modifier) {
+fun TranscriptPane(
+    client: BirdsongClient,
+    session: Session,
+    onAlert: (UserAlert) -> Unit,
+    drafts: Drafts,
+    modifier: Modifier = Modifier,
+) {
     val scope = rememberCoroutineScope()
     val state = remember(session.id) { TranscriptState(client, session.id, scope) }
     LifecycleStartEffect(state) {
@@ -47,6 +53,7 @@ fun TranscriptPane(client: BirdsongClient, session: Session, onAlert: (UserAlert
         Composer(
             client = client,
             session = session,
+            drafts = drafts,
             isRunning = turns.orEmpty().any { it.status == RemoteTurn.Status.Running && it.queued != true },
             onSend = { text, restore ->
                 state.send(text) { failed, e ->

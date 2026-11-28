@@ -23,11 +23,13 @@ class TurnNotifications(private val context: Context) {
 
     fun show(sessionId: String, title: String, body: String) {
         if (context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) return
+        // Android matches pending intents by action, not extras, so the action carries the id. Same id, same intent.
         val open = Intent(context, MainActivity::class.java)
+            .setAction("$OPEN_ACTION:$sessionId")
             .putExtra(MainActivity.EXTRA_SESSION_ID, sessionId)
             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         val tap = PendingIntent.getActivity(
-            context, sessionId.hashCode(), open, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
+            context, 0, open, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT,
         )
         val notification = NotificationCompat.Builder(context, CHANNEL)
             .setSmallIcon(R.drawable.ic_stat_birdsong)
@@ -55,6 +57,7 @@ class TurnNotifications(private val context: Context) {
 
     private companion object {
         const val CHANNEL = "turns"
+        const val OPEN_ACTION = "com.khooeee.birdsong.OPEN_SESSION"
         const val ID = 1
     }
 }

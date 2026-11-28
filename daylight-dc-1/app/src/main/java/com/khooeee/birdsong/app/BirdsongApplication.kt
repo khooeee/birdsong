@@ -17,7 +17,7 @@ class BirdsongApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         pairing = PairingStore(this)
-        push = PushRegistration(this, scope)
+        push = PushRegistration(this, scope, pairing)
         TurnNotifications(this).createChannel()
     }
 }

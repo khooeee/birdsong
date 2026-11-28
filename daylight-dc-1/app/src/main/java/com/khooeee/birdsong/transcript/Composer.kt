@@ -19,7 +19,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,17 +45,22 @@ import com.khooeee.birdsong.ui.UserAlert
 fun Composer(
     client: BirdsongClient,
     session: Session,
+    drafts: Drafts,
     isRunning: Boolean,
     onSend: (text: String, restore: (String) -> Unit) -> Unit,
     onStop: () -> Unit,
     onAlert: (UserAlert) -> Unit,
 ) {
-    var text by rememberSaveable(session.id) { mutableStateOf("") }
+    var text by remember(session.id) { mutableStateOf(drafts[session.id]) }
+    val setText = { value: String ->
+        text = value
+        drafts[session.id] = value
+    }
     val send = {
         val prompt = text.trim()
         if (prompt.isNotEmpty()) {
-            text = ""
-            onSend(prompt) { failed -> if (text.isEmpty()) text = failed }
+            setText("")
+            onSend(prompt) { failed -> if (text.isEmpty()) setText(failed) }
         }
     }
     Column(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceContainerLow)) {
@@ -75,7 +80,7 @@ fun Composer(
             Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = text,
-                    onValueChange = { text = it },
+                    onValueChange = setText,
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(max = 200.dp)

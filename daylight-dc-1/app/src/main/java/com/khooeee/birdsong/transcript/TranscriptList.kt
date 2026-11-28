@@ -24,7 +24,7 @@ fun TranscriptList(turns: List<RemoteTurn>, onDetails: (turnId: String, atEnd: B
     val listState = rememberLazyListState()
     var followsEnd by remember { mutableStateOf(true) }
     LaunchedEffect(listState) {
-        snapshotFlow { listState.isScrollInProgress to (listState.firstVisibleItemIndex == 0) }
+        snapshotFlow { listState.isScrollInProgress to (listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) }
             .collect { (scrolling, atEnd) -> if (scrolling) followsEnd = atEnd }
     }
     LaunchedEffect(turns.lastOrNull()?.id) {

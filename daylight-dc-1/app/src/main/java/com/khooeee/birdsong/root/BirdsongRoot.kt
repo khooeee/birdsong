@@ -40,7 +40,8 @@ fun BirdsongRoot(app: BirdsongApplication, requests: LaunchRequests) {
     val paired = { next: ServerConfig ->
         val previous = client
         app.pairing.save(next)
-        if (previous != null && previous.config.link != next.link) app.push.unregister(previous)
+        // Compare servers, not link text: two links to one Mac can differ in spelling but not in server.
+        if (previous != null && previous.config.baseUrl != next.baseUrl) app.push.unregister(previous)
         repairPrefill = null
         requests.pairingLink.value = null
         config = next
