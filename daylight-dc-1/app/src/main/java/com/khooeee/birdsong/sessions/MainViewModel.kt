@@ -86,6 +86,10 @@ class MainViewModel(
         SessionNavigation.stepTarget(current, mutableSelected.value, delta, filter)?.let(::select)
     }
 
+    fun forkActive() {
+        activeSession()?.takeIf { it.supportsFork != false }?.let(actions::fork)
+    }
+
     fun togglePinActive() {
         val current = mutableList.value ?: return
         val session = activeSession() ?: return

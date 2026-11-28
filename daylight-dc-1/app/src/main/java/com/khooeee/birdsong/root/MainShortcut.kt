@@ -11,11 +11,14 @@ enum class MainShortcut(val allowsRepeat: Boolean = false) {
     FocusPrompt,
     FocusSearch,
     NewSession,
+    ForkSession,
     ToggleHome,
     RenameSession,
     TogglePin,
     NextSession(allowsRepeat = true),
     PreviousSession(allowsRepeat = true),
+    PageUp(allowsRepeat = true),
+    PageDown(allowsRepeat = true),
     ToggleUnread,
     StopAgent,
     ;
@@ -78,6 +81,9 @@ enum class MainShortcut(val allowsRepeat: Boolean = false) {
             if (keyCode == KeyEvent.KEYCODE_TAB) {
                 return if (isShiftPressed) PreviousSession else NextSession
             }
+            if (keyCode == KeyEvent.KEYCODE_N && isShiftPressed) return ForkSession
+            if (keyCode == KeyEvent.KEYCODE_DPAD_UP) return if (!isShiftPressed) PageUp else null
+            if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return if (!isShiftPressed) PageDown else null
             if (isShiftPressed) return null
             return when (keyCode) {
                 KeyEvent.KEYCODE_I -> FocusPrompt
