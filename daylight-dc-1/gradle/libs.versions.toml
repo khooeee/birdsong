@@ -12,6 +12,8 @@ coroutines = "1.11.0"
 commonmark = "0.33.0"
 firebaseBom = "35.2.0"
 googleServices = "4.6.0"
+# Google's libwebrtc, prebuilt: voice audio goes from the tablet straight to Inworld.
+webrtc = "150.7871.09"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -34,6 +36,7 @@ commonmark-autolink = { group = "org.commonmark", name = "commonmark-ext-autolin
 commonmark-strikethrough = { group = "org.commonmark", name = "commonmark-ext-gfm-strikethrough", version.ref = "commonmark" }
 firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version.ref = "firebaseBom" }
 firebase-messaging = { group = "com.google.firebase", name = "firebase-messaging" }
+webrtc = { group = "io.github.webrtc-sdk", name = "android", version.ref = "webrtc" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 
 [plugins]

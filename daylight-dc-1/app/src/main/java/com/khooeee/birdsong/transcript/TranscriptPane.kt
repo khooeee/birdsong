@@ -19,14 +19,17 @@ import com.khooeee.birdsong.turndetails.TurnDetailsDialog
 import com.khooeee.birdsong.ui.EmptyState
 import com.khooeee.birdsong.ui.PaneHeader
 import com.khooeee.birdsong.ui.UserAlert
+import com.khooeee.birdsong.voice.VoiceButton
+import com.khooeee.birdsong.voice.VoiceController
 
-/** The open session: its title, streaming transcript, and the composer. */
+/** The open session: its title and mic, streaming transcript, and the composer. */
 @Composable
 fun TranscriptPane(
     client: BirdsongClient,
     session: Session,
     onAlert: (UserAlert) -> Unit,
     drafts: Drafts,
+    voice: VoiceController,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -41,7 +44,9 @@ fun TranscriptPane(
     val showError = { e: Exception -> onAlert(UserAlert("Couldn't reach Birdsong", e.message.orEmpty())) }
 
     Column(modifier) {
-        PaneHeader(session.firstLine, subtitle = connection.notice ?: SessionAgent.labelFor(session.agent))
+        PaneHeader(session.firstLine, subtitle = connection.notice ?: SessionAgent.labelFor(session.agent)) {
+            VoiceButton(voice, client.voice, session.id)
+        }
         Box(Modifier.weight(1f)) {
             val current = turns
             when {

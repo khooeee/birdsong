@@ -33,7 +33,7 @@ import com.khooeee.birdsong.sessions.SessionListPane
 /** Two panes in either orientation: the rail on the left, the open session's transcript on the right. */
 @Composable
 fun MainScreen(client: BirdsongClient, app: BirdsongApplication, requests: LaunchRequests, onPair: () -> Unit) {
-    val model = viewModel(key = client.config.link) { MainViewModel(client, TurnNotifications(app)) }
+    val model = viewModel(key = client.config.link) { MainViewModel(client, TurnNotifications(app), app.voice) }
     LifecycleStartEffect(model) {
         model.start()
         onStopOrDispose { model.stop() }

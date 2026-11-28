@@ -14,6 +14,9 @@ import kotlinx.serialization.json.put
 class BirdsongClient(val config: ServerConfig) {
     private val http = BirdsongHttp(config)
 
+    /** Starts, answers and stops voice calls on this Mac. */
+    val voice = VoiceClient(http)
+
     /** Fails unless the server answers and accepts the token. */
     suspend fun checkConnection() {
         http.send(listOf("sessions"))

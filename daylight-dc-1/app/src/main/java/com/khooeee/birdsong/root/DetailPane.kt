@@ -29,6 +29,13 @@ fun DetailPane(model: MainViewModel, modifier: Modifier = Modifier) {
         return
     }
     key(session.id) {
-        TranscriptPane(model.client, session, onAlert = model::showAlert, drafts = model.drafts, modifier = modifier)
+        TranscriptPane(
+            model.client,
+            session,
+            onAlert = model::showAlert,
+            drafts = model.drafts,
+            voice = model.voice,
+            modifier = modifier,
+        )
     }
 }
