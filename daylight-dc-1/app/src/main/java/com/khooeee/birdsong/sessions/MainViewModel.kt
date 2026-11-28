@@ -87,7 +87,7 @@ class MainViewModel(
     }
 
     fun forkActive() {
-        activeSession()?.takeIf { it.supportsFork == true }?.let(actions::fork)
+        activeSession()?.takeIf { it.supportsFork != false }?.let(actions::fork)
     }
 
     fun togglePinActive() {
