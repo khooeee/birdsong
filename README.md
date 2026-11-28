@@ -153,6 +153,26 @@ Pending reminders live in `reminders.json`. Click the Settings button on the bot
 - Each reminder fires once and is then removed. One that came due while Birdsong was closed or the computer was asleep fires late, as soon as Birdsong is running again.
 - macOS only shows notifications for properly code-signed apps, so Birdsong builds show a small Birdsong popup in the top-right corner instead. It stays until you click it (opens the session) or dismiss it, and never takes focus.
 
+## Usage
+
+Click the gauge button left of Settings on the bottom of the rail to see usage and limits for every installed agent. On the iPhone and the Daylight tablet, it is the gauge button between **+** and Settings above the session list. Each agent's numbers are read when the window opens or you click **Refresh**; nothing is cached, and each agent fills in as soon as its own CLI answers.
+
+Birdsong only runs each agent's own commands. It never reads stored credentials or calls an agent's private web endpoints.
+
+| Agent | Source |
+| --- | --- |
+| Claude Code | `claude -p /usage` (no model call) |
+| Codex | `account/rateLimits/read` from `codex app-server` |
+| Antigravity | `agy -p /quota` (no model call) |
+| Kilo | `kilo profile --json` for the Kilo Gateway balance, and `kilo stats --models` for the last 7 days |
+| OpenCode | `opencode stats --json` for the last 7 days; its limits belong to the providers it signs in to |
+| Copilot | Link to [github.com/settings/copilot](https://github.com/settings/copilot) |
+| Cursor | Link to [cursor.com/dashboard/spending](https://cursor.com/dashboard/spending) |
+| Devin | Link to [app.devin.ai/settings/usage](https://app.devin.ai/settings/usage) |
+| Mistral Vibe | Link to [chat.mistral.ai/code](https://chat.mistral.ai/code); click your account on the bottom left, then **Limits** |
+
+Pi is not shown.
+
 ## iOS app
 
 `ios/` is an iOS client that lets you interact with your sessions over [Tailscale](https://tailscale.com). Birdsong only listens on localhost; `tailscale serve` publishes it to your tailnet over HTTPS.

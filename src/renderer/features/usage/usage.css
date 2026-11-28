@@ -1,0 +1,116 @@
+.rail-usage {
+  position: relative;
+  display: flex;
+}
+
+.rail-usage .rail-session {
+  width: 40px;
+  flex: none;
+  justify-content: center;
+  padding: 0;
+}
+
+.usage-modal {
+  width: min(680px, 90vw);
+  max-height: 85vh;
+}
+
+.usage-header,
+.usage-agent-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.usage-header h2,
+.usage-agent-header h3,
+.usage-agent p {
+  margin: 0;
+}
+
+.usage-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.usage-body {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.usage-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.usage-agent {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.usage-agent:last-child {
+  border-bottom: none;
+}
+
+.usage-agent-header h3 {
+  font-size: var(--font-ui-heading-size);
+}
+
+.usage-plan,
+.usage-dim {
+  color: var(--text-dim);
+  overflow-wrap: anywhere;
+}
+
+.usage-error {
+  color: var(--danger);
+  overflow-wrap: anywhere;
+}
+
+/* One grid per agent, so bars and percents line up across its meters. */
+.usage-meters {
+  display: grid;
+  grid-template-columns: minmax(80px, max-content) 120px 3.5em 1fr;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 6px;
+}
+
+.usage-meter {
+  display: contents;
+}
+
+.usage-meter-percent {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.usage-meter-detail {
+  color: var(--text-dim);
+}
+
+.usage-meter-wide {
+  grid-column: 2 / -1;
+}
+
+.usage-bar {
+  height: 8px;
+  border-radius: 4px;
+  background: var(--bg-3);
+  overflow: hidden;
+}
+
+.usage-bar-fill {
+  display: block;
+  height: 100%;
+  background: var(--accent, #8a9299);
+}
+
+.usage-bar.high .usage-bar-fill {
+  background: var(--danger);
+}

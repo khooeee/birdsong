@@ -1,8 +1,10 @@
 package com.khooeee.birdsong.network
 
+import com.khooeee.birdsong.model.AgentUsage
 import com.khooeee.birdsong.model.ConfigPickers
 import com.khooeee.birdsong.model.Session
 import com.khooeee.birdsong.model.SessionAgent
+import com.khooeee.birdsong.model.UsageAgent
 import kotlin.time.Duration
 import kotlinx.coroutines.flow.Flow
 import kotlinx.serialization.json.buildJsonObject
@@ -34,6 +36,12 @@ class BirdsongClient(val config: ServerConfig) {
     /** Agents installed on the Mac; ones this build doesn't know are dropped. */
     suspend fun availableAgents(): List<SessionAgent> =
         BirdsongJson.decodeFromString<List<String>>(http.send(listOf("agents"))).mapNotNull(SessionAgent::fromRaw)
+
+    /** Installed agents with usage to show, in display order. */
+    suspend fun usageAgents(): List<UsageAgent> = BirdsongJson.decodeFromString(http.send(listOf("usage")))
+
+    /** Runs the agent's own usage command on the Mac now; a failed read comes back with `error` set. */
+    suspend fun usage(agent: String): AgentUsage = BirdsongJson.decodeFromString(http.send(listOf("usage", agent)))
 
     /** A new session with `agent` in this one's folders, prompted to read its transcript and carry on. */
     suspend fun continueSession(sessionId: String, agent: SessionAgent, pin: Boolean): Session {

@@ -47,7 +47,13 @@ final class SessionListViewController: UIViewController {
             primaryAction: UIAction { [weak self] _ in self?.showNewSession() }
         )
         newSession.accessibilityLabel = "New session"
-        navigationItem.rightBarButtonItems = [settings, newSession]
+        let usage = UIBarButtonItem(
+            image: UIImage(systemName: "gauge.with.dots.needle.50percent"),
+            primaryAction: UIAction { [weak self] _ in self?.showUsage() }
+        )
+        usage.accessibilityLabel = "Usage"
+        // Laid out right to left: Settings, then Usage, then New Session.
+        navigationItem.rightBarButtonItems = [settings, usage, newSession]
         let search = UISearchController()
         search.searchResultsUpdater = self
         search.obscuresBackgroundDuringPresentation = false
@@ -83,6 +89,10 @@ final class SessionListViewController: UIViewController {
             self?.openSession(session)
         }
         present(UINavigationController(rootViewController: form), animated: true)
+    }
+
+    private func showUsage() {
+        present(UINavigationController(rootViewController: UsageViewController(client: client)), animated: true)
     }
 
     /// Opens the session a push named, once the rail knows it.

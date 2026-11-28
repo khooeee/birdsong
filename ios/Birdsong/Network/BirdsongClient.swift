@@ -70,6 +70,16 @@ final class BirdsongClient: Sendable {
         return kinds.compactMap(SessionAgent.init(rawValue:))
     }
 
+    /// Installed agents with usage to show, in display order.
+    func usageAgents() async throws -> [UsageAgent] {
+        try JSONDecoder().decode([UsageAgent].self, from: await send(request(["usage"])))
+    }
+
+    /// Runs the agent's own usage command on the Mac now; a failed read comes back with `error` set.
+    func usage(agent: String) async throws -> AgentUsage {
+        try JSONDecoder().decode(AgentUsage.self, from: await send(request(["usage", agent])))
+    }
+
     /// A new session with `agent` in this one's folders, prompted to read its transcript and carry on.
     func continueSession(_ sessionId: String, with agent: SessionAgent, pin: Bool) async throws -> Session {
         var request = request(["sessions", sessionId, "continue"], method: "POST")

@@ -3,6 +3,8 @@ import type { GitDiffScope, GitDiffSnapshot, GitFilePatch } from "./gitDiff";
 import type { ActiveTabId } from "./activeTabId";
 import type { CursorAskQuestionRequest } from "./agentRequests";
 import type { AgentKind } from "./agentKind";
+import type { AgentUsage } from "./agentUsage";
+import type { UsageAgent } from "./usageAgent";
 import type { AppSettings } from "./appSettings";
 import type { ConfigMenuCategory } from "./configMenuCategory";
 import type { CreateSessionInput } from "./createSessionInput";
@@ -41,6 +43,10 @@ export interface SessionListPayload {
 export interface BirdsongApi {
   /** Agents whose CLI and ACP adapter are installed. */
   availableAgents: () => Promise<AgentKind[]>;
+  /** Installed agents the Usage window shows, in display order. */
+  usageAgents: () => Promise<UsageAgent[]>;
+  /** Runs the agent's own usage command now; undefined for agents without usage. */
+  readAgentUsage: (agent: AgentKind) => Promise<AgentUsage | undefined>;
   /** Null when `cwd` doesn't exist yet, so no agent starts there. */
   startSessionDraft: (id: string, agent: AgentKind, cwd: string) => Promise<SessionConfigSelect[] | null>;
   selectSessionDraftConfig: (id: string, category: ConfigMenuCategory, value: string) => Promise<SessionConfigSelect[]>;

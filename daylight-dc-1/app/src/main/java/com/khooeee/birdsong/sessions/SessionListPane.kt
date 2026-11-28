@@ -28,8 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.khooeee.birdsong.model.Session
 import com.khooeee.birdsong.network.StreamState
+import com.khooeee.birdsong.ui.BirdsongIcons
 import com.khooeee.birdsong.ui.EmptyState
 import com.khooeee.birdsong.ui.PaneHeader
+import com.khooeee.birdsong.usage.UsageDialog
 
 /** The desktop rail, live: pinned then recent, filtered by title. Home always shows. */
 @Composable
@@ -39,11 +41,13 @@ fun SessionListPane(model: MainViewModel, onPair: () -> Unit, modifier: Modifier
     val selectedId by model.selectedId.collectAsStateWithLifecycle()
     var filter by rememberSaveable { mutableStateOf("") }
     var creating by remember { mutableStateOf(false) }
+    var showingUsage by remember { mutableStateOf(false) }
     var renaming by remember { mutableStateOf<Session?>(null) }
 
     Column(modifier) {
         PaneHeader("Sessions", subtitle = connection.notice?.takeIf { list != null }) {
             IconButton(onClick = { creating = true }) { Icon(Icons.Filled.Add, contentDescription = "New session") }
+            IconButton(onClick = { showingUsage = true }) { Icon(BirdsongIcons.Usage, contentDescription = "Usage") }
             IconButton(onClick = onPair) { Icon(Icons.Filled.Settings, contentDescription = "Pairing") }
         }
         OutlinedTextField(
@@ -81,6 +85,7 @@ fun SessionListPane(model: MainViewModel, onPair: () -> Unit, modifier: Modifier
             onDismiss = { creating = false },
         )
     }
+    if (showingUsage) UsageDialog(model.client, onDismiss = { showingUsage = false })
     renaming?.let { RenameDialog(model.client, it, onDismiss = { renaming = null }) }
 }
 
