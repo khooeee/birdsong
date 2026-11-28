@@ -1,4 +1,8 @@
 import { AGENT_KINDS } from "../../shared/agentKind";
+import type { AgentUsage } from "../../shared/agentUsage";
+import type { UsageAgent } from "../../shared/usageAgent";
+import type { UsageMeter } from "../../shared/usageMeter";
+import type { UsagePage } from "../../shared/usagePage";
 import type { FileChange } from "../../shared/fileChange";
 import type { Session } from "../../shared/session";
 import type { SessionConfigPickers } from "../../shared/sessionConfigPickers";
@@ -10,7 +14,7 @@ import type { TranscriptItem, TranscriptTurn } from "../../shared/transcript";
  */
 export const controlResponseTypes = {
   Error: {
-    error: "string — message (400 invalid input, 401 missing/wrong token, 404 unknown route or session)",
+    error: "string — message (400 invalid input, 401 missing/wrong token, 404 unknown route, session or usage agent)",
   },
   Session: {
     id: "string — Birdsong session id used in /sessions/:id routes",
@@ -69,6 +73,29 @@ export const controlResponseTypes = {
     images: "optional string[] — saved image file names (tool rows)",
     subagentId: "optional string — subagent rows",
   } satisfies Record<keyof TranscriptItem, string>,
+  UsageAgent: {
+    agent: AGENT_KINDS.join(" | ") + " — for GET /usage/:agent",
+    name: "string — display name",
+  } satisfies Record<keyof UsageAgent, string>,
+  AgentUsage: {
+    agent: AGENT_KINDS.join(" | "),
+    name: "string — display name",
+    plan: "optional string — e.g. Max, Plus",
+    meters: "UsageMeter[] — limits, empty for agents that report none",
+    notes: "string[] — usage that is not a limit, or where the limits live",
+    page: "optional UsagePage — set instead of meters when the agent shows usage only on its website",
+    error: "optional string — why the read failed",
+  } satisfies Record<keyof AgentUsage, string>,
+  UsageMeter: {
+    label: "string — e.g. Session, Weekly",
+    usedPercent: "number | null — 0–100, null when the agent reports no percentage",
+    resetsAt: "number | null — epoch ms of the next reset",
+    detail: "optional string — e.g. $4.20 left",
+  } satisfies Record<keyof UsageMeter, string>,
+  UsagePage: {
+    url: "string — the agent's usage page",
+    hint: "optional string — how to reach the numbers on that page",
+  } satisfies Record<keyof UsagePage, string>,
   FileChange: {
     path: "string",
     kind: "created | updated | deleted | moved",

@@ -10,6 +10,8 @@ import type { ReminderInput } from "../shared/reminderInput";
 import { readClipboardPng } from "./images/readClipboardPng";
 import { savePastedImage } from "./images/savePastedImage";
 import { availableAgents } from "./acp/availableAgents";
+import { usageAgents } from "./usage/usageAgents";
+import { readAgentUsage } from "./usage/readAgentUsage";
 import { showEditContextMenu } from "./contextMenus/showEditContextMenu";
 import { showComposerContextMenu } from "./contextMenus/showComposerContextMenu";
 import { showImageContextMenu } from "./contextMenus/showImageContextMenu";
@@ -52,6 +54,8 @@ export function registerIpc({
 }: IpcContext): void {
   const crons = new CronsStore(cronsPath());
   ipcMain.handle("agents:available", () => availableAgents());
+  ipcMain.handle("usage:agents", () => usageAgents());
+  ipcMain.handle("usage:read", (_e, agent: AgentKind) => readAgentUsage(agent));
   ipcMain.handle("sessionDraft:start", (_e, id: string, agent: AgentKind, cwd: string) =>
     sessions.newSessionDraft.start(id, agent, cwd),
   );

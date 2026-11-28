@@ -46,6 +46,22 @@ export function controlRoutesCatalog(baseUrl: string): CatalogRoute[] {
     },
     {
       method: "GET",
+      path: "/usage",
+      auth: true,
+      summary: "Installed agents with usage to show, in display order; read each with GET /usage/:agent",
+      response: "UsageAgent[]",
+      example: `curl -s -H "Authorization: Bearer $TOKEN" ${b}/usage`,
+    },
+    {
+      method: "GET",
+      path: "/usage/:agent",
+      auth: true,
+      summary: "Run the agent's own usage command now (no cache); agents whose usage is on their website return a page link",
+      response: "AgentUsage — a failed read is still 200, with error set",
+      example: `curl -s -H "Authorization: Bearer $TOKEN" ${b}/usage/claude`,
+    },
+    {
+      method: "GET",
       path: "/recent-folders",
       auth: true,
       summary: "Session Folders to suggest for POST /sessions: recent picks first, then rail sessions' folders",

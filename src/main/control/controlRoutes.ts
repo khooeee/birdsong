@@ -11,6 +11,8 @@ import { errorMessage } from "../../shared/errorMessage";
 import { AGENT_KINDS, isAgentKind } from "../../shared/agentKind";
 import { orList } from "../../shared/orList";
 import { availableAgents } from "../acp/availableAgents";
+import { usageAgents } from "../usage/usageAgents";
+import { readAgentUsage } from "../usage/readAgentUsage";
 import { continueSession } from "../sessions/continueSession";
 
 /** Route one control API HTTP request to SessionManager; `authorized` says its bearer token was accepted. */
@@ -38,6 +40,17 @@ export async function handleControlRequest(
 
     if (method === "GET" && pathname === "/agents") {
       return sendJson(res, 200, await availableAgents());
+    }
+
+    if (method === "GET" && pathname === "/usage") {
+      return sendJson(res, 200, await usageAgents());
+    }
+
+    const usageMatch = /^\/usage\/([^/]+)$/.exec(pathname);
+    if (method === "GET" && usageMatch) {
+      const agent = decodeURIComponent(usageMatch[1]!);
+      const usage = isAgentKind(agent) ? await readAgentUsage(agent) : undefined;
+      return usage ? sendJson(res, 200, usage) : sendJson(res, 404, { error: `No usage for ${agent}` });
     }
 
     if (method === "GET" && pathname === "/recent-folders") {
