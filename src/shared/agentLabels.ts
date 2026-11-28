@@ -8,6 +8,7 @@ export const AGENT_LABELS: Record<AgentKind, string> = {
   copilot: "Copilot",
   cursor: "Cursor",
   devin: "Devin",
+  kilo: "Kilo",
   vibe: "Mistral Vibe",
   opencode: "OpenCode",
   pi: "Pi",
