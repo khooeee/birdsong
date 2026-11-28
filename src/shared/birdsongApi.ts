@@ -97,7 +97,7 @@ export interface BirdsongApi {
   checkMcpServers: (text: string) => Promise<McpProblem[]>;
   /** Rejects invalid text. New sessions use the saved servers. */
   saveMcpServers: (text: string) => Promise<void>;
-  /** iOS remote access: the pairing link and `tailscale serve` setup. */
+  /** Mobile remote access: the pairing link and `tailscale serve` setup. */
   getRemoteStatus: () => Promise<RemoteStatus>;
   /** Saved APNs key state (the key itself never leaves main). */
   getApnsKeyInfo: () => Promise<SecretKeyInfo>;
@@ -105,7 +105,13 @@ export interface BirdsongApi {
   pickApnsKey: () => Promise<SecretKeyInfo>;
   /** Delete the saved APNs key. */
   removeApnsKey: () => Promise<SecretKeyInfo>;
-  /** New token for the iOS app (control.json scripts keep theirs); returns the status with the new link. */
+  /** Saved Firebase service account state, for Android alerts (the key itself never leaves main). */
+  getFcmKeyInfo: () => Promise<SecretKeyInfo>;
+  /** Pick a service account JSON and import it into encrypted app storage. */
+  pickFcmKey: () => Promise<SecretKeyInfo>;
+  /** Delete the saved Firebase service account. */
+  removeFcmKey: () => Promise<SecretKeyInfo>;
+  /** New token for the mobile apps (control.json scripts keep theirs); returns the status with the new link. */
   rotateControlToken: () => Promise<RemoteStatus>;
   /**
    * Save a pasted image to a temp file and return its path.

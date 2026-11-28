@@ -29,9 +29,9 @@ final class PairViewController: UIViewController {
         steps.font = .preferredFont(forTextStyle: .body)
         steps.textColor = .secondaryLabel
         steps.text = """
-        1. On your Mac, open Birdsong Settings and tick Allow the iOS app over Tailscale.
+        1. On your Mac, open Birdsong Settings and tick Allow the mobile apps over Tailscale.
         2. Run the tailscale serve command it shows, once.
-        3. Click Copy iOS Link and paste it here.
+        3. Click Copy Pairing Link and paste it here.
         """
 
         linkField.placeholder = "birdsong://…"

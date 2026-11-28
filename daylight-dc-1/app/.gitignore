@@ -1,1 +1,3 @@
 /build
+# Your Firebase project config for turn alerts (see README).
+google-services.json

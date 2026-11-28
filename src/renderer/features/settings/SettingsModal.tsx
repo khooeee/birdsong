@@ -10,6 +10,7 @@ import { draftFromSettings } from "./draftFromSettings";
 import { GeneralSettingsFields } from "./GeneralSettingsFields";
 import { HomeSettingsFields } from "./HomeSettingsFields";
 import { patchFromDraft } from "./patchFromDraft";
+import { PushSettingsFields } from "./PushSettingsFields";
 import { RemoteSettingsFields } from "./RemoteSettingsFields";
 import type { SettingsDraft } from "./SettingsDraft";
 import "../modals/modal.css";
@@ -65,6 +66,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           <McpSettingsFields draft={draft} busy={busy} onChange={onChange} />
           <VoiceSettingsFields draft={draft} busy={busy} onChange={onChange} />
           <RemoteSettingsFields draft={draft} busy={busy} onChange={onChange} />
+          <PushSettingsFields draft={draft} busy={busy} onChange={onChange} />
         </div>
         {error && <div style={{ color: "var(--danger)" }}>{error}</div>}
         <div className="composer-actions" style={{ justifyContent: "flex-end" }}>

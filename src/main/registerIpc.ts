@@ -29,6 +29,8 @@ import { readMcpServersFile } from "./mcp/custom/readMcpServersFile";
 import { saveMcpServersFile } from "./mcp/custom/saveMcpServersFile";
 import { apnsKeyStore } from "./push/apnsKeyStore";
 import { pickApnsKey } from "./push/pickApnsKey";
+import { fcmKeyStore } from "./push/fcmKeyStore";
+import { pickFcmKey } from "./push/pickFcmKey";
 import { windowDialog } from "./dialogs/windowDialog";
 import type { VoiceAgent } from "./voice/VoiceAgent";
 
@@ -161,6 +163,16 @@ export function registerIpc({
   ipcMain.handle("apns:removeKey", async () => {
     await apnsKeyStore.remove();
     return apnsKeyStore.info();
+  });
+  ipcMain.handle("fcm:keyInfo", () => fcmKeyStore.info());
+  ipcMain.handle("fcm:pickKey", async () => {
+    const picked = await pickFcmKey(getMainWindow());
+    if (picked) await fcmKeyStore.importFromPath(picked);
+    return fcmKeyStore.info();
+  });
+  ipcMain.handle("fcm:removeKey", async () => {
+    await fcmKeyStore.remove();
+    return fcmKeyStore.info();
   });
   ipcMain.handle("control:rotateToken", async () => {
     await control.rotateToken();

@@ -7,7 +7,8 @@ import type { PushSender } from "./PushSender";
 const SETTLE_MS = 2000;
 
 /**
- * Updates the app icon's badge when the unread count changes without an alert, e.g. a session read on the Mac.
+ * Updates the iPhone icon's badge, and takes down Android alerts, when the unread count changes without an alert,
+ * e.g. a session read on the Mac.
  * An open event stream doesn't stop it: a phone that just left the app can look connected for a while.
  */
 export class BadgePush {

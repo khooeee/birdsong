@@ -6,7 +6,7 @@ import { patchAppSettings } from "./appSettingsCache";
 import type { SettingsFieldsProps } from "./SettingsFieldsProps";
 
 /**
- * iOS access: the checkbox applies at once (unlike the rest of the modal) so pairing needs no reopen;
+ * Mobile app access: the checkbox applies at once (unlike the rest of the modal) so pairing needs no reopen;
  * the ports apply on Save. Status refreshes on window focus, e.g. after running `tailscale serve`.
  */
 export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsProps) {
@@ -15,13 +15,9 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
   const [rotating, setRotating] = useState(false);
   const [linkCopied, copyLink] = useCopiedFlash();
   const [pasteHint, setPasteHint] = useState(false);
-  const [apnsHasKey, setApnsHasKey] = useState(false);
-  const [apnsBusy, setApnsBusy] = useState(false);
-  const [apnsError, setApnsError] = useState<string | null>(null);
 
   const refresh = useCallback(() => {
     void window.birdsong.getRemoteStatus().then(setStatus);
-    void window.birdsong.getApnsKeyInfo().then((info) => setApnsHasKey(info.hasKey));
   }, []);
 
   useEffect(() => {
@@ -43,7 +39,7 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
 
   const rotateToken = async () => {
     const ok = window.confirm(
-      "Rotate the token? The iOS app will need the new link.",
+      "Rotate the token? The mobile apps will need the new link.",
     );
     if (!ok) return;
     setRotating(true);
@@ -64,7 +60,7 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
           disabled={busy || applying}
           onChange={(e) => void toggle(e.target.checked)}
         />
-        Allow the iOS app over Tailscale
+        Allow the mobile apps over Tailscale
       </label>
       {draft.remoteEnabled && (
         <div className="settings-note">
@@ -126,72 +122,11 @@ export function RemoteSettingsFields({ draft, busy, onChange }: SettingsFieldsPr
               setPasteHint(true);
             }}
           >
-            {linkCopied ? "Copied" : "Copy iOS Link"}
+            {linkCopied ? "Copied" : "Copy Pairing Link"}
           </button>
-          {pasteHint && " Paste the link into the iOS app."}
+          {pasteHint && " Paste the link into the iOS or Android app."}
         </div>
       )}
-      <label>
-        APNs key ID
-        <input
-          type="text"
-          value={draft.apnsKeyId}
-          disabled={busy}
-          spellCheck={false}
-          onChange={(e) => onChange({ apnsKeyId: e.target.value })}
-        />
-      </label>
-      <label>
-        APNs team ID
-        <input
-          type="text"
-          value={draft.apnsTeamId}
-          disabled={busy}
-          spellCheck={false}
-          onChange={(e) => onChange({ apnsTeamId: e.target.value })}
-        />
-      </label>
-      <div className="settings-note">
-        <button
-          type="button"
-          className="btn"
-          disabled={busy || apnsBusy}
-          onClick={() => {
-            setApnsBusy(true);
-            setApnsError(null);
-            void window.birdsong
-              .pickApnsKey()
-              .then((info) => setApnsHasKey(info.hasKey))
-              .catch((error) => setApnsError(error instanceof Error ? error.message : String(error)))
-              .finally(() => setApnsBusy(false));
-          }}
-        >
-          {apnsBusy ? "Saving…" : apnsHasKey ? "Change APNs Key" : "Choose APNs Key"}
-        </button>
-        {apnsHasKey ? " Saved in this app (encrypted)." : ""}
-        {apnsHasKey && (
-          <button
-            type="button"
-            className="btn"
-            disabled={busy || apnsBusy}
-            onClick={() => {
-              setApnsBusy(true);
-              setApnsError(null);
-              void window.birdsong
-                .removeApnsKey()
-                .then((info) => setApnsHasKey(info.hasKey))
-                .catch((error) => setApnsError(error instanceof Error ? error.message : String(error)))
-                .finally(() => setApnsBusy(false));
-            }}
-          >
-            Remove
-          </button>
-        )}
-      </div>
-      {apnsError && <div className="settings-warning">{apnsError}</div>}
-      <div className="settings-note">
-        Alerts the iPhone when a turn finishes and the app is in the background. Use the .p8 from the Apple developer portal.
-      </div>
     </>
   );
 }

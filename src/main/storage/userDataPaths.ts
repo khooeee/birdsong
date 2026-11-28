@@ -68,7 +68,12 @@ export function apnsKeyEncPath(): string {
   return path.join(userDataDir(), "apns-key.enc");
 }
 
-/** iPhones registered for a push when a turn finishes. */
+/** Firebase service account (JSON) for Android alerts, imported into app data and encrypted with safeStorage. */
+export function fcmKeyEncPath(): string {
+  return path.join(userDataDir(), "fcm-key.enc");
+}
+
+/** Phones and tablets registered for a push when a turn finishes. */
 export function pushDevicesPath(): string {
   return path.join(userDataDir(), "push-devices.json");
 }
