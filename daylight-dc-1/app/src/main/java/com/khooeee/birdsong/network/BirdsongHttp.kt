@@ -4,6 +4,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 import kotlin.time.Duration
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.channels.trySendBlocking
 import kotlinx.coroutines.delay
@@ -91,10 +92,11 @@ class BirdsongHttp(private val config: ServerConfig) {
     }
 
     /** New requests open fresh connections, rather than queue on one that may be dead. Idle-only eviction can't retire a busy one, so swap the pool. */
-    fun dropConnections() {
+    suspend fun dropConnections() {
         val old = client
         client = old.newBuilder().connectionPool(ConnectionPool()).build()
-        old.connectionPool.evictAll()
+        // Closing a TLS connection writes to its socket, which Android forbids on the main thread.
+        withContext(Dispatchers.IO + NonCancellable) { old.connectionPool.evictAll() }
     }
 
     private fun request(path: List<String>): Request.Builder {
