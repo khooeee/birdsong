@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.khooeee.birdsong.model.Session
@@ -98,7 +99,9 @@ private fun SessionColumn(
                 SessionRow(it, pinned = true, selected = it.id == selectedId, model, onRename)
             }
         }
-        item(key = "recent-header", contentType = "header") { SectionHeader("Recent") }
+        item(key = "recent-header", contentType = "header") {
+            SectionHeader("Recent", top = if (pinned.isEmpty()) 16.dp else 40.dp)
+        }
         items(recent, key = { "recent:${it.id}" }, contentType = { "session" }) {
             SessionRow(it, pinned = false, selected = it.id == selectedId, model, onRename)
         }
@@ -106,10 +109,10 @@ private fun SessionColumn(
 }
 
 @Composable
-private fun SectionHeader(text: String) {
+private fun SectionHeader(text: String, top: Dp = 16.dp) {
     Text(
         text,
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp, bottom = 4.dp),
+        modifier = Modifier.padding(start = 16.dp, top = top, bottom = 4.dp),
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
