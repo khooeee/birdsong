@@ -11,6 +11,7 @@ class MainShortcutTest {
         assertEquals(MainShortcut.FocusPrompt, match(KeyEvent.KEYCODE_I))
         assertEquals(MainShortcut.FocusSearch, match(KeyEvent.KEYCODE_P))
         assertEquals(MainShortcut.NewSession, match(KeyEvent.KEYCODE_N))
+        assertEquals(MainShortcut.ForkSession, match(KeyEvent.KEYCODE_N, shift = true))
         assertEquals(MainShortcut.ToggleHome, match(KeyEvent.KEYCODE_1))
         assertEquals(MainShortcut.RenameSession, match(KeyEvent.KEYCODE_R))
         assertEquals(MainShortcut.ToggleUnread, match(KeyEvent.KEYCODE_U))

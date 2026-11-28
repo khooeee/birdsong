@@ -90,6 +90,7 @@ fun MainScreen(
             MainShortcut.FocusPrompt -> if (model.activeSession() != null) promptFocus.requestFocus()
             MainShortcut.FocusSearch -> searchFocus.requestFocus()
             MainShortcut.NewSession -> creating = true
+            MainShortcut.ForkSession -> model.forkActive()
             MainShortcut.ToggleHome -> model.toggleHome()
             MainShortcut.RenameSession -> {
                 renaming = model.activeSession()?.takeUnless { it.isHome }
