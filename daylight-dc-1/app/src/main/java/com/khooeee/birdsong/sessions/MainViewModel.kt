@@ -10,6 +10,7 @@ import com.khooeee.birdsong.network.RemoteEvent
 import com.khooeee.birdsong.notify.TurnNotifications
 import com.khooeee.birdsong.transcript.Drafts
 import com.khooeee.birdsong.ui.UserAlert
+import com.khooeee.birdsong.voice.VoiceController
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,7 +22,12 @@ import kotlinx.coroutines.sync.withLock
  * The desktop rail, live, and which session is open beside it. The open session is kept read, here and on the Mac,
  * and alerts for sessions read anywhere come down.
  */
-class MainViewModel(val client: BirdsongClient, private val notifications: TurnNotifications) : ViewModel() {
+class MainViewModel(
+    val client: BirdsongClient,
+    private val notifications: TurnNotifications,
+    /** The app's voice, shared by every session's mic. */
+    val voice: VoiceController,
+) : ViewModel() {
     private val mutableList = MutableStateFlow<SessionList?>(null)
     val list: StateFlow<SessionList?> = mutableList.asStateFlow()
 

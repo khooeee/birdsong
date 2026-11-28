@@ -213,7 +213,7 @@ The phone uses the localhost control API, on a fixed port (7389 by default) that
 
 ## Android app (Daylight DC-1)
 
-`daylight-dc-1/` is an Android client built for the [Daylight DC-1](https://daylightcomputer.com) tablet (Android 13, grayscale display). It does what the iOS app does except voice, with the session list and the transcript side by side in both orientations. It pairs with the same link and reaches the Mac over Tailscale the same way.
+`daylight-dc-1/` is an Android client built for the [Daylight DC-1](https://daylightcomputer.com) tablet (Android 13, grayscale display). It does what the iOS app does, voice included, with the session list and the transcript side by side in both orientations. It pairs with the same link and reaches the Mac over Tailscale the same way.
 
 Build and install
 1. Install [Android Studio](https://developer.android.com/studio) (or the Android SDK with platform 37) and JDK 17 or later.
@@ -222,6 +222,10 @@ Build and install
 4. On the tablet, turn on USB debugging in Developer options and connect it by USB. Then run `adb install -r app/build/outputs/apk/debug/app-debug.apk`.
 5. Install Tailscale on the tablet and sign in to the same tailnet as the Mac.
 6. Follow steps 3–7 of the iOS setup on the Mac, then paste the link into the app. Opening a `birdsong://` link on the tablet also opens the app with the link filled in.
+
+### Voice on the Daylight
+
+Tap the mic at the top right of a session to talk to its voice agent; voice works as it does on the iPhone, with the same handover between devices and sessions, and the tablet's audio going straight to Inworld. The first tap asks for the microphone. The mic shows a gray fill while the call connects, then black, with a dots or waveform glyph while the agent thinks or speaks; nothing animates, for the paper screen. Audio plays on the speaker, or on a headset when one is connected. While voice is on, an ongoing notification keeps the call going with the screen off or another app in front, opens the session voice is on, and has **Stop**.
 
 To try it in the emulator, run `adb reverse tcp:7389 tcp:7389` and pair with `birdsong://localhost:7389?token=<token>`. Take `<token>` from the link **Copy Pairing Link** gives you, not from `~/.birdsong/control.json`: `/devices` only accepts the mobile token, so the control token can't register the emulator for alerts.
 

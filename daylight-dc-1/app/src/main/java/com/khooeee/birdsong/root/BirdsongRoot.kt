@@ -42,6 +42,8 @@ fun BirdsongRoot(app: BirdsongApplication, requests: LaunchRequests) {
         app.pairing.save(next)
         // Compare servers, not link text: two links to one Mac can differ in spelling but not in server.
         if (previous != null && previous.config.baseUrl != next.baseUrl) app.push.unregister(previous)
+        // Voice belongs to the old pairing's sessions.
+        app.voice.stop()
         repairPrefill = null
         requests.pairingLink.value = null
         config = next

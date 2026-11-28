@@ -5,8 +5,9 @@ import { readJson } from "./readJson";
 import { sendJson } from "./sendJson";
 
 /**
- * The iOS app's voice routes. The phone carries the call's audio straight to Inworld; this Mac keeps the key and
- * drives the call over its sideband, so the phone only calls here to start (on a session), open, resume and stop.
+ * The iOS and Daylight apps' voice routes. The phone or tablet carries the call's audio straight to Inworld; this Mac
+ * keeps the key and drives the call over its sideband, so the device only calls here to start (on a session), open,
+ * resume and stop.
  */
 export async function handleVoiceRequest(
   req: IncomingMessage,

@@ -22,6 +22,10 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.0.1"
+        // libwebrtc ships four ABIs: the DC-1 is arm64, and x86_64 runs on the emulator.
+        ndk {
+            abiFilters += setOf("arm64-v8a", "x86_64")
+        }
     }
 
     buildTypes {
@@ -61,6 +65,7 @@ dependencies {
     implementation(libs.commonmark.strikethrough)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.messaging)
+    implementation(libs.webrtc)
     testImplementation(libs.junit)
     debugImplementation(libs.androidx.compose.ui.tooling)
 }
