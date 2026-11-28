@@ -2,6 +2,7 @@ package com.khooeee.birdsong.transcript
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,7 @@ fun TranscriptPane(
     drafts: Drafts,
     voice: VoiceController,
     promptFocus: FocusRequester,
+    transcriptListState: LazyListState,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -54,7 +56,11 @@ fun TranscriptPane(
             when {
                 current == null -> EmptyState(loading = true)
                 current.isEmpty() -> EmptyState("No messages yet")
-                else -> TranscriptList(current, onDetails = { turnId, atEnd -> details = turnId to atEnd })
+                else -> TranscriptList(
+                    current,
+                    transcriptListState,
+                    onDetails = { turnId, atEnd -> details = turnId to atEnd },
+                )
             }
         }
         Composer(

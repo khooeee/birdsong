@@ -17,6 +17,8 @@ class MainShortcutTest {
         assertEquals(MainShortcut.TogglePin, match(KeyEvent.KEYCODE_P, alt = true))
         assertEquals(MainShortcut.NextSession, match(KeyEvent.KEYCODE_TAB))
         assertEquals(MainShortcut.PreviousSession, match(KeyEvent.KEYCODE_TAB, shift = true))
+        assertEquals(MainShortcut.PageUp, match(KeyEvent.KEYCODE_DPAD_UP))
+        assertEquals(MainShortcut.PageDown, match(KeyEvent.KEYCODE_DPAD_DOWN))
     }
 
     @Test
@@ -27,6 +29,7 @@ class MainShortcutTest {
         assertNull(match(KeyEvent.KEYCODE_I, meta = true))
         assertNull(match(KeyEvent.KEYCODE_I, shift = true))
         assertNull(match(KeyEvent.KEYCODE_P, alt = true, shift = true))
+        assertNull(match(KeyEvent.KEYCODE_DPAD_UP, shift = true))
     }
 
     private fun match(

@@ -3,7 +3,7 @@ package com.khooeee.birdsong.transcript
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -20,8 +20,11 @@ import com.khooeee.birdsong.model.RemoteTurn
  * the end stays in view; a new turn scrolls into view unless the user has scrolled up.
  */
 @Composable
-fun TranscriptList(turns: List<RemoteTurn>, onDetails: (turnId: String, atEnd: Boolean) -> Unit) {
-    val listState = rememberLazyListState()
+fun TranscriptList(
+    turns: List<RemoteTurn>,
+    listState: LazyListState,
+    onDetails: (turnId: String, atEnd: Boolean) -> Unit,
+) {
     var followsEnd by remember { mutableStateOf(true) }
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress to (listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0) }

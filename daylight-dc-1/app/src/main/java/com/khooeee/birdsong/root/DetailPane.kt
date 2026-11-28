@@ -1,6 +1,7 @@
 package com.khooeee.birdsong.root
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -15,7 +16,12 @@ import com.khooeee.birdsong.transcript.TranscriptPane
 
 /** The open session's transcript, or a hint until one is picked. */
 @Composable
-fun DetailPane(model: MainViewModel, promptFocus: FocusRequester, modifier: Modifier = Modifier) {
+fun DetailPane(
+    model: MainViewModel,
+    promptFocus: FocusRequester,
+    transcriptListState: LazyListState,
+    modifier: Modifier = Modifier,
+) {
     val list by model.list.collectAsStateWithLifecycle()
     val selectedId by model.selectedId.collectAsStateWithLifecycle()
     val session = list?.all?.firstOrNull { it.id == selectedId }
@@ -37,6 +43,7 @@ fun DetailPane(model: MainViewModel, promptFocus: FocusRequester, modifier: Modi
             drafts = model.drafts,
             voice = model.voice,
             promptFocus = promptFocus,
+            transcriptListState = transcriptListState,
             modifier = modifier,
         )
     }

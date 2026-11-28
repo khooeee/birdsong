@@ -4,11 +4,13 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -20,6 +22,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -40,6 +43,7 @@ import com.khooeee.birdsong.sessions.NewSessionDialog
 import com.khooeee.birdsong.sessions.RenameDialog
 import com.khooeee.birdsong.sessions.SessionListPane
 import com.khooeee.birdsong.usage.UsageDialog
+import kotlinx.coroutines.launch
 
 /** Two panes in either orientation: the rail on the left, the open session's transcript on the right. */
 @Composable
@@ -57,6 +61,7 @@ fun MainScreen(
         onStopOrDispose { model.stop() }
     }
     val list by model.list.collectAsStateWithLifecycle()
+    val selectedId by model.selectedId.collectAsStateWithLifecycle()
     val tappedSession by requests.sessionId.collectAsState()
     var filter by rememberSaveable { mutableStateOf("") }
     var creating by remember { mutableStateOf(false) }
@@ -65,10 +70,19 @@ fun MainScreen(
     val alert by model.alert.collectAsStateWithLifecycle()
     val promptFocus = remember { FocusRequester() }
     val searchFocus = remember { FocusRequester() }
+    val transcriptListState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(tappedSession) {
         tappedSession?.let(model::select)
         requests.sessionId.value = null
+    }
+    LaunchedEffect(selectedId) { transcriptListState.scrollToItem(0) }
+
+    fun pageTranscript(towardOlder: Boolean) {
+        val direction = if (towardOlder) 1f else -1f
+        val distance = transcriptListState.layoutInfo.viewportSize.height * direction
+        if (distance != 0f) scope.launch { transcriptListState.animateScrollBy(distance) }
     }
 
     val shortcutAction: (MainShortcut) -> Unit = { shortcut ->
@@ -83,6 +97,8 @@ fun MainScreen(
             MainShortcut.TogglePin -> model.togglePinActive()
             MainShortcut.NextSession -> model.stepSession(1, filter)
             MainShortcut.PreviousSession -> model.stepSession(-1, filter)
+            MainShortcut.PageUp -> pageTranscript(towardOlder = true)
+            MainShortcut.PageDown -> pageTranscript(towardOlder = false)
             MainShortcut.ToggleUnread -> model.toggleUnreadActive()
             MainShortcut.StopAgent -> model.stopActive()
         }
@@ -121,7 +137,7 @@ fun MainScreen(
                 modifier = Modifier.width(railWidth).fillMaxHeight(),
             )
             VerticalDivider()
-            DetailPane(model, promptFocus, Modifier.weight(1f).fillMaxHeight())
+            DetailPane(model, promptFocus, transcriptListState, Modifier.weight(1f).fillMaxHeight())
         }
     }
 
