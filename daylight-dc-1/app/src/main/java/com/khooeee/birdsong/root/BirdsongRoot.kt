@@ -22,7 +22,7 @@ import com.khooeee.birdsong.pairing.PairScreen
 
 /** Pairing until a link works, then the main screen; a tapped pairing link reopens the form, filled in. */
 @Composable
-fun BirdsongRoot(app: BirdsongApplication, requests: LaunchRequests) {
+fun BirdsongRoot(app: BirdsongApplication, requests: LaunchRequests, keyDispatcher: WindowKeyDispatcher) {
     var config by remember { mutableStateOf(app.pairing.load()) }
     var repairPrefill by remember { mutableStateOf<String?>(null) }
     val tappedLink by requests.pairingLink.collectAsState()
@@ -54,7 +54,14 @@ fun BirdsongRoot(app: BirdsongApplication, requests: LaunchRequests) {
             if (client == null) {
                 PairScreen(prefill = tappedLink, onPaired = paired)
             } else {
-                MainScreen(client, app, requests, onPair = { repairPrefill = client.config.link })
+                MainScreen(
+                    client = client,
+                    app = app,
+                    requests = requests,
+                    keyDispatcher = keyDispatcher,
+                    shortcutsEnabled = repairPrefill == null,
+                    onPair = { repairPrefill = client.config.link },
+                )
             }
         }
     }

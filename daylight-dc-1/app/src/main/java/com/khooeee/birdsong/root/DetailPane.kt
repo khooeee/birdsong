@@ -8,13 +8,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.khooeee.birdsong.sessions.MainViewModel
 import com.khooeee.birdsong.transcript.TranscriptPane
 
 /** The open session's transcript, or a hint until one is picked. */
 @Composable
-fun DetailPane(model: MainViewModel, modifier: Modifier = Modifier) {
+fun DetailPane(model: MainViewModel, promptFocus: FocusRequester, modifier: Modifier = Modifier) {
     val list by model.list.collectAsStateWithLifecycle()
     val selectedId by model.selectedId.collectAsStateWithLifecycle()
     val session = list?.all?.firstOrNull { it.id == selectedId }
@@ -35,6 +36,7 @@ fun DetailPane(model: MainViewModel, modifier: Modifier = Modifier) {
             onAlert = model::showAlert,
             drafts = model.drafts,
             voice = model.voice,
+            promptFocus = promptFocus,
             modifier = modifier,
         )
     }

@@ -9,6 +9,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.khooeee.birdsong.model.RemoteTurn
@@ -30,6 +31,7 @@ fun TranscriptPane(
     onAlert: (UserAlert) -> Unit,
     drafts: Drafts,
     voice: VoiceController,
+    promptFocus: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -59,6 +61,7 @@ fun TranscriptPane(
             client = client,
             session = session,
             drafts = drafts,
+            promptFocus = promptFocus,
             isRunning = turns.orEmpty().any { it.status == RemoteTurn.Status.Running && it.queued != true },
             onSend = { text, restore ->
                 state.send(text) { failed, e ->

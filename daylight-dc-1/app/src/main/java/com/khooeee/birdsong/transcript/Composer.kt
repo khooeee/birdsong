@@ -23,6 +23,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.unit.dp
 import com.khooeee.birdsong.model.Session
@@ -41,6 +43,7 @@ fun Composer(
     client: BirdsongClient,
     session: Session,
     drafts: Drafts,
+    promptFocus: FocusRequester,
     isRunning: Boolean,
     onSend: (text: String, restore: (String) -> Unit) -> Unit,
     onStop: () -> Unit,
@@ -79,6 +82,7 @@ fun Composer(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(max = 200.dp)
+                        .focusRequester(promptFocus)
                         .onPreviewKeyEvent { ComposerKeyHandler.onPreviewKeyEvent(it, send) },
                     placeholder = { Text(if (isRunning) "Steer…" else "Message") },
                     shape = MaterialTheme.shapes.extraLarge,
