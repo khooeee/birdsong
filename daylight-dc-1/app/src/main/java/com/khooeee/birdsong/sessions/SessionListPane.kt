@@ -18,11 +18,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -31,35 +29,42 @@ import com.khooeee.birdsong.network.StreamState
 import com.khooeee.birdsong.ui.BirdsongIcons
 import com.khooeee.birdsong.ui.EmptyState
 import com.khooeee.birdsong.ui.PaneHeader
-import com.khooeee.birdsong.usage.UsageDialog
 
 /** The desktop rail, live: pinned then recent, filtered by title. Home always shows. */
 @Composable
-fun SessionListPane(model: MainViewModel, onPair: () -> Unit, modifier: Modifier = Modifier) {
+fun SessionListPane(
+    model: MainViewModel,
+    onPair: () -> Unit,
+    filter: String,
+    onFilterChange: (String) -> Unit,
+    searchFocus: FocusRequester,
+    onNewSession: () -> Unit,
+    onShowUsage: () -> Unit,
+    onRename: (Session) -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val list by model.list.collectAsStateWithLifecycle()
     val connection by model.connection.collectAsStateWithLifecycle()
     val selectedId by model.selectedId.collectAsStateWithLifecycle()
-    var filter by rememberSaveable { mutableStateOf("") }
-    var creating by remember { mutableStateOf(false) }
-    var showingUsage by remember { mutableStateOf(false) }
-    var renaming by remember { mutableStateOf<Session?>(null) }
 
     Column(modifier) {
         PaneHeader("Sessions", subtitle = connection.notice?.takeIf { list != null }) {
-            IconButton(onClick = { creating = true }) { Icon(Icons.Filled.Add, contentDescription = "New session") }
-            IconButton(onClick = { showingUsage = true }) { Icon(BirdsongIcons.Usage, contentDescription = "Usage") }
+            IconButton(onClick = onNewSession) { Icon(Icons.Filled.Add, contentDescription = "New session") }
+            IconButton(onClick = onShowUsage) { Icon(BirdsongIcons.Usage, contentDescription = "Usage") }
             IconButton(onClick = onPair) { Icon(Icons.Filled.Settings, contentDescription = "Pairing") }
         }
         OutlinedTextField(
             value = filter,
-            onValueChange = { filter = it },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp),
+            onValueChange = onFilterChange,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 8.dp).focusRequester(searchFocus),
             singleLine = true,
             placeholder = { Text("Search") },
             leadingIcon = { Icon(Icons.Filled.Search, contentDescription = null) },
             trailingIcon = {
                 if (filter.isNotEmpty()) {
-                    IconButton(onClick = { filter = "" }) { Icon(Icons.Filled.Clear, contentDescription = "Clear search") }
+                    IconButton(onClick = { onFilterChange("") }) {
+                        Icon(Icons.Filled.Clear, contentDescription = "Clear search")
+                    }
                 }
             },
         )
@@ -71,22 +76,16 @@ fun SessionListPane(model: MainViewModel, onPair: () -> Unit, modifier: Modifier
                     EmptyState("Can't reach Birdsong", "${state.message}\nCheck Tailscale is on and Birdsong is open.")
                 current == null -> EmptyState(loading = true)
                 current.all.isEmpty() -> EmptyState("No sessions")
-                else -> SessionColumn(current.pinned.visible(filter), current.unpinned.visible(filter), selectedId, model) {
-                    renaming = it
-                }
+                else -> SessionColumn(
+                    SessionNavigation.visible(current.pinned, filter),
+                    SessionNavigation.visible(current.unpinned, filter),
+                    selectedId,
+                    model,
+                    onRename,
+                )
             }
         }
     }
-    if (creating) {
-        NewSessionDialog(
-            client = model.client,
-            recent = list?.let { it.unpinned + it.pinned }.orEmpty(),
-            onCreated = { model.select(it.id) },
-            onDismiss = { creating = false },
-        )
-    }
-    if (showingUsage) UsageDialog(model.client, onDismiss = { showingUsage = false })
-    renaming?.let { RenameDialog(model.client, it, onDismiss = { renaming = null }) }
 }
 
 @Composable
@@ -121,9 +120,4 @@ private fun SectionHeader(text: String, top: Dp = 16.dp) {
         style = MaterialTheme.typography.labelLarge,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
-}
-
-private fun List<Session>.visible(filter: String): List<Session> {
-    val needle = filter.trim()
-    return filter { it.isHome || needle.isEmpty() || it.title.contains(needle, ignoreCase = true) }
 }

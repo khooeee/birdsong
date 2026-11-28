@@ -2,17 +2,20 @@ package com.khooeee.birdsong
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.khooeee.birdsong.app.BirdsongApplication
 import com.khooeee.birdsong.app.LaunchRequests
 import com.khooeee.birdsong.root.BirdsongRoot
+import com.khooeee.birdsong.root.WindowKeyDispatcher
 import com.khooeee.birdsong.ui.theme.BirdsongTheme
 
 /** The only activity: pairing until a link works, then sessions beside the open transcript. */
 class MainActivity : ComponentActivity() {
     private val requests = LaunchRequests()
+    private val keyDispatcher = WindowKeyDispatcher()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,9 +24,14 @@ class MainActivity : ComponentActivity() {
         val app = application as BirdsongApplication
         setContent {
             BirdsongTheme {
-                BirdsongRoot(app, requests)
+                BirdsongRoot(app, requests, keyDispatcher)
             }
         }
+    }
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (keyDispatcher.dispatch(event)) return true
+        return super.dispatchKeyEvent(event)
     }
 
     override fun onNewIntent(intent: Intent) {
