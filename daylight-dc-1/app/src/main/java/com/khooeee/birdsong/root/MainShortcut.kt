@@ -37,7 +37,6 @@ enum class MainShortcut(val allowsRepeat: Boolean = false) {
                 isAltPressed = event.isAltPressed,
                 isShiftPressed = event.isShiftPressed,
                 isMetaPressed = event.isMetaPressed,
-                isFunctionPressed = event.isFunctionPressed,
                 isPhysicalKeyboard = ComposerKeyHandler.isPhysicalKeyboard(
                     deviceId = event.deviceId,
                     flags = event.flags,
@@ -69,18 +68,11 @@ enum class MainShortcut(val allowsRepeat: Boolean = false) {
             isAltPressed: Boolean,
             isShiftPressed: Boolean,
             isMetaPressed: Boolean,
-            isFunctionPressed: Boolean,
             isPhysicalKeyboard: Boolean,
         ): MainShortcut? {
             if (!isPhysicalKeyboard) return null
             if (keyCode == KeyEvent.KEYCODE_ESCAPE) {
                 return if (!isCtrlPressed && !isAltPressed && !isShiftPressed && !isMetaPressed) StopAgent else null
-            }
-            if (!isCtrlPressed && !isAltPressed && !isShiftPressed && !isMetaPressed) {
-                if (keyCode == KeyEvent.KEYCODE_PAGE_UP) return PageUp
-                if (keyCode == KeyEvent.KEYCODE_PAGE_DOWN) return PageDown
-                if (isFunctionPressed && keyCode == KeyEvent.KEYCODE_DPAD_UP) return PageUp
-                if (isFunctionPressed && keyCode == KeyEvent.KEYCODE_DPAD_DOWN) return PageDown
             }
             if (!isCtrlPressed || isMetaPressed) return null
             if (isAltPressed) {

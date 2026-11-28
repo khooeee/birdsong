@@ -20,10 +20,6 @@ class MainShortcutTest {
         assertEquals(MainShortcut.PreviousSession, match(KeyEvent.KEYCODE_TAB, shift = true))
         assertEquals(MainShortcut.PageUp, match(KeyEvent.KEYCODE_DPAD_UP))
         assertEquals(MainShortcut.PageDown, match(KeyEvent.KEYCODE_DPAD_DOWN))
-        assertEquals(MainShortcut.PageUp, match(KeyEvent.KEYCODE_PAGE_UP, ctrl = false))
-        assertEquals(MainShortcut.PageDown, match(KeyEvent.KEYCODE_PAGE_DOWN, ctrl = false))
-        assertEquals(MainShortcut.PageUp, match(KeyEvent.KEYCODE_DPAD_UP, ctrl = false, function = true))
-        assertEquals(MainShortcut.PageDown, match(KeyEvent.KEYCODE_DPAD_DOWN, ctrl = false, function = true))
     }
 
     @Test
@@ -44,6 +40,5 @@ class MainShortcutTest {
         shift: Boolean = false,
         meta: Boolean = false,
         physical: Boolean = true,
-        function: Boolean = false,
-    ) = MainShortcut.match(keyCode, ctrl, alt, shift, meta, function, physical)
+    ) = MainShortcut.match(keyCode, ctrl, alt, shift, meta, physical)
 }
