@@ -2,5 +2,7 @@
 <resources>
     <style name="Theme.Birdsong" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:windowBackground">@color/white</item>
+        <!-- Splash uses the bird alone; the launcher icon's dark tile clashes with a white window. -->
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_bird</item>
     </style>
 </resources>
