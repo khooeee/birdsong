@@ -8,6 +8,7 @@ enum class SessionAgent(val raw: String, val label: String) {
     Copilot("copilot", "Copilot"),
     Cursor("cursor", "Cursor"),
     Devin("devin", "Devin"),
+    Kilo("kilo", "Kilo"),
     Vibe("vibe", "Mistral Vibe"),
     OpenCode("opencode", "OpenCode"),
     Pi("pi", "Pi");
