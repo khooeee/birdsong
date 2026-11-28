@@ -112,6 +112,14 @@ export const AGENT_PRESETS: Record<AgentKind, AgentPreset> = {
     args: ["acp"],
     loginHint: "Devin is not signed in. Run `devin auth login` in a terminal, then try again.",
   },
+  kilo: {
+    kind: "kilo",
+    get command() {
+      return resolvePathCommand("kilo");
+    },
+    args: ["acp"],
+    loginHint: "Kilo is not signed in. Run `kilo auth login` in a terminal, then try again.",
+  },
   vibe: {
     kind: "vibe",
     get command() {
