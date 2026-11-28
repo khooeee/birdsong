@@ -23,13 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isMetaPressed
-import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import com.khooeee.birdsong.model.Session
 import com.khooeee.birdsong.network.BirdsongClient
@@ -38,8 +32,9 @@ import com.khooeee.birdsong.ui.BirdsongIcons
 import com.khooeee.birdsong.ui.UserAlert
 
 /**
- * The prompt field with Send and, while a turn runs, Stop; sending then steers (or queues). Ctrl or Cmd+Enter sends
- * from a keyboard. A pending quota continuation shows above with Cancel; the model and effort pills below.
+ * The prompt field with Send and, while a turn runs, Stop; sending then steers (or queues). Enter sends from a
+ * physical keyboard (Shift+Enter inserts a newline); on-screen keyboards insert a newline. A pending quota
+ * continuation shows above with Cancel; the model and effort pills below.
  */
 @Composable
 fun Composer(
@@ -84,11 +79,7 @@ fun Composer(
                     modifier = Modifier
                         .weight(1f)
                         .heightIn(max = 200.dp)
-                        .onPreviewKeyEvent { event ->
-                            val chord = event.key == Key.Enter && (event.isCtrlPressed || event.isMetaPressed)
-                            if (chord && event.type == KeyEventType.KeyDown) send()
-                            chord
-                        },
+                        .onPreviewKeyEvent { ComposerKeyHandler.onPreviewKeyEvent(it, send) },
                     placeholder = { Text(if (isRunning) "Steer…" else "Message") },
                     shape = MaterialTheme.shapes.extraLarge,
                 )
