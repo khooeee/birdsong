@@ -109,7 +109,7 @@ class BirdsongClient(val config: ServerConfig) {
      */
     fun events(path: List<String>, firstWithin: Duration): Flow<RemoteEvent> = http.events(path, firstWithin)
 
-    fun dropConnections() = http.dropConnections()
+    suspend fun dropConnections() = http.dropConnections()
 
     private fun deviceBody(token: String) = buildJsonObject {
         put("platform", "fcm")

@@ -5,7 +5,9 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -55,6 +57,8 @@ class EventSubscription(
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
+                // Stopping cancels the request, which can surface as an I/O error rather than a cancellation.
+                currentCoroutineContext().ensureActive()
                 failure = e.message ?: "Disconnected"
                 // These mean the Mac answered, so other requests can keep using the connection.
                 if (e !is ServerError && e !is SerializationException) client.dropConnections()
